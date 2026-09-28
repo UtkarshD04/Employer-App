@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "MZOBS Employer",
+    "slug": "mzobs-employer-app",
+    "version": "1.0.0",
+    "scheme": "mzobs-employer",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.mzobs.employer",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.mzobs.employer",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#002C69",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": { "favicon": "./assets/favicon.png" },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font",
+      ["expo-notifications", { "color": "#08685E", "defaultChannel": "default" }],
+      "expo-web-browser",
+      ["expo-splash-screen", { "image": "./assets/splash-icon.png", "resizeMode": "contain", "backgroundColor": "#002C69" }],
+      ["expo-build-properties", { "android": { "targetSdkVersion": 36, "compileSdkVersion": 36, "minSdkVersion": 24 } }]
+    ]
+  }
+}
