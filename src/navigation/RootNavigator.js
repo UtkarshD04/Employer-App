@@ -6,6 +6,7 @@ import { useTheme } from '../theme'
 import { navigationRef } from '../lib/navigation'
 import { AskAIProvider } from '../store/askai'
 import { ToastStack } from '../components/web/Shell'
+import LandingScreen from '../screens/auth/LandingScreen'
 import LoginScreen from '../screens/auth/LoginScreen'
 import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen'
 // The recruiter website's screens, one for one.
@@ -81,7 +82,8 @@ export default function RootNavigator() {
           <ToastStack />
         </AskAIProvider>
       ) : (
-        <Stack.Navigator screenOptions={screenOptions}>
+        <Stack.Navigator screenOptions={screenOptions} initialRouteName="Landing">
+          <Stack.Screen name="Landing" component={LandingScreen} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ title: 'Reset password' }} />
         </Stack.Navigator>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native'
+import { Feather } from '@expo/vector-icons'
 import { useTheme } from '../../theme'
 import { useAuth } from '../../context/AuthContext'
 import { errorMessage } from '../../lib/api'
@@ -30,6 +31,11 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {navigation.canGoBack() ? (
+        <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={{ marginTop: spacing.xl, marginLeft: spacing.xl }}>
+          <Feather name="arrow-left" size={20} color={colors.ink} />
+        </Pressable>
+      ) : null}
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.xl, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
         <FadeIn style={{ alignItems: 'center', gap: 6, marginBottom: spacing.md }}>
           <Image source={isDark ? require('../../../assets/logo-dark.png') : require('../../../assets/logo.png')} style={{ height: 64, width: 64 * (5000 / 2725), marginVertical: -12 }} resizeMode="contain" />
