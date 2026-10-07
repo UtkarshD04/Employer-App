@@ -1,4 +1,4 @@
-import { Image, Linking, ScrollView, View } from 'react-native'
+import { Image, ScrollView, View } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useTheme } from '../../theme'
 import { Button, FadeIn, Text } from '../../components/ui'
@@ -32,8 +32,8 @@ export default function LandingScreen({ navigation }) {
         </FadeIn>
 
         <FadeIn delay={80} style={{ gap: spacing.sm }}>
-          <Button title="Sign in" onPress={() => navigation.navigate('Login')} />
-          <Button title="Create a company account" variant="secondary" onPress={() => Linking.openURL('https://mzobs.com/employers/signup')} />
+          <Button title="Login" onPress={() => navigation.navigate('Login')} />
+          <Button title="Register" variant="secondary" onPress={() => navigation.navigate('Register')} />
         </FadeIn>
 
         <FadeIn delay={140} style={{ gap: spacing.md }}>

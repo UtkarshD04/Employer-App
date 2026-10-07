@@ -6,6 +6,10 @@ export const getCreditPlans = () => apiClient.get('/plans').then((r) => r.data) 
 export const listPurchases = () => apiClient.get('/credits/purchases', { params: { limit: 50 } }).then((r) => r.data)
 export const listUnlocks = () => fetchAll('/unlocks', { limit: 100, maxPages: 10 })
 
+// "Customize plan" form — lands in the Operations portal's Plan enquiries page.
+export const submitPlanEnquiry = ({ name, companyName, phone, email }) =>
+  apiClient.post('/plan-enquiries', { name, companyName, phone, email, source: 'app' }).then((r) => r.data)
+
 export const previewCreditCoupon = (planId, code) => apiClient.post('/payments/coupon/preview', { planId, code }).then((r) => r.data)
 export const previewPlanCoupon = (planCode, code) => apiClient.post('/subscription/coupon/preview', { planCode, code }).then((r) => r.data)
 

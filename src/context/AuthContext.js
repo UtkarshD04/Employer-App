@@ -64,6 +64,14 @@ export function AuthProvider({ children }) {
     syncPushToken()
   }, [])
 
+  // Establishes the session from a { token, user, company } response the auth service
+  // already persisted (phone-OTP login and signup).
+  const startSession = useCallback((data) => {
+    setToken(data.token)
+    setSession({ user: data.user, company: data.company })
+    syncPushToken()
+  }, [])
+
   const value = {
     token,
     user: session?.user ?? null,
@@ -71,6 +79,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!token,
     isBootstrapping,
     signIn,
+    startSession,
     logout,
   }
 

@@ -17,7 +17,7 @@
     },
     "android": {
       "package": "com.mzobs.employer",
-      "versionCode": 1,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#002C69",
         "foregroundImage": "./assets/android-icon-foreground.png",

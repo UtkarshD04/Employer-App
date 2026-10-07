@@ -5,7 +5,7 @@ import { apiClient } from '../lib/api'
 import { openRazorpayCheckout } from '../lib/razorpay'
 import { getCredits, getSubscription, purchaseCredits as buyCredits, purchasePlan as buyPlan } from './billingService'
 
-export { getSubscription, getCredits as getWallet, getCreditPlans as getPlans, listPurchases, previewCreditCoupon as previewCoupon, previewPlanCoupon as previewSubscriptionCoupon } from './billingService'
+export { getSubscription, getCredits as getWallet, getCreditPlans as getPlans, listPurchases, submitPlanEnquiry, previewCreditCoupon as previewCoupon, previewPlanCoupon as previewSubscriptionCoupon } from './billingService'
 export const listPlanPayments = () => apiClient.get('/payments', { params: { limit: 50 } }).then((r) => r.data)
 export const listUnlockHistory = () => apiClient.get('/unlocks', { params: { limit: 50 } }).then((r) => r.data)
 

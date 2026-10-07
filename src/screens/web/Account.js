@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
-import { Bell, CheckCheck, CreditCard, FileText, HelpCircle, LifeBuoy, Building2, LogOut, Mail, Settings as Cog, Users } from 'lucide-react-native'
+import { Bell, CheckCheck, CreditCard, FileText, HelpCircle, LifeBuoy, Building2, LogOut, Mail, Settings as Cog, Trash2, Users } from 'lucide-react-native'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigation } from '@react-navigation/native'
 import { PageScroll, PageTitle, Shell, useSignOut } from '../../components/web/Shell'
-import { Btn, C, EmptyState, Field, Input, Select, Skeleton, T, card } from '../../components/wk'
+import { Btn, C, EmptyState, Field, Input, Select, Sheet, Skeleton, T, card } from '../../components/wk'
 import { useAuth } from '../../context/AuthContext'
 import { useWorkspace } from '../../store/workspace'
 import { listNotifications, markAllRead, markRead } from '../../services/notificationsService'
 import { TICKET_CATEGORIES, submitTicket } from '../../services/supportService'
+import { deleteAccount } from '../../services/authService'
 import { queryKeys } from '../../lib/queryClient'
 import { formatRelative } from '../../lib/format'
 
@@ -118,6 +119,55 @@ export function HelpScreen() {
   )
 }
 
+// Permanent, in-app account deletion (required by Google Play). The backend refuses when this
+// person is the only admin and the team still has members, and the message says what to do.
+function DeleteAccount() {
+  const { logout } = useAuth()
+  const { toast } = useWorkspace()
+  const [open, setOpen] = useState(false)
+  const [confirm, setConfirm] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const close = () => { if (!busy) { setOpen(false); setConfirm(''); setError('') } }
+  const run = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      await deleteAccount()
+      toast('Your account has been deleted')
+      await logout()
+    } catch (e) {
+      setError(e.response?.data?.message ?? 'Couldn’t delete your account. Please try again.')
+      setBusy(false)
+    }
+  }
+  return (
+    <>
+      <View style={[card, { padding: 20, gap: 10 }]}>
+        <T s={15} w="s">Delete account</T>
+        <T s={13} c={C.muted}>Permanently delete your Mzobs employer account and personal details. This can’t be undone.</T>
+        <Btn icon={Trash2} onPress={() => setOpen(true)} textStyle={{ color: C.bad }} style={{ alignSelf: 'flex-start' }}>Delete my account</Btn>
+      </View>
+      <Sheet
+        open={open}
+        onClose={close}
+        title="Delete your account?"
+        footer={<><Btn onPress={close} disabled={busy}>Cancel</Btn><Btn variant="primary" loading={busy} disabled={confirm.trim() !== 'DELETE'} onPress={run}>Delete permanently</Btn></>}
+      >
+        <View style={{ gap: 12 }}>
+          <T s={13.5} c={C.ink2}>This permanently removes your name, email, phone number and support tickets.</T>
+          <T s={13.5} c={C.ink2}>If you are the only person on your company account, the company is closed too: open jobs are closed and the company profile is cleared.</T>
+          <T s={13.5} c={C.ink2}>Payment, invoice and plan records, and the hiring history of candidates you contacted or unlocked, are kept for tax and audit purposes.</T>
+          <Field label="Type DELETE to confirm">
+            <Input value={confirm} onChangeText={setConfirm} autoCapitalize="characters" autoCorrect={false} placeholder="DELETE" />
+          </Field>
+          {error ? <T s={12.5} c={C.bad}>{error}</T> : null}
+        </View>
+      </Sheet>
+    </>
+  )
+}
+
 export function SettingsScreen() {
   const nav = useNavigation()
   const { user, company } = useAuth()
@@ -156,6 +206,7 @@ export function SettingsScreen() {
           </View>
         </View>
         <Btn icon={LogOut} onPress={signOut} style={{ alignSelf: 'flex-start' }}>Sign out</Btn>
+        <DeleteAccount />
         <T s={12} c={C.muted}>Password and profile changes are managed from your Mzobs employer account. <T s={12} c={C.accent} onPress={() => nav.navigate('Help')}>Need help?</T></T>
       </PageScroll>
     </Shell>

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
-import { AlertTriangle, CheckCircle2, Coins, CreditCard, ShieldCheck, Tag, Ticket, XCircle } from 'lucide-react-native'
+import { AlertTriangle, CheckCircle2, Coins, CreditCard, ShieldCheck, SlidersHorizontal, Tag, Ticket, XCircle } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
-import { Btn, C, EmptyState, F, Skeleton, T, card } from '../../components/wk'
+import { Btn, C, EmptyState, F, Field, Input, Sheet, Skeleton, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { agoDate } from '../../lib/tfmt'
-import { getPlans, getSubscription, getWallet, isCancel, listPlanPayments, listPurchases, listUnlockHistory, paymentError, previewCoupon, previewSubscriptionCoupon, purchaseCredits, purchaseSubscription } from '../../services/plan'
+import { getPlans, getSubscription, getWallet, isCancel, listPlanPayments, listPurchases, listUnlockHistory, paymentError, previewCoupon, previewSubscriptionCoupon, purchaseCredits, purchaseSubscription, submitPlanEnquiry } from '../../services/plan'
 
 const rupees = (paise) => `₹${(paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
 const dateOf = (iso) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
@@ -57,6 +57,58 @@ function TierCard({ plan: p, onBuy, busy }) {
   )
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// "Customize plan" — for employers who don't fit the fixed tiers. Submissions go to the
+// Operations team (Plan enquiries), who call back with a quote.
+function CustomPlanCard() {
+  const { toast } = useWorkspace()
+  const [open, setOpen] = useState(false)
+  const [form, setForm] = useState({ name: '', companyName: '', phone: '', email: '' })
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: k === 'phone' ? v.replace(/\D/g, '').slice(0, 10) : v }))
+  const valid = form.name.trim() && form.companyName.trim() && form.phone.length === 10 && EMAIL_RE.test(form.email.trim())
+  const close = () => { if (!busy) { setOpen(false); setError('') } }
+  const submit = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      await submitPlanEnquiry(form)
+      setOpen(false)
+      setForm({ name: '', companyName: '', phone: '', email: '' })
+      toast('Request sent — our team will call you soon')
+    } catch (e) {
+      setError(e.response?.data?.message ?? 'Couldn’t send your request. Please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <View style={{ borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: C.accent, backgroundColor: C.panel, padding: 16 }}>
+      <T s={13} w="s" c={C.muted} style={{ letterSpacing: 0.6 }}>CUSTOMIZE PLAN</T>
+      <T s={26} w="b" style={{ marginTop: 6 }}>Let’s talk</T>
+      <T s={12} c={C.muted}>A plan shaped around your hiring volume and team.</T>
+      <Btn icon={SlidersHorizontal} onPress={() => setOpen(true)} style={{ marginTop: 14 }}>Customize plan</Btn>
+      <Sheet
+        open={open}
+        onClose={close}
+        title="Customize your plan"
+        subtitle="Share your details and our team will get back to you."
+        footer={<><Btn onPress={close} disabled={busy}>Cancel</Btn><Btn variant="primary" loading={busy} disabled={!valid} onPress={submit}>Submit</Btn></>}
+      >
+        <View style={{ gap: 14 }}>
+          <Field label="Your name"><Input value={form.name} onChangeText={set('name')} maxLength={120} autoComplete="name" /></Field>
+          <Field label="Company name"><Input value={form.companyName} onChangeText={set('companyName')} maxLength={200} /></Field>
+          <Field label="Phone number"><Input value={form.phone} onChangeText={set('phone')} keyboardType="number-pad" placeholder="98765 43210" /></Field>
+          <Field label="Email"><Input value={form.email} onChangeText={set('email')} keyboardType="email-address" autoCapitalize="none" autoComplete="email" maxLength={200} /></Field>
+          {error ? <T s={12.5} c={C.bad}>{error}</T> : null}
+        </View>
+      </Sheet>
+    </View>
+  )
+}
+
 function SubscriptionCard({ data, onBuy, busy }) {
   const { subscription: s, isActive } = data
   const left = daysLeft(s?.expiresAt)
@@ -79,8 +131,11 @@ function SubscriptionCard({ data, onBuy, busy }) {
         <View style={{ marginTop: 16, gap: 16 }}>
           {(data.plans ?? []).map((p) => <TierCard key={p.planCode} plan={p} busy={busy === p.planCode} onBuy={onBuy} />)}
           {!(data.plans ?? []).length ? <T s={13} c={C.muted}>Plans are not available from the server right now.</T> : null}
+          <CustomPlanCard />
         </View>
-      ) : null}
+      ) : (
+        <View style={{ marginTop: 16 }}><CustomPlanCard /></View>
+      )}
     </Card>
   )
 }
