@@ -196,3 +196,21 @@ export function criteriaTitle(c) {
   if (c.expMin != null || c.expMax != null) parts.push(`${c.expMin ?? 0}–${c.expMax ?? '+'} yrs`)
   return parts.join(' · ') || 'Untitled search'
 }
+
+// Why a candidate can be turned down. The pick (plus any detail) is sent as the rejection reason and shows up
+// word for word in the candidate's application tracking, so these are worded to be read by the candidate.
+export const REJECTION_REASONS = [
+  'Skills do not match the role requirements',
+  'Not enough relevant experience',
+  'Did not clear the technical round',
+  'Did not clear the HR round',
+  'Salary expectations do not match',
+  'Notice period is too long',
+  'The position has been filled or put on hold',
+]
+
+// What goes to the API: the chosen reason, with the employer's own words after it.
+export function composeRejectionReason(preset, detail) {
+  const d = String(detail ?? '').trim()
+  return [preset, d].filter(Boolean).join(' - ')
+}

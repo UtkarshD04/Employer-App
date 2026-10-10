@@ -10,7 +10,7 @@ import { ResumeFrame, ResumeLinks } from '../../components/web/ResumeViewer'
 import { Avatar, Banner, Btn, C, Chip, EmptyState, F, Input, MatchBadge, SectionCard, Sheet, Skeleton, StatusPill, T, TrustScore, VerifiedBadge, Press } from '../../components/wk'
 import { findSimilar, getTalent } from '../../services/talent'
 import { getResumeLink, setCandidateStage } from '../../services/talentApi'
-import { STAGES, STAGE_LABELS } from '../../lib/talent/criteria'
+import { STAGES, STAGE_LABELS, REJECTION_REASONS, composeRejectionReason } from '../../lib/talent/criteria'
 import { MATCH_LABELS, computeMatch, computeTrust } from '../../lib/talent/engine'
 import { loadLastCriteria, loadLastResults } from '../../lib/lastSearch'
 import { useWorkspace } from '../../store/workspace'
@@ -117,7 +117,8 @@ export default function CandidateProfileScreen({ route }) {
   const [c, setC] = useState(undefined)
   const [similar, setSimilar] = useState(null)
   const [stageBusy, setStageBusy] = useState(false)
-  const [reject, setReject] = useState(null) // reason text while the reject sheet is open
+  const [reject, setReject] = useState(null) // detail text while the reject sheet is open
+  const [rejectPreset, setRejectPreset] = useState('')
 
   const reload = () => getTalent(id).then((x) => setC(x ?? null))
   const { onAction, host } = useActions(criteria, { onUnlocked: reload })
@@ -238,7 +239,7 @@ export default function CandidateProfileScreen({ route }) {
               <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, borderTopWidth: 1, borderTopColor: C.line2, paddingTop: 16 }}>
                 <T s={12} w="m" c={C.muted} style={{ letterSpacing: 0.6 }}>PIPELINE</T>
                 {STAGES.map((st) => (
-                  <Press key={st} disabled={stageBusy || c.stage === st} scale={0.95} onPress={() => (st === 'rejected' ? setReject('') : moveStage(st))} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: c.stage === st ? C.accent : C.line, backgroundColor: c.stage === st ? C.accentSoft : '#fff', paddingHorizontal: 12, opacity: stageBusy && c.stage !== st ? 0.5 : 1 }}>
+                  <Press key={st} disabled={stageBusy || c.stage === st} scale={0.95} onPress={() => (st === 'rejected' ? (setRejectPreset(''), setReject('')) : moveStage(st))} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: c.stage === st ? C.accent : C.line, backgroundColor: c.stage === st ? C.accentSoft : '#fff', paddingHorizontal: 12, opacity: stageBusy && c.stage !== st ? 0.5 : 1 }}>
                     <T s={12.5} w="m" c={c.stage === st ? C.accentText : C.ink2}>{STAGE_LABELS[st]}</T>
                   </Press>
                 ))}
@@ -400,8 +401,37 @@ export default function CandidateProfileScreen({ route }) {
         {host}
       </View>
 
-      <Sheet open={reject !== null} onClose={() => setReject(null)} title="Reject this candidate?" subtitle={c.name} footer={<><Btn onPress={() => setReject(null)}>Cancel</Btn><Btn variant="primary" onPress={() => { const reason = reject.trim(); setReject(null); moveStage('rejected', reason || undefined) }}>Reject</Btn></>}>
-        <Input value={reject ?? ''} onChangeText={setReject} multiline placeholder="Reason for rejecting (optional)" />
+      <Sheet
+        open={reject !== null}
+        onClose={() => setReject(null)}
+        title="Reject this candidate?"
+        subtitle={`${c.name} will see the reason in their application tracking.`}
+        footer={
+          <>
+            <Btn onPress={() => setReject(null)}>Cancel</Btn>
+            <Btn
+              variant="primary"
+              disabled={composeRejectionReason(rejectPreset, reject).length < 5}
+              onPress={() => {
+                const reason = composeRejectionReason(rejectPreset, reject)
+                setReject(null)
+                moveStage('rejected', reason)
+              }}
+            >
+              Reject
+            </Btn>
+          </>
+        }
+      >
+        <T s={13} w="m" c={C.ink2}>Pick a reason</T>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8, marginBottom: 12 }}>
+          {REJECTION_REASONS.map((r) => (
+            <Press key={r} scale={0.96} onPress={() => setRejectPreset((cur) => (cur === r ? '' : r))} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: rejectPreset === r ? C.accent : C.line, backgroundColor: rejectPreset === r ? C.accentSoft : '#fff', paddingHorizontal: 12 }}>
+              <T s={12.5} w="m" c={rejectPreset === r ? C.accentText : C.ink2}>{r}</T>
+            </Press>
+          ))}
+        </View>
+        <Input value={reject ?? ''} onChangeText={setReject} multiline placeholder="Add detail (optional if you picked a reason)" />
       </Sheet>
     </Shell>
   )
