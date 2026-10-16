@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.mzobs.employer",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -19,7 +19,7 @@
       "package": "com.mzobs.employer",
       "versionCode": 3,
       "adaptiveIcon": {
-        "backgroundColor": "#002C69",
+        "backgroundColor": "#00276B",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -30,14 +30,49 @@
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
-    "web": { "favicon": "./assets/favicon.png" },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
     "plugins": [
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
       "expo-font",
-      ["expo-notifications", { "color": "#08685E", "defaultChannel": "default" }],
+      [
+        "expo-notifications",
+        {
+          "color": "#08685E",
+          "defaultChannel": "default"
+        }
+      ],
       "expo-web-browser",
-      ["expo-splash-screen", { "image": "./assets/splash-icon.png", "resizeMode": "contain", "backgroundColor": "#002C69" }],
-      ["expo-build-properties", { "android": { "targetSdkVersion": 36, "compileSdkVersion": 36, "minSdkVersion": 24 } }]
-    ]
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#002C69"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "targetSdkVersion": 36,
+            "compileSdkVersion": 36,
+            "minSdkVersion": 24
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2b968f4e-e46b-4af3-9b76-3be4e3c3f621"
+      }
+    },
+    "owner": "utkarsh9955"
   }
 }
