@@ -1,30 +1,48 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Pressable, Share, View } from 'react-native'
-import { ArrowRight, ArrowLeft, Bell, BellOff, Bookmark, Briefcase, Download, Eye, FileText, FolderOpen, Mail, Pencil, Play, Plus, Search, Sparkles, Trash2, Unlock, X } from 'lucide-react-native'
+import { ArrowRight, ArrowLeft, Bell, BellOff, Bookmark, Briefcase, CalendarPlus, Download, Eye, FileText, FolderOpen, Mail, Pencil, Play, Plus, Search, Sparkles, Trash2, Unlock, X } from 'lucide-react-native'
 import { useNavigation } from '@react-navigation/native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { useActions } from '../../components/web/useActions'
 import CandidateCard from '../../components/web/CandidateCard'
 import { Avatar, Btn, C, CardSkeleton, Chip, EmptyState, Field, Input, Press, Select, Skeleton, T, card } from '../../components/wk'
 import { criteriaFromJob } from '../../lib/talent/engine'
-import { criteriaToChips, makeCriteria } from '../../lib/talent/criteria'
-import { getTalentMany, listJobs, searchTalent } from '../../services/talent'
-import { listUnlocks } from '../../services/talentApi'
+import { criteriaToChips, makeCriteria, STAGE_LABELS } from '../../lib/talent/criteria'
+import { getTalentMany, listJobs, listPipelineShortlisted, searchTalent } from '../../services/talent'
+import { listUnlocks, setCandidateStage } from '../../services/talentApi'
 import { useWorkspace } from '../../store/workspace'
 import { agoDate, lpa, years } from '../../lib/tfmt'
 import { isRevealed } from '../../lib/reveal'
 
 // ─── Shortlists ─────────────────────────────────────────────────────────────────────────
-function ListDetail({ list, onBack }) {
+// The default "Shortlisted" list is the server's own record, not just this device's: anyone in the company's
+// pipeline at Shortlisted (or further along toward a hire) shows up in it, merged with whoever was added by hand.
+const DEFAULT_ID = 'default'
+
+function ListDetail({ list, pipelineIds, onBack, onChanged }) {
   const { removeFromShortlist, renameShortlist, deleteShortlist, toast } = useWorkspace()
   const nav = useNavigation()
-  const { onAction, host } = useActions(makeCriteria())
+  const { onAction, host } = useActions(makeCriteria(), { onInterviewScheduled: onChanged })
   const [people, setPeople] = useState(null)
   const [renaming, setRenaming] = useState(false)
   const [name, setName] = useState(list.name)
+  const idsKey = list.candidateIds.join(',')
   useEffect(() => {
     getTalentMany(list.candidateIds).then(setPeople)
-  }, [list.candidateIds])
+  }, [idsKey]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Taking someone off the default list also takes them out of Shortlisted in the pipeline, otherwise they'd reappear.
+  const remove = async (c) => {
+    if (list.id === DEFAULT_ID && pipelineIds.has(c.id) && c._live?.candidateId) {
+      try {
+        await setCandidateStage(c._live.candidateId, 'shared')
+      } catch {
+        return toast('Could not remove them from Shortlisted', { tone: 'warn' })
+      }
+    }
+    removeFromShortlist(list.id, c.id)
+    onChanged?.()
+  }
 
   return (
     <View style={{ gap: 14 }}>
@@ -49,7 +67,10 @@ function ListDetail({ list, onBack }) {
       {people && people.length === 0 ? <EmptyState icon={FolderOpen} title="This shortlist is empty" body="Use Shortlist on any candidate card to add people here." /> : null}
       {!people ? <Skeleton h={70} r={16} /> : null}
       <View style={{ gap: 8 }}>
-        {people?.map((c) => (
+        {people?.map((c) => {
+          const stage = c._live?.stage
+          const canRemove = !(list.id === DEFAULT_ID && pipelineIds.has(c.id) && stage !== 'shortlisted')
+          return (
           <View key={c.id} style={[card, { padding: 14, gap: 10 }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <Avatar candidate={c} size={40} />
@@ -58,14 +79,19 @@ function ListDetail({ list, onBack }) {
                 <T s={13} c={C.muted} numberOfLines={2}>{c.designation} · {years(c.experienceYears)} · {c.location} · {lpa(c.expectedSalaryLPA)}</T>
               </View>
             </View>
-            {c.skills.length ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>{c.skills.slice(0, 3).map((s) => <Chip key={s}>{s}</Chip>)}</View> : null}
-            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+              {stage && stage !== 'shared' ? <Chip tone="accent">{STAGE_LABELS[stage] ?? stage}</Chip> : null}
+              {c.skills.slice(0, 3).map((s) => <Chip key={s}>{s}</Chip>)}
+            </View>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               <Btn size="sm" icon={FileText} onPress={() => onAction('resume', c)}>View CV</Btn>
+              <Btn size="sm" icon={CalendarPlus} onPress={() => onAction('interview', c)}>Schedule interview</Btn>
               <Btn size="sm" onPress={() => onAction('contact', c)}>Contact</Btn>
-              <Btn size="sm" variant="ghost" icon={X} onPress={() => removeFromShortlist(list.id, c.id)}>Remove</Btn>
+              {canRemove ? <Btn size="sm" variant="ghost" icon={X} onPress={() => remove(c)}>Remove</Btn> : null}
             </View>
           </View>
-        ))}
+          )
+        })}
       </View>
       {host}
     </View>
@@ -76,12 +102,22 @@ export function ShortlistsScreen() {
   const { shortlists, createShortlist } = useWorkspace()
   const [openId, setOpenId] = useState(null)
   const [name, setName] = useState('')
-  const open = shortlists.find((l) => l.id === openId)
+  const [pipeline, setPipeline] = useState([])
+  const reload = useCallback(() => listPipelineShortlisted().then(setPipeline).catch(() => setPipeline([])), [])
+  useEffect(() => {
+    reload()
+  }, [reload])
+  const pipelineIds = useMemo(() => new Set(pipeline.map((p) => p.id)), [pipeline])
+  const lists = useMemo(
+    () => shortlists.map((l) => (l.id === DEFAULT_ID ? { ...l, candidateIds: [...new Set([...l.candidateIds, ...pipelineIds])] } : l)),
+    [shortlists, pipelineIds]
+  )
+  const open = lists.find((l) => l.id === openId)
   return (
     <Shell>
       <PageScroll>
         {open ? (
-          <ListDetail list={open} onBack={() => setOpenId(null)} />
+          <ListDetail list={open} pipelineIds={pipelineIds} onBack={() => setOpenId(null)} onChanged={reload} />
         ) : (
           <>
             <PageTitle title="Shortlists" sub="Talent collections — group people by role, urgency or stage." />
@@ -90,7 +126,7 @@ export function ShortlistsScreen() {
               <Btn variant="primary" size="lg" icon={Plus} disabled={!name.trim()} onPress={() => { createShortlist(name); setName('') }}>Create</Btn>
             </View>
             <View style={{ gap: 12 }}>
-              {shortlists.map((l) => (
+              {lists.map((l) => (
                 <Press key={l.id} onPress={() => setOpenId(l.id)} scale={0.985} style={[card, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 }]}>
                   <View style={{ flex: 1 }}>
                     <T s={15} w="s">{l.name}</T>

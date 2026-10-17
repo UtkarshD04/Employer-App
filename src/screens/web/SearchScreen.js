@@ -7,7 +7,7 @@ import SearchComposer from '../../components/web/SearchComposer'
 import FilterPanel from '../../components/web/FilterPanel'
 import CandidateCard from '../../components/web/CandidateCard'
 import { useActions } from '../../components/web/useActions'
-import { Btn, C, CardSkeleton, Chip, CheckBox, EmptyState, F, Input, Modal, Select, T, card } from '../../components/wk'
+import { Btn, C, CardSkeleton, Chip, EmptyState, F, Input, Modal, Select, T, card } from '../../components/wk'
 import { EMPTY_CRITERIA, SORTS, criteriaToChips, criteriaTitle, hasActiveCriteria, makeCriteria, removeChip } from '../../lib/talent/criteria'
 import { parseQuery } from '../../lib/talent/parse'
 import { collectTerms } from '../../lib/talent/boolean'
@@ -29,7 +29,7 @@ function useDebounced(value, ms) {
 
 export default function SearchScreen({ route }) {
   const nav = useNavigation()
-  const { recent, pushRecent, clearRecent, saveSearch, selected, selectMany, clearSelection, toast, messages, shortlists, viewed } = useWorkspace()
+  const { recent, pushRecent, clearRecent, saveSearch, toast, messages, shortlists, viewed } = useWorkspace()
   const [criteria, setCriteria] = useState(() => makeCriteria(route.params?.criteria ?? {}))
   const [sort, setSort] = useState('relevance')
   const [rows, setRows] = useState([])
@@ -122,8 +122,6 @@ export default function SearchScreen({ route }) {
   const terms = useMemo(() => [...criteria.skills, ...criteria.keywords, ...criteria.keywordGroups.flat(), ...collectTerms(criteria.boolExpr)], [criteria])
   const active = hasActiveCriteria(criteria)
   const scored = rows.some((r) => r.match.overall != null)
-  const pageIds = rows.map((r) => r.candidate.id)
-  const allSelected = pageIds.length > 0 && pageIds.every((i) => selected.includes(i))
   const aiUnderstood = criteria.mode === 'ai' && criteria.q.trim() && chips.length > 0
 
   const openSave = () => {
@@ -198,16 +196,14 @@ export default function SearchScreen({ route }) {
 
       <View style={{ gap: 10, marginTop: 6 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
-          <CheckBox checked={allSelected} onChange={() => (allSelected ? clearSelection() : selectMany(pageIds))} style={{ marginTop: -4, width: 24 }} />
           <View style={{ flex: 1 }}>
-            <T s={15} w="s">{loading && total == null ? 'Searching…' : `${(total ?? 0).toLocaleString('en-IN')} candidate${total === 1 ? '' : 's'} found`}</T>
+            {chips.length > 0 ? <T s={15} w="s">{loading && total == null ? 'Searching…' : `${(total ?? 0).toLocaleString('en-IN')} candidate${total === 1 ? '' : 's'} found`}</T> : null}
             {scored && !loading ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Sparkles size={12} color={C.accentText} />
                 <T s={12.5} c={C.accentText} style={{ flex: 1 }}>Mzobs AI ranked {total?.toLocaleString('en-IN')} candidate{total === 1 ? '' : 's'} against your requirements.</T>
               </View>
             ) : null}
-            {!scored && !loading ? <T s={12.5} c={C.muted}>{chips.length ? 'Filtered by your search. Add skills, a role or location to rank by AI match.' : 'Showing all talent. Add skills, a role or location to rank by AI match.'}</T> : null}
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>

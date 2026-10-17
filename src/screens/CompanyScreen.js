@@ -5,6 +5,7 @@ import { queryKeys } from '../lib/queryClient'
 import { errorMessage } from '../lib/api'
 import { getCompany, updateCompany } from '../services/companyService'
 import { Button, ErrorState, Loading, Screen, TextField } from '../components/ui'
+import GstVerificationCard from '../components/GstVerificationCard'
 
 const FIELDS = [
   ['name', 'Company name'],
@@ -18,7 +19,7 @@ const FIELDS = [
 
 export default function CompanyScreen() {
   const qc = useQueryClient()
-  const { data, isLoading, isError, refetch } = useQuery({ queryKey: queryKeys.company, queryFn: getCompany })
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery({ queryKey: queryKeys.company, queryFn: getCompany })
   const [form, setForm] = useState({})
 
   useEffect(() => {
@@ -38,12 +39,13 @@ export default function CompanyScreen() {
   if (isError) return <ErrorState onRetry={refetch} />
 
   return (
-    <Screen>
+    <Screen onRefresh={refetch} refreshing={isRefetching}>
       {FIELDS.map(([k, label]) => (
         <TextField key={k} label={label} value={form[k] ?? ''} onChangeText={(v) => setForm((f) => ({ ...f, [k]: v }))} autoCapitalize={['website', 'linkedin'].includes(k) ? 'none' : 'sentences'} />
       ))}
       <TextField label="About" value={form.about ?? ''} onChangeText={(v) => setForm((f) => ({ ...f, about: v }))} multiline />
       <Button title="Save changes" loading={save.isPending} onPress={() => save.mutate()} />
+      <GstVerificationCard company={data} />
     </Screen>
   )
 }

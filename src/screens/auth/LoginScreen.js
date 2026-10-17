@@ -9,14 +9,10 @@ import { Button, FadeIn, Text, TextField } from '../../components/ui'
 import OtpField from './OtpField'
 
 const PHONE_RE = /^[6-9]\d{9}$/
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function LoginScreen({ navigation }) {
   const { colors, spacing, isDark } = useTheme()
-  const { startSession, signIn } = useAuth()
-  const [useEmail, setUseEmail] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const { startSession } = useAuth()
   const [phone, setPhone] = useState('')
   const [otp, setOtp] = useState('')
   const [otpSent, setOtpSent] = useState(0) // bumps on every send; 0 = not sent yet
@@ -37,25 +33,13 @@ export default function LoginScreen({ navigation }) {
     setLoading(false)
   }
 
-  async function emailLogin() {
-    if (!EMAIL_RE.test(email.trim())) return setError('Enter a valid work email.')
-    if (!password) return setError('Enter your password.')
+  async function verifyOtp(code = otp) {
+    if (loading) return
+    if (code.length !== 6) return setError('Enter the 6-digit code.')
     setError('')
     setLoading(true)
     try {
-      await signIn(email, password)
-    } catch (err) {
-      setError(err?.response?.status === 401 ? 'Invalid email or password. New to Mzobs? Tap Register below.' : errorMessage(err, 'Couldn’t sign in. Please try again.'))
-      setLoading(false)
-    }
-  }
-
-  async function verifyOtp() {
-    if (otp.length !== 6) return setError('Enter the 6-digit code.')
-    setError('')
-    setLoading(true)
-    try {
-      const phoneToken = await authService.verifyOtp(phone, otp)
+      const phoneToken = await authService.verifyOtp(phone, code)
       try {
         startSession(await authService.phoneLogin(phone, phoneToken))
         return
@@ -88,52 +72,34 @@ export default function LoginScreen({ navigation }) {
           <Text variant="body" color="inkSecondary" style={{ textAlign: 'center' }}>Manage jobs, candidates and interviews on the go.</Text>
         </FadeIn>
 
-            {useEmail ? (
+        <TextField
+          label="Mobile number"
+          value={phone}
+          onChangeText={(v) => {
+            setPhone(v.replace(/\D/g, '').slice(0, 10))
+            setOtpSent(0)
+            setOtp('')
+          }}
+          keyboardType="phone-pad"
+          autoComplete="tel"
+          placeholder="98765 43210"
+          editable={!otpSent}
+        />
+        {otpSent ? (
           <>
-            <TextField label="Work email" value={email} onChangeText={setEmail} autoCapitalize="none" autoComplete="email" keyboardType="email-address" placeholder="you@company.com" />
-            <TextField label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete="password" placeholder="Your password" onSubmitEditing={emailLogin} />
+            <OtpField phone={phone} value={otp} onChange={setOtp} onSubmit={verifyOtp} onResend={sendOtp} resetKey={otpSent} />
             {error ? <Text variant="caption" color="red">{error}</Text> : null}
-            <Button title="Sign in" onPress={emailLogin} loading={loading} />
-            <Pressable onPress={() => navigation.navigate('ForgotPassword')} hitSlop={10} style={{ alignSelf: 'center' }}>
-              <Text variant="label" color="navy">Forgot password?</Text>
+            <Button title="Verify & login" onPress={() => verifyOtp()} loading={loading} />
+            <Pressable onPress={() => { setOtpSent(0); setOtp(''); setError('') }} hitSlop={10} style={{ alignSelf: 'center' }}>
+              <Text variant="label" color="navy">Change number</Text>
             </Pressable>
           </>
         ) : (
           <>
-            <TextField
-              label="Mobile number"
-              value={phone}
-              onChangeText={(v) => {
-                setPhone(v.replace(/\D/g, '').slice(0, 10))
-                setOtpSent(0)
-                setOtp('')
-              }}
-              keyboardType="phone-pad"
-              autoComplete="tel"
-              placeholder="98765 43210"
-              editable={!otpSent}
-            />
-            {otpSent ? (
-              <>
-                <OtpField phone={phone} value={otp} onChange={setOtp} onSubmit={verifyOtp} onResend={sendOtp} resetKey={otpSent} />
-                {error ? <Text variant="caption" color="red">{error}</Text> : null}
-                <Button title="Verify & login" onPress={verifyOtp} loading={loading} />
-                <Pressable onPress={() => { setOtpSent(0); setOtp(''); setError('') }} hitSlop={10} style={{ alignSelf: 'center' }}>
-                  <Text variant="label" color="navy">Change number</Text>
-                </Pressable>
-              </>
-            ) : (
-              <>
-                {error ? <Text variant="caption" color="red">{error}</Text> : null}
-                <Button title="Get OTP" onPress={sendOtp} loading={loading} />
-              </>
-            )}
+            {error ? <Text variant="caption" color="red">{error}</Text> : null}
+            <Button title="Get OTP" onPress={sendOtp} loading={loading} />
           </>
         )}
-
-        <Pressable onPress={() => { setUseEmail((u) => !u); setError('') }} hitSlop={10} style={{ alignSelf: 'center' }}>
-          <Text variant="label" color="navy">{useEmail ? 'Login with mobile OTP instead' : 'Login with email & password instead'}</Text>
-        </Pressable>
 
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: spacing.md }}>
           <Text variant="caption">New to Mzobs?</Text>

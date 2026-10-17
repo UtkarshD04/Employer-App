@@ -3,7 +3,7 @@ import { Image, Modal, Pressable, ScrollView, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AlertTriangle, Bell, Check, CreditCard, HelpCircle, LogOut, Menu, Search, Settings as Cog, X } from 'lucide-react-native'
+import { AlertTriangle, Bell, Check, CreditCard, HelpCircle, LogOut, Menu, Settings as Cog, X } from 'lucide-react-native'
 import { useAuth } from '../../context/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { ROUTES } from '../../lib/routes'
@@ -116,9 +116,6 @@ export function TopNav() {
           <Logo />
         </Pressable>
         <View style={{ flex: 1 }} />
-        <Press onPress={() => goTo('Search')} accessibilityLabel="Search candidates" scale={0.92} style={{ width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-          <Search size={17} color={C.ink2} />
-        </Press>
         <BellLink active={route.name === 'Notifications'} />
         <ProfileMenu />
         <Press onPress={signOut} accessibilityLabel="Log out" scale={0.92} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(14,34,55,0.15)', alignItems: 'center', justifyContent: 'center' }}>

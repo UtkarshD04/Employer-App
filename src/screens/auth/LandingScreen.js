@@ -1,5 +1,6 @@
 import { Image, ScrollView, View } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../../theme'
 import { Button, FadeIn, Text } from '../../components/ui'
 
@@ -7,17 +8,18 @@ const FEATURES = [
   { icon: 'briefcase', title: 'Post jobs', desc: 'Publish roles with skills, location, experience and salary requirements.' },
   { icon: 'search', title: 'Find candidates', desc: 'Discover talent that matches the requirements that matter to you.' },
   { icon: 'sliders', title: 'Search & filter', desc: 'Narrow down relevant talent by skills, experience and location.' },
-  { icon: 'inbox', title: 'Manage applications', desc: 'Review and organise applications as they come in, from one inbox.' },
+  { icon: 'inbox', title: 'Manage applications', desc: 'Review and organize applications as they come in, from one inbox.' },
   { icon: 'check-square', title: 'Shortlist talent', desc: 'Review candidate profiles and move the relevant ones forward.' },
   { icon: 'calendar', title: 'Schedule interviews', desc: 'Manage interview steps with the candidates you shortlist.' },
 ]
 
 export default function LandingScreen({ navigation }) {
   const { colors, spacing, radius, isDark } = useTheme()
+  const insets = useSafeAreaInsets()
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView contentContainerStyle={{ padding: spacing.xl, paddingTop: spacing.xxl, paddingBottom: spacing.xl, gap: spacing.xl }} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: spacing.xl, paddingTop: insets.top + spacing.xl, paddingBottom: spacing.xl, gap: spacing.xl }} showsVerticalScrollIndicator={false}>
         <FadeIn style={{ alignItems: 'center', gap: 14 }}>
           <Image source={isDark ? require('../../../assets/logo-dark.png') : require('../../../assets/logo.png')} style={{ height: 56, width: 56 * (5000 / 2725) }} resizeMode="contain" />
           <View style={{ backgroundColor: colors.navyTint, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 6 }}>
@@ -29,11 +31,6 @@ export default function LandingScreen({ navigation }) {
           <Text variant="body" color="inkSecondary" style={{ textAlign: 'center', maxWidth: 320 }}>
             Post jobs, discover relevant talent, and manage your hiring journey — all in one place.
           </Text>
-        </FadeIn>
-
-        <FadeIn delay={80} style={{ gap: spacing.sm }}>
-          <Button title="Login" onPress={() => navigation.navigate('Login')} />
-          <Button title="Register" variant="secondary" onPress={() => navigation.navigate('Register')} />
         </FadeIn>
 
         <FadeIn delay={140} style={{ gap: spacing.md }}>
@@ -63,6 +60,22 @@ export default function LandingScreen({ navigation }) {
           </View>
         </FadeIn>
       </ScrollView>
+
+      {/* Pinned so Login / Register are always on screen, not buried under the feature list. */}
+      <View
+        style={{
+          gap: spacing.sm,
+          paddingHorizontal: spacing.xl,
+          paddingTop: spacing.md,
+          paddingBottom: Math.max(insets.bottom, spacing.lg),
+          backgroundColor: colors.bg,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+        }}
+      >
+        <Button title="Login" onPress={() => navigation.navigate('Login')} />
+        <Button title="Register" variant="secondary" onPress={() => navigation.navigate('Register')} />
+      </View>
     </View>
   )
 }

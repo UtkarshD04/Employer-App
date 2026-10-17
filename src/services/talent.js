@@ -322,6 +322,20 @@ export async function getTalentMany(ids) {
   return ids.map((id) => p.rows.find((c) => hasId(c, id))).filter(Boolean)
 }
 
+// The server's own record of who is shortlisted: pipeline people at Shortlisted or further along toward a hire
+// (matches the dashboard's "Shortlisted" count, which also includes interviewing, offered and hired).
+const SHORTLISTED_STAGES = new Set(['shortlisted', 'interviewing', 'offered', 'hired'])
+export async function listPipelineShortlisted() {
+  const p = await loadPool()
+  return p.rows.filter((c) => SHORTLISTED_STAGES.has(c._live?.stage))
+}
+
+// Everyone in this company's pipeline who can still be interviewed (not rejected or already hired).
+export async function listInterviewable() {
+  const p = await loadPool()
+  return p.rows.filter((c) => c._live?.candidateId && ['shared', 'shortlisted', 'interviewing', 'offered'].includes(c._live.stage))
+}
+
 export async function findSimilar(id, limit = 6) {
   const p = await loadPool()
   const target = p.rows.find((c) => c.id === id)

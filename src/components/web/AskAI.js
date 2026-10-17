@@ -14,7 +14,7 @@ export const AI_PROMPTS = [
   { id: 'explain', label: 'Explain why this candidate is relevant', hint: 'Open any AI match badge for the rule-based breakdown.', ready: false },
   { id: 'similar', label: 'Find similar candidates', hint: 'Available on every candidate profile.', ready: false },
   { id: 'outreach', label: 'Draft outreach message', hint: 'Template drafts are available in Contact; model-written drafts need the AI service.', ready: false },
-  { id: 'summarise', label: 'Summarise candidate', hint: 'Needs the Mzobs AI service.', ready: false },
+  { id: 'summarize', label: 'Summarize candidate', hint: 'Needs the Mzobs AI service.', ready: false },
   { id: 'questions', label: 'Generate interview questions', hint: 'Needs the Mzobs AI service.', ready: false },
   { id: 'gaps', label: 'Identify skill gaps', hint: 'Shown as “Missing or weaker areas” in the match explanation.', ready: false },
 ]

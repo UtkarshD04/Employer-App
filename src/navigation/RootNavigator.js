@@ -23,12 +23,23 @@ import OffersScreen from '../screens/offers/OffersScreen'
 import CreateOfferScreen from '../screens/offers/CreateOfferScreen'
 import TeamScreen from '../screens/TeamScreen'
 import CompanyScreen from '../screens/CompanyScreen'
+import GstGateScreen from '../screens/GstGateScreen'
+import { GST_REQUIRED } from '../lib/gstin'
+import { useQuery } from '@tanstack/react-query'
+import { queryKeys } from '../lib/queryClient'
+import { getCompany } from '../services/companyService'
 
 const Stack = createNativeStackNavigator()
 
 export default function RootNavigator() {
-  const { isAuthenticated, isBootstrapping } = useAuth()
+  const { isAuthenticated, isBootstrapping, company: sessionCompany } = useAuth()
   const { colors, fontFamily } = useTheme()
+  // Mandatory GST verification: a signed-in employer only gets the app once
+  // their company's GSTIN is VERIFIED — the same record the website reads.
+  // Seeded from the sign-in response so a verified account never flashes the gate.
+  const companyQuery = useQuery({ queryKey: queryKeys.company, queryFn: getCompany, enabled: isAuthenticated, placeholderData: sessionCompany ?? undefined })
+  // GST_REQUIRED mirrors the backend's GST_VERIFICATION_REQUIRED (off: no gate).
+  const gstVerified = !GST_REQUIRED || companyQuery.data?.gstVerification?.status === 'VERIFIED'
 
   const navTheme = {
     ...DefaultTheme,
@@ -71,7 +82,11 @@ export default function RootNavigator() {
 
   return (
     <NavigationContainer ref={navigationRef} theme={navTheme}>
-      {isAuthenticated ? (
+      {isAuthenticated && !gstVerified ? (
+        <Stack.Navigator screenOptions={screenOptions}>
+          <Stack.Screen name="GstGate" component={GstGateScreen} options={{ title: 'Verify your company' }} />
+        </Stack.Navigator>
+      ) : isAuthenticated ? (
         <AskAIProvider>
           <Stack.Navigator screenOptions={screenOptions} initialRouteName="Search">
             {web.map(([name, component]) => <Stack.Screen key={name} name={name} component={component} options={bare} />)}

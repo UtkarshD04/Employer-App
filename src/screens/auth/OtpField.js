@@ -19,14 +19,19 @@ export default function OtpField({ phone, value, onChange, onSubmit, onResend, r
       <TextField
         label={`Enter the 6-digit code sent to +91 ${phone}`}
         value={value}
-        onChangeText={(v) => onChange(v.replace(/\D/g, '').slice(0, 6))}
+        onChangeText={(v) => {
+          const code = v.replace(/\D/g, '').slice(0, 6)
+          onChange(code)
+          // Verify as soon as the sixth digit lands (typed, pasted or SMS autofill).
+          if (code.length === 6 && value.length < 6) onSubmit(code)
+        }}
         keyboardType="number-pad"
         autoComplete="sms-otp"
         textContentType="oneTimeCode"
         maxLength={6}
         placeholder="••••••"
         autoFocus
-        onSubmitEditing={onSubmit}
+        onSubmitEditing={() => onSubmit(value)}
         error={error}
         inputStyle={{ letterSpacing: 8, fontSize: 20, textAlign: 'center' }}
       />

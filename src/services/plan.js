@@ -3,6 +3,7 @@
 // Razorpay module (a dev/production build; not available in Expo Go).
 import { apiClient } from '../lib/api'
 import { openRazorpayCheckout } from '../lib/razorpay'
+import { buyProduct, iapEnabled } from '../lib/iap'
 import { getCredits, getSubscription, purchaseCredits as buyCredits, purchasePlan as buyPlan } from './billingService'
 
 export { getSubscription, getCredits as getWallet, getCreditPlans as getPlans, listPurchases, submitPlanEnquiry, previewCreditCoupon as previewCoupon, previewPlanCoupon as previewSubscriptionCoupon } from './billingService'
@@ -36,12 +37,32 @@ export async function refreshPlan() {
   return snapshot
 }
 
-export const purchaseSubscription = async (planCode, couponCode) => {
-  await buyPlan(planCode, couponCode, openRazorpayCheckout)
+// On iOS the purchase goes through the App Store; our backend learns about it from
+// RevenueCat's webhook a moment later, so wait until the plan / credits show up.
+async function waitUntil(check) {
+  for (let i = 0; i < 20; i++) {
+    const snap = await refreshPlan()
+    if (snap && check(snap)) return snap
+    await new Promise((r) => setTimeout(r, 2000))
+  }
+  throw { description: 'Your purchase went through and is being processed. It will show up here shortly — pull to refresh in a minute.' }
+}
+
+export const purchaseSubscription = async (plan, couponCode, companyId) => {
+  if (iapEnabled) {
+    await buyProduct(plan.appleProductId, companyId)
+    return waitUntil((snap) => snap.active && snap.planName === plan.planName)
+  }
+  await buyPlan(plan.planCode, couponCode, openRazorpayCheckout)
   return refreshPlan()
 }
-export const purchaseCredits = async (planId, couponCode) => {
-  await buyCredits(planId, couponCode, openRazorpayCheckout)
+export const purchaseCredits = async (pack, couponCode, companyId) => {
+  if (iapEnabled) {
+    const before = snapshot?.credits ?? (await refreshPlan())?.credits ?? 0
+    await buyProduct(pack.appleProductId, companyId)
+    return waitUntil((snap) => snap.credits >= before + pack.creditsGranted)
+  }
+  await buyCredits(pack.id, couponCode, openRazorpayCheckout)
   return refreshPlan()
 }
 export const paymentError = (e) => e?.description ?? e?.response?.data?.message ?? e?.message ?? 'Payment failed'

@@ -1,6 +1,7 @@
 import axios from 'axios'
 import * as SecureStore from 'expo-secure-store'
 import { API_BASE } from './config'
+import { queryClient, queryKeys } from './queryClient'
 
 const TOKEN_KEY = 'mzobs-employer-token'
 
@@ -33,6 +34,11 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && error.config?.headers?.Authorization) {
       await tokenStore.clear()
       onUnauthorized?.()
+    }
+    // The company's mandatory GST verification isn't complete (or was
+    // revoked): re-read it so RootNavigator swaps to the GST gate.
+    if (error.response?.status === 403 && error.response.data?.code === 'GST_VERIFICATION_REQUIRED') {
+      queryClient.invalidateQueries({ queryKey: queryKeys.company })
     }
     return Promise.reject(error)
   }
