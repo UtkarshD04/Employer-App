@@ -5,7 +5,6 @@ import { queryKeys } from '../lib/queryClient'
 import { errorMessage } from '../lib/api'
 import { getCompany, updateCompany } from '../services/companyService'
 import { Button, ErrorState, Loading, Screen, TextField } from '../components/ui'
-import GstVerificationCard from '../components/GstVerificationCard'
 
 const FIELDS = [
   ['name', 'Company name'],
@@ -45,7 +44,6 @@ export default function CompanyScreen() {
       ))}
       <TextField label="About" value={form.about ?? ''} onChangeText={(v) => setForm((f) => ({ ...f, about: v }))} multiline />
       <Button title="Save changes" loading={save.isPending} onPress={() => save.mutate()} />
-      <GstVerificationCard company={data} />
     </Screen>
   )
 }

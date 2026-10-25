@@ -4,7 +4,7 @@
 import { apiClient } from '../lib/api'
 import { openRazorpayCheckout } from '../lib/razorpay'
 import { buyProduct, iapEnabled } from '../lib/iap'
-import { getCredits, getSubscription, purchaseCredits as buyCredits, purchasePlan as buyPlan } from './billingService'
+import { getCredits, getSubscription, purchaseCredits as buyCredits, purchasePlan as buyPlan, verifyApplePurchase } from './billingService'
 
 export { getSubscription, getCredits as getWallet, getCreditPlans as getPlans, listPurchases, submitPlanEnquiry, previewCreditCoupon as previewCoupon, previewPlanCoupon as previewSubscriptionCoupon } from './billingService'
 export const listPlanPayments = () => apiClient.get('/payments', { params: { limit: 50 } }).then((r) => r.data)
@@ -37,33 +37,26 @@ export async function refreshPlan() {
   return snapshot
 }
 
-// On iOS the purchase goes through the App Store; our backend learns about it from
-// RevenueCat's webhook a moment later, so wait until the plan / credits show up.
-async function waitUntil(check) {
-  for (let i = 0; i < 20; i++) {
-    const snap = await refreshPlan()
-    if (snap && check(snap)) return snap
-    await new Promise((r) => setTimeout(r, 2000))
-  }
-  throw { description: 'Your purchase went through and is being processed. It will show up here shortly — pull to refresh in a minute.' }
+// On iOS the purchase goes through the App Store; the signed transaction is then sent to our
+// backend, which verifies it with Apple and grants the plan / credits. Only after that is the
+// transaction finished, so a crash in between replays it instead of losing the purchase.
+async function buyFromStore(productId, consumable) {
+  const { signedTransaction, finish } = await buyProduct(productId, { consumable })
+  await verifyApplePurchase(signedTransaction)
+  await finish()
+  return refreshPlan()
 }
 
-export const purchaseSubscription = async (plan, couponCode, companyId) => {
-  if (iapEnabled) {
-    await buyProduct(plan.appleProductId, companyId)
-    return waitUntil((snap) => snap.active && snap.planName === plan.planName)
-  }
+export const purchaseSubscription = async (plan, couponCode) => {
+  if (iapEnabled) return buyFromStore(plan.appleProductId, false)
   await buyPlan(plan.planCode, couponCode, openRazorpayCheckout)
   return refreshPlan()
 }
-export const purchaseCredits = async (pack, couponCode, companyId) => {
-  if (iapEnabled) {
-    const before = snapshot?.credits ?? (await refreshPlan())?.credits ?? 0
-    await buyProduct(pack.appleProductId, companyId)
-    return waitUntil((snap) => snap.credits >= before + pack.creditsGranted)
-  }
+export const purchaseCredits = async (pack, couponCode) => {
+  if (iapEnabled) return buyFromStore(pack.appleProductId, true)
   await buyCredits(pack.id, couponCode, openRazorpayCheckout)
   return refreshPlan()
 }
+
 export const paymentError = (e) => e?.description ?? e?.response?.data?.message ?? e?.message ?? 'Payment failed'
 export const isCancel = (e) => e?.code === 0 || e?.code === 2 || e?.message === 'Payment cancelled'

@@ -1,10 +1,11 @@
-import { memo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { Pressable, View } from 'react-native'
-import { Bookmark, BellRing, Briefcase, Building2, Check, Clock, Eye, FileText, FolderPlus, GitCompareArrows, GraduationCap, IndianRupee, Lock, Mail, MapPin, MessageSquare, MoreHorizontal, Phone, Pin, CalendarPlus, Send, Share2, StickyNote, Unlock } from 'lucide-react-native'
+import { Bookmark, ChevronDown, BellRing, Briefcase, Building2, Check, Clock, Eye, FileText, FolderPlus, GitCompareArrows, GraduationCap, IndianRupee, Lock, Mail, MapPin, MessageSquare, MoreHorizontal, Phone, Pin, CalendarPlus, Send, Share2, StickyNote, Unlock } from 'lucide-react-native'
 import { useWorkspace } from '../../store/workspace'
 import { STAGE_LABELS } from '../../lib/talent/criteria'
 import { agoDays, agoDate, lpa, notice, years } from '../../lib/tfmt'
 import { creditSpent, isRevealed } from '../../lib/reveal'
+import { buildSummary } from '../../lib/talent/summary'
 import { Avatar, Btn, C, CheckBox, Chip, Highlight, MatchBadge, Sheet, Tag, T, TrustScore, VerifiedBadge, card } from '../wk'
 
 const MORE_ACTIONS = [
@@ -29,8 +30,44 @@ function Meta({ icon: Icon, children }) {
   )
 }
 
+// Free preview: reads only data already on the card, so expanding it never touches credits or the unlock flow.
+function ProfessionalSummary({ candidate: c, match }) {
+  const [open, setOpen] = useState(false)
+  const summary = useMemo(() => buildSummary(c, match), [c, match])
+  const rows = summary?.points ?? []
+  const hiddenRows = summary?.kind === 'profile' && !open ? rows.slice(2) : []
+  const visibleRows = hiddenRows.length ? rows.slice(0, 2) : rows
+  const longText = summary?.kind === 'cv' && summary.text.length > 150
+  const expandable = open || longText || hiddenRows.length > 0
+  const clamp = open ? undefined : 2
+
+  return (
+    <View style={{ marginTop: 12, borderRadius: 12, borderWidth: 1, borderColor: C.line2, borderLeftWidth: 3, borderLeftColor: C.accent, backgroundColor: '#f6fafb', paddingHorizontal: 14, paddingVertical: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <T s={11} w="s" c={C.accent} style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Resume-based insights</T>
+        {expandable ? (
+          <Pressable onPress={() => setOpen((v) => !v)} hitSlop={8} accessibilityState={{ expanded: open }} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <T s={12} w="s" c={C.accent}>{open ? 'Show less' : 'Read more'}</T>
+            <ChevronDown size={13} color={C.accent} style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }} />
+          </Pressable>
+        ) : null}
+      </View>
+      <View style={{ marginTop: 6, gap: 4 }}>
+        {!summary ? <T s={13} c={C.muted}>Professional summary unavailable.</T> : null}
+        {summary?.kind === 'cv' ? <T s={13} c={C.ink2} numberOfLines={clamp} style={{ lineHeight: 20 }}>{summary.text}</T> : null}
+        {visibleRows.map((r) => (
+          <View key={r.label} style={{ flexDirection: 'row', gap: 8 }}>
+            <T s={11} w="s" c={C.muted} style={{ width: 68, paddingTop: 2, textTransform: 'uppercase', letterSpacing: 0.4 }}>{r.label}</T>
+            <T s={13} c={C.ink2} numberOfLines={summary.kind === 'profile' ? clamp : undefined} style={{ flex: 1, lineHeight: 20 }}>{r.text}</T>
+          </View>
+        ))}
+      </View>
+    </View>
+  )
+}
+
 function CandidateCard({ row, terms, onAction }) {
-  const { candidate: c, match, trust } = row
+  const { candidate: c, match, trust, fit } = row
   const { selected, toggleSelect, compare, toggleCompare, savedIds, toggleSaved, viewed, shortlists } = useWorkspace()
   const [menu, setMenu] = useState(false)
   const isSel = selected.includes(c.id)
@@ -72,6 +109,13 @@ function CandidateCard({ row, terms, onAction }) {
         <Meta icon={Briefcase}>{years(c.experienceYears)}</Meta>
         {c.expectedSalaryLPA != null ? <Meta icon={IndianRupee}>{c.currentSalaryLPA != null ? `${lpa(c.currentSalaryLPA)} → ` : 'Expects '}{lpa(c.expectedSalaryLPA)}</Meta> : null}
         <Meta icon={MapPin}>{c.location || '—'}</Meta>
+        {fit ? (
+          <View style={{ borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, backgroundColor: fit.kind === 'here' ? C.okSoft : fit.kind === 'wants' ? C.accentSoft : C.warnSoft }}>
+            <T s={11.5} w="s" c={fit.kind === 'here' ? C.okText : fit.kind === 'wants' ? C.accentText : C.warn}>
+              {fit.kind === 'here' ? `Lives in ${fit.city}` : fit.kind === 'wants' ? `Wants to work in ${fit.city}` : 'Open to relocate'}
+            </T>
+          </View>
+        ) : null}
         {c.noticePeriodDays != null ? <Meta icon={Clock}>{notice(c.noticePeriodDays)} notice</Meta> : null}
         {c.contact?.phone ? (
           <Meta icon={Phone}>{c.contact.phone}</Meta>
@@ -92,6 +136,8 @@ function CandidateCard({ row, terms, onAction }) {
           <T s={12.5} c={C.muted} style={{ flex: 1 }}>Prefers: {c.preferredLocations.join(' · ')}</T>
         </View>
       ) : null}
+
+      <ProfessionalSummary candidate={c} match={match} />
 
       <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
         {shown.map((s) => <Chip key={s} tone={strong.has(s.toLowerCase()) ? 'hit' : 'neutral'}>{s}</Chip>)}

@@ -6,7 +6,6 @@ import { useAuth } from '../../context/AuthContext'
 import { errorMessage } from '../../lib/api'
 import * as authService from '../../services/authService'
 import { Button, ChipRow, FadeIn, Stepper, Text, TextField } from '../../components/ui'
-import { isValidGstin, normalizeGstin } from '../../lib/gstin'
 import OtpField from './OtpField'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -26,9 +25,6 @@ export default function RegisterScreen({ navigation, route }) {
   const [otpSent, setOtpSent] = useState(0)
   const [phoneToken, setPhoneToken] = useState(preset?.phoneToken ?? null)
   const [form, setForm] = useState({ name: '', email: '', companyName: '', industry: '', size: '' })
-  // Mandatory GST verification — the server checks it before creating the
-  // account; until VERIFIED the app opens on the GST gate (RootNavigator).
-  const [gst, setGst] = useState({ gstin: '', legalName: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -82,15 +78,10 @@ export default function RegisterScreen({ navigation, route }) {
     if (!form.companyName.trim()) return fail('Enter your company name.')
     if (!form.industry.trim()) return fail('Enter your industry.')
     if (!form.size) return fail('Select a company size.')
-    // GST is optional for now: skip it entirely, but if a GSTIN is typed it must be complete.
-    if (gst.gstin) {
-      if (!isValidGstin(gst.gstin)) return fail('That isn’t a valid GSTIN — check the characters and the last (check) digit.')
-      if (!gst.legalName.trim()) return fail('Enter the legal name exactly as on your GST certificate.')
-    }
     setError('')
     setLoading(true)
     try {
-      startSession(await authService.signup({ ...form, email: form.email.trim(), phone, phoneToken, ...(gst.gstin ? { gstin: normalizeGstin(gst.gstin), gstLegalName: gst.legalName.trim() } : {}) }))
+      startSession(await authService.signup({ ...form, email: form.email.trim(), phone, phoneToken }))
     } catch (err) {
       setError(errorMessage(err, 'Couldn’t create your account. Please try again.'))
       setLoading(false)
@@ -184,18 +175,6 @@ export default function RegisterScreen({ navigation, route }) {
               <Text variant="label">Company size</Text>
               <ChipRow options={COMPANY_SIZES.map((s) => ({ id: s, label: s }))} value={form.size} onChange={set('size')} scroll={false} />
             </View>
-            <Text variant="caption">Optional for now. Add your GSTIN to have your company verified against the GST registry.</Text>
-            <TextField
-              label="GSTIN (optional)"
-              value={gst.gstin}
-              onChangeText={(v) => setGst((g) => ({ ...g, gstin: normalizeGstin(v).slice(0, 15) }))}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              maxLength={15}
-              placeholder="15-character GSTIN"
-              error={gst.gstin.length === 15 && !isValidGstin(gst.gstin) ? 'That isn’t a valid GSTIN — check the characters.' : null}
-            />
-            <TextField label="Legal name (as on GST certificate)" value={gst.legalName} onChangeText={(v) => setGst((g) => ({ ...g, legalName: v }))} placeholder="e.g. Acme Private Limited" maxLength={200} />
             {error ? <Text variant="caption" color="red">{error}</Text> : null}
             <Button title="Create account" onPress={createAccount} loading={loading} />
             <Text variant="caption" style={{ textAlign: 'center' }}>

@@ -1,62 +1,73 @@
-// iOS in-app purchases (App Store rules require them for digital goods) via RevenueCat.
-// Required lazily — like razorpay.js, the native module isn't in Expo Go. RevenueCat's
-// webhook tells our backend about each purchase; the buyer is the company id.
+// iOS in-app purchases (App Store rules require them for digital goods) via StoreKit (expo-iap).
+// Required lazily — like razorpay.js, the native module isn't in Expo Go. After a purchase the
+// app sends Apple's signed transaction to POST /payments/apple, where the backend verifies it
+// against Apple's root certificate and grants the plan / credits (Backend/src/utils/appleIap.js).
 import { Platform } from 'react-native'
-
-const IOS_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY ?? ''
 
 export const iapEnabled = Platform.OS === 'ios'
 
 let sdk = null
-let configured = false
-let loggedInAs = null
+let connecting = null
 
 function load() {
-  if (!sdk) sdk = require('react-native-purchases')
+  if (!sdk) sdk = require('expo-iap')
   return sdk
 }
 
-async function ready(companyId) {
-  if (!IOS_KEY) throw { code: 'UNAVAILABLE', description: 'Purchases aren’t available in this build.' }
-  const { default: Purchases } = load()
-  if (!configured) {
-    Purchases.configure({ apiKey: IOS_KEY })
-    configured = true
+async function ready() {
+  const iap = load()
+  if (!connecting) {
+    connecting = iap.initConnection().catch((e) => {
+      connecting = null
+      throw e
+    })
   }
-  if (companyId && loggedInAs !== companyId) {
-    await Purchases.logIn(String(companyId))
-    loggedInAs = companyId
-  }
-  return Purchases
+  await connecting
+  return iap
 }
 
 /** { [productId]: '₹1,179.00' } — the price Apple will actually charge. Empty when unavailable. */
 export async function getStorePrices(productIds) {
   try {
-    const Purchases = await ready()
-    const { PURCHASE_TYPE } = load()
-    const products = await Purchases.getProducts(productIds.filter(Boolean), PURCHASE_TYPE.INAPP)
-    return Object.fromEntries(products.map((p) => [p.identifier, p.priceString]))
+    const iap = await ready()
+    const products = await iap.fetchProducts({ skus: productIds.filter(Boolean), type: 'in-app' })
+    return Object.fromEntries((products ?? []).map((p) => [p.id, p.displayPrice]))
   } catch {
     return {}
   }
 }
 
-/** Opens Apple's payment sheet. Rejects { code: 0 } on cancel, { description } otherwise. */
-export async function buyProduct(productId, companyId) {
-  const Purchases = await ready(companyId)
-  const { PURCHASE_TYPE } = load()
-  const [product] = await Purchases.getProducts([productId], PURCHASE_TYPE.INAPP)
-  if (!product) throw { code: 'UNAVAILABLE', description: 'This item isn’t available on the App Store right now. Please try again later.' }
+/**
+ * Opens Apple's payment sheet. Resolves with the signed transaction (JWS) for the backend,
+ * plus `finish()` to call once the backend has granted the purchase. Rejects { code: 0 } on
+ * cancel, { description } otherwise. Credit packs are consumable, annual plans are not.
+ */
+export async function buyProduct(productId, { consumable = false } = {}) {
+  let iap
   try {
-    await Purchases.purchaseStoreProduct(product)
-  } catch (e) {
-    if (e?.userCancelled) throw { code: 0, description: 'Payment cancelled' }
-    throw { code: 'STORE', description: e?.message ?? 'The App Store purchase failed.' }
+    iap = await ready()
+  } catch {
+    throw { code: 'UNAVAILABLE', description: 'The App Store isn’t available right now. Please try again later.' }
   }
-}
-
-export async function restorePurchases(companyId) {
-  const Purchases = await ready(companyId)
-  await Purchases.restorePurchases()
+  return new Promise((resolve, reject) => {
+    let done = false
+    const finish = (fn) => (arg) => {
+      if (done) return
+      done = true
+      updated.remove()
+      failed.remove()
+      fn(arg)
+    }
+    // StoreKit also replays unfinished transactions through this listener; only react to ours.
+    const updated = iap.purchaseUpdatedListener((purchase) => {
+      if (purchase?.productId === productId && purchase.purchaseToken) onPurchase(purchase)
+    })
+    const onPurchase = finish((purchase) => resolve({ signedTransaction: purchase.purchaseToken, finish: () => iap.finishTransaction({ purchase, isConsumable: consumable }) }))
+    const failed = iap.purchaseErrorListener(
+      finish((error) =>
+        reject(error?.code === 'user-cancelled' ? { code: 0, description: 'Payment cancelled' } : { code: 'STORE', description: error?.message ?? 'The App Store purchase failed.' }),
+      ),
+    )
+    iap.requestPurchase({ request: { apple: { sku: productId } }, type: 'in-app' }).catch(finish((e) => reject({ code: 'STORE', description: e?.message ?? 'The App Store purchase failed.' })))
+  })
 }

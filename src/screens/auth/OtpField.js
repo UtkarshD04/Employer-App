@@ -5,7 +5,7 @@ import { Text, TextField } from '../../components/ui'
 const RESEND_SECONDS = 30
 
 // 6-digit code input with a resend countdown. `resetKey` restarts the timer (after each send).
-export default function OtpField({ phone, value, onChange, onSubmit, onResend, resetKey, error }) {
+export default function OtpField({ phone, destination, value, onChange, onSubmit, onResend, resetKey, error }) {
   const [left, setLeft] = useState(RESEND_SECONDS)
 
   useEffect(() => {
@@ -17,7 +17,7 @@ export default function OtpField({ phone, value, onChange, onSubmit, onResend, r
   return (
     <View style={{ gap: 10 }}>
       <TextField
-        label={`Enter the 6-digit code sent to +91 ${phone}`}
+        label={`Enter the 6-digit code sent to ${destination ?? `+91 ${phone}`}`}
         value={value}
         onChangeText={(v) => {
           const code = v.replace(/\D/g, '').slice(0, 6)

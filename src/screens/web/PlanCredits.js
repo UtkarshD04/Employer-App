@@ -5,7 +5,7 @@ import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { Btn, C, EmptyState, F, Field, Input, Sheet, Skeleton, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { useAuth } from '../../context/AuthContext'
-import { getStorePrices, iapEnabled, restorePurchases } from '../../lib/iap'
+import { getStorePrices, iapEnabled } from '../../lib/iap'
 import { agoDate } from '../../lib/tfmt'
 import { getSubscription, getWallet, isCancel, listPlanPayments, listPurchases, listUnlockHistory, paymentError, previewSubscriptionCoupon, purchaseSubscription, refreshPlan, submitPlanEnquiry } from '../../services/plan'
 
@@ -231,7 +231,6 @@ function History() {
 
 export default function PlanCreditsScreen() {
   const { toast } = useWorkspace()
-  const { company } = useAuth()
   const [data, setData] = useState(null)
   const [prices, setPrices] = useState({})
   const [error, setError] = useState(false)
@@ -272,11 +271,10 @@ export default function PlanCreditsScreen() {
           <View style={{ gap: 20 }}><Skeleton h={128} r={16} /><Skeleton h={128} r={16} /></View>
         ) : (
           <>
-            <SubscriptionCard data={data.sub} busy={busy} prices={prices} onBuy={(plan, code) => run(plan.planCode, () => purchaseSubscription(plan, code, company?.id), `${plan.planName} activated`)} />
+            <SubscriptionCard data={data.sub} busy={busy} prices={prices} onBuy={(plan, code) => run(plan.planCode, () => purchaseSubscription(plan, code), `${plan.planName} activated`)} />
             <CreditsCard wallet={data.wallet} rate={data.rate} />
             {iapEnabled ? (
               <View style={{ gap: 8, alignItems: 'center' }}>
-                <Btn size="sm" loading={busy === 'restore'} onPress={() => run('restore', async () => { await restorePurchases(company?.id); await refreshPlan() }, 'Purchases restored')}>Restore purchases</Btn>
                 <T s={12} c={C.muted} style={{ textAlign: 'center' }}>
                   Payment is charged to your Apple ID account. By purchasing you agree to our{' '}
                   <T s={12} c={C.accent} onPress={() => Linking.openURL('https://mzobs.com/terms-of-service')}>Terms</T> and{' '}

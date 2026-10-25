@@ -29,6 +29,9 @@ export const purchaseCredits = (planId, couponCode, openCheckout) =>
     openCheckout,
   })
 
+// iOS in-app purchase: the backend verifies Apple's signed transaction, then grants the plan / credits.
+export const verifyApplePurchase = (signedTransaction) => apiClient.post('/payments/apple', { signedTransaction }).then((r) => r.data)
+
 export const purchasePlan = (planCode, couponCode, openCheckout) =>
   pay({
     createOrder: () => apiClient.post('/subscription/order', { planCode, couponCode: couponCode || undefined }).then((r) => r.data),

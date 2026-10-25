@@ -2,7 +2,7 @@
 // components/ui.jsx) rebuilt for React Native: same tokens, pill buttons, chips, match ring,
 // sheets and inputs. The website is light-only, so these screens are too.
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Animated, Easing, Keyboard, KeyboardAvoidingView, Modal as RNModal, Platform, Pressable, ScrollView, Text as RNText, TextInput, View } from 'react-native'
+import { ActivityIndicator, Animated, Easing, Image, Keyboard, KeyboardAvoidingView, Modal as RNModal, Platform, Pressable, ScrollView, Text as RNText, TextInput, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import Svg, { Circle } from 'react-native-svg'
 import { AlertTriangle, Check, ChevronDown, Clock, Minus, ShieldCheck, X } from 'lucide-react-native'
@@ -117,6 +117,10 @@ export function Tag({ icon: Icon, children, bg = C.line2, fg = C.muted, style })
 
 const TINTS = [['#e8f8f5', '#0a6f64'], ['#eaf3fc', '#1f6fb2'], ['#e6f6ee', '#1a8f5a'], ['#f1ede5', '#7a5b2e'], ['#fbeee3', '#b45309']]
 export function Avatar({ candidate, size = 44 }) {
+  const [failed, setFailed] = useState(false)
+  if (candidate?.photoUrl && !failed) {
+    return <Image source={{ uri: candidate.photoUrl }} onError={() => setFailed(true)} accessibilityElementsHidden style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.line2 }} />
+  }
   let h = 0
   for (const ch of String(candidate?.id ?? '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0
   const [bg, fg] = TINTS[h % TINTS.length]

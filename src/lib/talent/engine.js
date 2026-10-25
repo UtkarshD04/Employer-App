@@ -43,6 +43,26 @@ function locationScore(c, want) {
   return 40
 }
 
+/**
+ * How a candidate relates to the cities the recruiter picked (current + preferred):
+ * lives there, wants to work there, or is open to relocating. Null when no city is picked or none fits.
+ * @returns {{kind:'here'|'wants'|'relocate', city:string}|null}
+ */
+export function locationFit(c, crit) {
+  const picked = [...(crit.locations ?? []), ...(crit.prefLocations ?? [])]
+  if (!picked.length) return null
+  const w = picked.map(canonCity)
+  const here = picked.find((p) => canonCity(p) === canonCity(c.location))
+  if (here) return { kind: 'here', city: here }
+  const wants = (c.preferredLocations ?? []).find((l) => w.includes(canonCity(l)))
+  if (wants) return { kind: 'wants', city: wants }
+  if (c.relocationOk) return { kind: 'relocate', city: picked[0] }
+  return null
+}
+
+const FIT_TIER = { here: 0, wants: 1, relocate: 2 }
+const fitTier = (r) => (r.fit ? FIT_TIER[r.fit.kind] : 3)
+
 /** @returns {{overall:number|null, parts:Record<string,number|null>, strong:string[], weak:string[], notes:string[]}} */
 export function computeMatch(c, crit) {
   const parts = { skills: null, experience: null, location: null, industry: null, salary: null, availability: null }
@@ -143,17 +163,31 @@ function textFor(c, scope) {
   if (scope === 'title') return `${c.designation} ${c.workHistory.map((w) => w.role).join(' ')}`
   if (scope === 'skills') return c.skills.join(' ')
   if (scope === 'experience') return c.workHistory.map((w) => `${w.role} ${w.company} ${(w.skills ?? []).join(' ')}`).join(' ')
-  return [c.name, c.designation, c.currentCompany, c.summary, c.skills.join(' '), c.workHistory.map((w) => `${w.role} ${w.company}`).join(' '), c.projects.map((p) => `${p.name} ${p.description}`).join(' '), c.education.map((e) => `${e.degree} ${e.institute}`).join(' ')].join(' ')
+  return [c.name, c.designation, c.currentCompany, c.summary, c.location, (c.preferredLocations ?? []).join(' '), canonCity(c.location), c.skills.join(' '), c.workHistory.map((w) => `${w.role} ${w.company}`).join(' '), c.projects.map((p) => `${p.name} ${p.description} ${(p.tech ?? []).join(' ')}`).join(' '), c.education.map((e) => `${e.degree} ${e.institute}`).join(' '), c.college ?? '', c.resumeText ?? ''].join(' ')
+}
+
+// A keyword matches at the start of a word ("cyber" finds "cybersecurity", "sap" never finds "map"),
+// which matters now that the haystack includes the full CV text.
+const wordRe = new Map()
+function hasWord(hay, k) {
+  const term = norm(k)
+  if (!term) return true
+  let re = wordRe.get(term)
+  if (!re) {
+    re = new RegExp(`(^|[^a-z0-9])${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+    wordRe.set(term, re)
+  }
+  return re.test(hay)
 }
 
 function passes(c, crit, trust, exclude) {
   if (exclude?.has(c.id)) return false
   const hay = norm(textFor(c, crit.scope))
-  if (crit.keywords.some((k) => !hay.includes(norm(k)))) return false
-  if (crit.keywordGroups.some((g) => !g.some((k) => hay.includes(norm(k))))) return false
+  if (crit.keywords.some((k) => !hasWord(hay, k))) return false
+  if (crit.keywordGroups.some((g) => !g.some((k) => hasWord(hay, k)))) return false
   if (crit.boolExpr && !evalBool(crit.boolExpr, c, (x) => textFor(x, crit.scope))) return false
-  if (crit.exclude.some((k) => norm(textFor(c, 'all')).includes(norm(k)))) return false
-  if (crit.anyKeywords.length && !crit.anyKeywords.some((k) => hay.includes(norm(k)))) return false
+  if (crit.exclude.some((k) => hasWord(norm(textFor(c, 'all')), k))) return false
+  if (crit.anyKeywords.length && !crit.anyKeywords.some((k) => hasWord(hay, k))) return false
   if (!roleMatches(c, crit.role)) return false
   if (crit.skills.length) {
     const have = new Set(c.skills.map(norm))
@@ -162,6 +196,11 @@ function passes(c, crit, trust, exclude) {
   }
   if (crit.expMin != null && c.experienceYears < crit.expMin) return false
   if (crit.expMax != null && c.experienceYears > crit.expMax) return false
+  if (crit.state && canonCity(c.state) !== canonCity(crit.state)) return false
+  if (crit.pincode?.length === 6) {
+    const pin = String(c.pincode ?? '').trim()
+    if (crit.pinNearby ? pin.slice(0, 3) !== crit.pincode.slice(0, 3) : pin !== crit.pincode) return false
+  }
   if (crit.locations.length) {
     const w = crit.locations.map(canonCity)
     const here = w.includes(canonCity(c.location))
@@ -182,7 +221,7 @@ function passes(c, crit, trust, exclude) {
   if (crit.gender && c.gender !== crit.gender) return false
   if (crit.prevCompany && !c.workHistory.slice(1).some((w) => norm(w.company).includes(norm(crit.prevCompany)))) return false
   if (crit.degree && !c.education.some((e) => norm(e.degree).includes(norm(crit.degree)))) return false
-  if (crit.institute && !c.education.some((e) => norm(e.institute).includes(norm(crit.institute)))) return false
+  if (crit.institute && ![c.college, ...c.education.map((e) => e.institute)].some((n) => norm(n).includes(norm(crit.institute)))) return false
   if (crit.gradFrom != null || crit.gradTo != null) {
     if (!c.education.some((e) => e.year != null && (crit.gradFrom == null || e.year >= crit.gradFrom) && (crit.gradTo == null || e.year <= crit.gradTo))) return false
   }
@@ -218,6 +257,7 @@ const days = (v) => (v == null ? Number.MAX_SAFE_INTEGER : v)
 
 const SORTERS = {
   relevance: (a, b) => (b.match.overall ?? 0) - (a.match.overall ?? 0) || b.kw - a.kw || b.trust.score - a.trust.score || days(a.candidate.lastActiveDaysAgo ?? a.candidate.sharedDaysAgo) - days(b.candidate.lastActiveDaysAgo ?? b.candidate.sharedDaysAgo),
+  location: (a, b) => fitTier(a) - fitTier(b) || (b.match.overall ?? 0) - (a.match.overall ?? 0),
   match: (a, b) => (b.match.overall ?? -1) - (a.match.overall ?? -1),
   experience: (a, b) => b.candidate.experienceYears - a.candidate.experienceYears,
   active: (a, b) => days(a.candidate.lastActiveDaysAgo ?? a.candidate.sharedDaysAgo) - days(b.candidate.lastActiveDaysAgo ?? b.candidate.sharedDaysAgo),
@@ -234,6 +274,13 @@ function keywordScore(c, crit) {
   return terms.reduce((n, t) => n + hay.split(norm(t)).length - 1, 0)
 }
 
+const NO_PLACE = { state: '', pincode: '', pinNearby: false, locations: [], prefLocations: [], relocate: false }
+
+/** Whether a candidate passes every filter except the geographic ones — for per-place "matching" counts. */
+export function passesExceptLocation(c, crit) {
+  return passes(c, { ...crit, ...NO_PLACE }, computeTrust(c), null)
+}
+
 /** Filters, scores and sorts a pool. Returns every hit — callers paginate. */
 export function rankPool(pool, crit, sort = 'relevance', exclude = null) {
   const rows = []
@@ -242,7 +289,7 @@ export function rankPool(pool, crit, sort = 'relevance', exclude = null) {
     if (!passes(candidate, crit, trust, exclude)) continue
     const match = computeMatch(candidate, crit)
     if (crit.minMatch != null && (match.overall ?? 0) <= crit.minMatch) continue
-    rows.push({ candidate, match, trust, kw: keywordScore(candidate, crit) })
+    rows.push({ candidate, match, trust, fit: locationFit(candidate, crit), kw: keywordScore(candidate, crit) })
   }
   return rows.sort(SORTERS[sort] ?? SORTERS.relevance)
 }

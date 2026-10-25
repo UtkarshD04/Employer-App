@@ -46,7 +46,7 @@ function tokenize(src) {
   let i = 0
   while (i < src.length) {
     const ch = src[i]
-    if (/\s/.test(ch)) { i++; continue }
+    if (/[\s,;]/.test(ch)) { i++; continue } // commas/semicolons separate terms, like a space (= AND)
     if (ch === '(' || ch === ')') { out.push({ k: ch, pos: i }); i++; continue }
     if (ch === '"') {
       const end = src.indexOf('"', i + 1)
@@ -60,7 +60,7 @@ function tokenize(src) {
     if (ch === '!' || (ch === '-' && !/\s/.test(src[i + 1] ?? ' '))) { out.push({ k: 'NOT', pos: i }); i++; continue }
     if (ch === '+') { i++; continue } // "+term" = required, which is already the default
     let j = i
-    while (j < src.length && !/[\s()"]/.test(src[j])) j++
+    while (j < src.length && !/[\s,;()"]/.test(src[j])) j++
     let word = src.slice(i, j)
     // field:"quoted phrase"
     if (/^[a-z]+:$/i.test(word) && src[j] === '"') {

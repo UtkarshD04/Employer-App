@@ -16,6 +16,12 @@ export const verifyOtp = (phone, otp) => apiClient.post('/auth/verify-otp', { ph
 // 404 = number isn't registered (callers treat it as "continue to sign up").
 export const phoneLogin = (phone, phoneToken) => apiClient.post('/auth/phone-login', { phone, phoneToken }).then((r) => persist(r.data))
 
+export const sendEmailOtp = (email) => apiClient.post('/auth/send-email-otp', { email: email.trim() }).then((r) => r.data)
+export const verifyEmailOtp = (email, otp) => apiClient.post('/auth/verify-email-otp', { email: email.trim(), otp }).then((r) => r.data.emailToken)
+
+// 404 = no account uses this email (callers point to registration).
+export const emailLogin = (email, emailToken) => apiClient.post('/auth/email-login', { email: email.trim(), emailToken }).then((r) => persist(r.data))
+
 export const signup = (body) => apiClient.post('/auth/signup', body).then((r) => persist(r.data))
 
 export const forgotPassword = (email) => apiClient.post('/auth/forgot-password', { email: email.trim() }).then((r) => r.data)

@@ -9,6 +9,12 @@
 
 import { apiClient, fetchAll as fetchAllPages } from '../lib/api'
 import { revealedFromApi } from '../lib/reveal'
+import { FILE_BASE_URL } from '../lib/config'
+import { splitSkills, tidyText } from '../lib/talent/summary'
+
+// The phone preview shown before a candidate is unlocked never carries real digits —
+// not even the last four — whatever the server sends.
+const hidePhone = (preview) => (preview ? { ...preview, phone: preview.phone ? '••••••••••' : preview.phone } : preview)
 import { rankPool, similarTo, computeMatch, computeTrust } from '../lib/talent/engine'
 import { setVocabularyFrom } from '../lib/talent/vocab'
 
@@ -64,12 +70,12 @@ export function mapApiCandidate(c, jobTitles = {}) {
     location: c.location ?? '',
     preferredLocations: c.location ? [c.location] : [],
     noticePeriodDays: toNoticeDays(c.availability),
-    skills: c.skills ?? [],
+    skills: splitSkills(c.skills),
     industry: '',
     companyType: '',
     workMode: '',
     employmentType: '',
-    education: (c.education ?? []).map((e) => ({ degree: e.degree, institute: e.institute, year: Number(e.year) || null })),
+    education: (c.education ?? []).map((e) => ({ degree: tidyText(e.degree), institute: tidyText(e.institute), year: Number(e.year) || null })),
     workHistory: hist,
     projects: (c.projects ?? []).map((p) => ({ name: p.name, description: p.description })),
     certifications: c.certificates ? [`${c.certificates} certificate${c.certificates === 1 ? '' : 's'} on profile`] : [],
@@ -98,7 +104,7 @@ export function mapApiCandidate(c, jobTitles = {}) {
     rejectionReason: c.rejectionReason ?? null,
     contact: c.unlocked ? { email: c.email, phone: c.phone } : null,
     links: [],
-    _live: { kind: 'applicant', candidateId: c.id, employeeId: c.employeeId ?? null, stage: c.stage, unlocked: !!c.unlocked, revealed: revealedFromApi(c), contactPreview: c.contactPreview },
+    _live: { kind: 'applicant', candidateId: c.id, employeeId: c.employeeId ?? null, stage: c.stage, unlocked: !!c.unlocked, revealed: revealedFromApi(c), contactPreview: hidePhone(c.contactPreview) },
   }
 }
 
@@ -113,6 +119,7 @@ export function mapResdexCandidate(e) {
     id: e.id,
     name: e.name,
     initials: e.initials,
+    photoUrl: e.photoUrl ? `${FILE_BASE_URL}${e.photoUrl}` : '',
     designation: e.designation || e.preferredRole || e.headline || '',
     appliedFor: '',
     currentCompany: e.currentCompany || hist[0]?.company || '',
@@ -120,22 +127,26 @@ export function mapResdexCandidate(e) {
     currentSalaryLPA: toLpa(e.currentCtc),
     expectedSalaryLPA: toLpa(e.expectedSalary),
     location: e.location ?? '',
+    state: e.state ?? '',
+    pincode: e.pincode ?? '',
     preferredLocations: e.preferredLocations?.length ? e.preferredLocations : e.location ? [e.location] : [],
     relocationOk: e.relocationOk,
     noticePeriodDays: toNoticeDays(e.noticePeriod),
-    skills: e.skills ?? [],
+    skills: splitSkills(e.skills),
     industry: '',
     companyType: '',
     workMode: workModes.join(' / '),
     workModes,
     employmentType: employmentTypes.join(' / '),
     employmentTypes,
-    education: (e.education ?? []).map((x) => ({ degree: x.degree, institute: x.institute, year: Number(x.year) || null })),
+    college: e.college || '',
+    education: (e.education ?? []).map((x) => ({ degree: tidyText(x.degree), institute: tidyText(x.institute), year: Number(x.year) || null })),
     workHistory: hist,
     projects: (e.projects ?? []).map((p) => ({ name: p.name, description: p.description, tech: p.tech ?? [] })),
     certifications: [],
     languages: [],
     summary: e.headline || '',
+    resumeText: e.resumeText || '',
     hasPortfolio: !!e.portfolioLink,
     portfolioLink: e.portfolioLink || '',
     hasVideo: false,
@@ -159,7 +170,7 @@ export function mapResdexCandidate(e) {
     rejectionReason: null,
     contact: e.unlocked ? { email: e.email, phone: e.phone } : null,
     links,
-    _live: { kind: 'resdex', candidateId: e.candidateId ?? null, employeeId: e.employeeId, stage: null, unlocked: !!e.unlocked, revealed: revealedFromApi(e), contactPreview: e.contactPreview },
+    _live: { kind: 'resdex', candidateId: e.candidateId ?? null, employeeId: e.employeeId, stage: null, unlocked: !!e.unlocked, revealed: revealedFromApi(e), contactPreview: hidePhone(e.contactPreview) },
   }
 }
 
@@ -223,7 +234,7 @@ export function poolMeta(pool, jobs = []) {
     certifications: any((c) => c.certifications?.length),
     currentSalary: any((c) => c.currentSalaryLPA != null),
     gradYear: any((c) => c.education.some((e) => e.year)),
-    institute: any((c) => c.education.some((e) => e.institute)),
+    institute: any((c) => c.college || c.education.some((e) => e.institute)),
     degree: any((c) => c.education.some((e) => e.degree)),
     relocation: any((c) => c.relocationOk != null || c.preferredLocations.length > 1),
     portfolio: any((c) => c.hasPortfolio),
@@ -272,6 +283,11 @@ export function invalidatePool() {
 export async function refreshPool() {
   invalidatePool()
   return getPoolMeta(true)
+}
+
+/** Every loaded candidate, for the Location filter's per-place counts. */
+export async function getPoolRows() {
+  return (await loadPool()).rows
 }
 
 export async function getPoolMeta(force = false) {

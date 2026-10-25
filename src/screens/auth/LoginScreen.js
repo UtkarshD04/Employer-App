@@ -9,22 +9,34 @@ import { Button, FadeIn, Text, TextField } from '../../components/ui'
 import OtpField from './OtpField'
 
 const PHONE_RE = /^[6-9]\d{9}$/
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function LoginScreen({ navigation }) {
   const { colors, spacing, isDark } = useTheme()
   const { startSession } = useAuth()
+  const [mode, setMode] = useState('phone') // 'phone' | 'email'
   const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [otpSent, setOtpSent] = useState(0) // bumps on every send; 0 = not sent yet
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const byEmail = mode === 'email'
+
+  function switchMode() {
+    setMode(byEmail ? 'phone' : 'email')
+    setOtpSent(0)
+    setOtp('')
+    setError('')
+  }
+
   async function sendOtp() {
-    if (!PHONE_RE.test(phone)) return setError('Enter a valid 10-digit mobile number.')
+    if (byEmail ? !EMAIL_RE.test(email.trim()) : !PHONE_RE.test(phone)) return setError(byEmail ? 'Enter a valid email address.' : 'Enter a valid 10-digit mobile number.')
     setError('')
     setLoading(true)
     try {
-      await authService.sendOtp(phone)
+      await (byEmail ? authService.sendEmailOtp(email) : authService.sendOtp(phone))
       setOtp('')
       setOtpSent((n) => n + 1)
     } catch (err) {
@@ -38,6 +50,7 @@ export default function LoginScreen({ navigation }) {
     if (code.length !== 6) return setError('Enter the 6-digit code.')
     setError('')
     setLoading(true)
+    if (byEmail) return verifyEmailCode(code)
     try {
       const phoneToken = await authService.verifyOtp(phone, code)
       try {
@@ -58,6 +71,16 @@ export default function LoginScreen({ navigation }) {
     }
   }
 
+  async function verifyEmailCode(code) {
+    try {
+      const emailToken = await authService.verifyEmailOtp(email, code)
+      startSession(await authService.emailLogin(email, emailToken))
+    } catch (err) {
+      setError(err?.response?.status === 404 ? 'No account found for this email. Register to get started.' : errorMessage(err, 'Couldn’t sign in. Please try again.'))
+      setLoading(false)
+    }
+  }
+
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {navigation.canGoBack() ? (
@@ -72,32 +95,52 @@ export default function LoginScreen({ navigation }) {
           <Text variant="body" color="inkSecondary" style={{ textAlign: 'center' }}>Manage jobs, candidates and interviews on the go.</Text>
         </FadeIn>
 
-        <TextField
-          label="Mobile number"
-          value={phone}
-          onChangeText={(v) => {
-            setPhone(v.replace(/\D/g, '').slice(0, 10))
-            setOtpSent(0)
-            setOtp('')
-          }}
-          keyboardType="phone-pad"
-          autoComplete="tel"
-          placeholder="98765 43210"
-          editable={!otpSent}
-        />
+        {byEmail ? (
+          <TextField
+            label="Email"
+            value={email}
+            onChangeText={(v) => {
+              setEmail(v)
+              setOtpSent(0)
+              setOtp('')
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            placeholder="you@company.com"
+            editable={!otpSent}
+          />
+        ) : (
+          <TextField
+            label="Mobile number"
+            value={phone}
+            onChangeText={(v) => {
+              setPhone(v.replace(/\D/g, '').slice(0, 10))
+              setOtpSent(0)
+              setOtp('')
+            }}
+            keyboardType="phone-pad"
+            autoComplete="tel"
+            placeholder="98765 43210"
+            editable={!otpSent}
+          />
+        )}
         {otpSent ? (
           <>
-            <OtpField phone={phone} value={otp} onChange={setOtp} onSubmit={verifyOtp} onResend={sendOtp} resetKey={otpSent} />
+            <OtpField phone={phone} destination={byEmail ? email.trim() : undefined} value={otp} onChange={setOtp} onSubmit={verifyOtp} onResend={sendOtp} resetKey={otpSent} />
             {error ? <Text variant="caption" color="red">{error}</Text> : null}
             <Button title="Verify & login" onPress={() => verifyOtp()} loading={loading} />
             <Pressable onPress={() => { setOtpSent(0); setOtp(''); setError('') }} hitSlop={10} style={{ alignSelf: 'center' }}>
-              <Text variant="label" color="navy">Change number</Text>
+              <Text variant="label" color="navy">{byEmail ? 'Change email' : 'Change number'}</Text>
             </Pressable>
           </>
         ) : (
           <>
             {error ? <Text variant="caption" color="red">{error}</Text> : null}
             <Button title="Get OTP" onPress={sendOtp} loading={loading} />
+            <Pressable onPress={switchMode} hitSlop={10} style={{ alignSelf: 'center' }}>
+              <Text variant="label" color="navy">{byEmail ? 'Continue with mobile number' : 'Continue with email'}</Text>
+            </Pressable>
           </>
         )}
 

@@ -1,11 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
 import { BookmarkPlus, ChevronDown, X } from 'lucide-react-native'
 import { NOTICE_OPTIONS, STAGE_LABELS, criteriaToChips, removeChip } from '../../lib/talent/criteria'
 import { vocab } from '../../lib/talent/vocab'
+import { getLocationFacets } from '../../services/geo'
 import { C, CheckBox, Chip, F, Radio, Select, T, card } from '../wk'
+import LocationRadar from './LocationRadar'
 
 const EMPLOYMENT_TYPE_LIST = ['Full-time', 'Part-time', 'Contract', 'Internship']
+
+// This company's own job-opening cities (busiest first) — the cities it is hiring in.
+function useJobCities() {
+  const [cities, setCities] = useState([])
+  useEffect(() => {
+    let live = true
+    getLocationFacets()
+      .then((rows) => {
+        const by = new Map()
+        rows.forEach((f) => { if (f.city) by.set(f.city, (by.get(f.city) ?? 0) + (f.count ?? 1)) })
+        if (live) setCities([...by].map(([city, count]) => ({ city, count })).sort((a, b) => b.count - a.count || a.city.localeCompare(b.city)))
+      })
+      .catch(() => {})
+    return () => { live = false }
+  }, [])
+  return cities
+}
 
 /** Chips + free text; suggestions appear under the box as you type. */
 export function TagInput({ values, onChange, placeholder, suggestions = [] }) {
@@ -132,6 +151,8 @@ export default function FilterPanel({ criteria, onChange, onSave, onClear, meta 
   const chips = criteriaToChips(c)
   const n = (...flags) => flags.filter(Boolean).length
   const show = (k) => m[k] !== false // unknown meta (still loading) shows everything
+  const jobCities = useJobCities()
+  const hiringPicks = jobCities.filter((j) => !c.locations.includes(j.city))
 
   return (
     <View style={card}>
@@ -193,17 +214,36 @@ export default function FilterPanel({ criteria, onChange, onSave, onClear, meta 
           <NumberPair a={c.expMin} b={c.expMax} onA={(expMin) => set({ expMin })} onB={(expMax) => set({ expMax })} unit="yrs" />
         </Section>
 
-        <Section title="Location" defaultOpen={c.locations.length > 0} count={c.locations.length + c.prefLocations.length + n(c.relocate)}>
-          <Label first>Current location</Label>
-          <TagInput values={c.locations} onChange={(locations) => set({ locations })} placeholder="City…" suggestions={vocab.cities} />
-          {c.locations.length > 0 ? <CheckBox checked={c.alsoPreferred} onChange={(alsoPreferred) => set({ alsoPreferred })}>Include people who prefer to relocate here</CheckBox> : null}
-          {show('relocation') ? (
-            <>
-              <Label>Preferred location</Label>
-              <TagInput values={c.prefLocations} onChange={(prefLocations) => set({ prefLocations })} placeholder="Where they want to work…" suggestions={vocab.cities} />
-              <CheckBox checked={c.relocate} onChange={(relocate) => set({ relocate })}>Open to relocation</CheckBox>
-            </>
-          ) : null}
+        <Section title="Location" defaultOpen count={c.locations.length + c.prefLocations.length + n(c.relocate, c.state, c.pincode)}>
+          <LocationRadar
+            criteria={c}
+            set={set}
+            meta={m}
+            relocationEnabled={show('relocation')}
+            customPanel={
+              <>
+                {hiringPicks.length > 0 ? (
+                  <>
+                    <Label first>Popular hiring locations</Label>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                      {hiringPicks.map((j) => {
+                        const on = c.prefLocations.includes(j.city)
+                        return (
+                          <Pressable key={j.city} accessibilityState={{ selected: on }} onPress={() => set({ prefLocations: on ? c.prefLocations.filter((x) => x !== j.city) : [...c.prefLocations, j.city] })} style={{ minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 999, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : '#fff', paddingHorizontal: 10 }}>
+                            <T s={12} w="s" c={on ? C.accentText : C.ink2}>{j.city}</T>
+                            <T s={12} c={C.muted}>{j.count}</T>
+                          </Pressable>
+                        )
+                      })}
+                    </View>
+                  </>
+                ) : null}
+                <Label first={hiringPicks.length === 0}>Preferred location</Label>
+                <TagInput values={c.prefLocations} onChange={(prefLocations) => set({ prefLocations })} placeholder="Cities where they want to work…" suggestions={vocab.cities} />
+                <CheckBox checked={c.relocate} onChange={(relocate) => set({ relocate })}>Open to relocation</CheckBox>
+              </>
+            }
+          />
         </Section>
 
         {show('salary') || show('currentSalary') ? (
@@ -232,7 +272,7 @@ export default function FilterPanel({ criteria, onChange, onSave, onClear, meta 
 
         <Section title="Education" count={n(c.degree, c.institute, c.education, c.gradFrom != null || c.gradTo != null)}>
           {show('degree') ? (<><Label first>Degree</Label><Suggest value={c.degree} onChange={(degree) => set({ degree })} placeholder="e.g. B.Tech" options={vocab.degrees} /></>) : null}
-          {show('institute') ? (<><Label>Institute</Label><Suggest value={c.institute} onChange={(institute) => set({ institute })} placeholder="College / university" options={vocab.institutes} /></>) : null}
+          {show('institute') ? (<><Label>College / University</Label><Suggest value={c.institute} onChange={(institute) => set({ institute })} placeholder="College / university" options={vocab.institutes} /></>) : null}
           {show('gradYear') ? (<><Label>Year of passing</Label><NumberPair a={c.gradFrom} b={c.gradTo} onA={(gradFrom) => set({ gradFrom })} onB={(gradTo) => set({ gradTo })} pa="From" pb="To" /></>) : null}
         </Section>
 

@@ -7,9 +7,9 @@ import SearchComposer from '../../components/web/SearchComposer'
 import FilterPanel from '../../components/web/FilterPanel'
 import CandidateCard from '../../components/web/CandidateCard'
 import { useActions } from '../../components/web/useActions'
-import { Btn, C, CardSkeleton, Chip, EmptyState, F, Input, Modal, Select, T, card } from '../../components/wk'
+import { Btn, C, CardSkeleton, CheckBox, Chip, EmptyState, F, Input, Modal, Select, T, card } from '../../components/wk'
 import { EMPTY_CRITERIA, SORTS, criteriaToChips, criteriaTitle, hasActiveCriteria, makeCriteria, removeChip } from '../../lib/talent/criteria'
-import { parseQuery } from '../../lib/talent/parse'
+import { parseQueryAI } from '../../lib/talent/parse'
 import { collectTerms } from '../../lib/talent/boolean'
 import { getPoolMeta, refreshPool, searchTalent } from '../../services/talent'
 import { useWorkspace } from '../../store/workspace'
@@ -29,9 +29,17 @@ function useDebounced(value, ms) {
 
 export default function SearchScreen({ route }) {
   const nav = useNavigation()
-  const { recent, pushRecent, clearRecent, saveSearch, toast, messages, shortlists, viewed } = useWorkspace()
+  const { recent, pushRecent, clearRecent, saveSearch, selected, selectMany, clearSelection, toast, messages, shortlists, viewed } = useWorkspace()
   const [criteria, setCriteria] = useState(() => makeCriteria(route.params?.criteria ?? {}))
   const [sort, setSort] = useState('relevance')
+  // Picking a city for the first time puts the people who live there (then those who want to move there) on top.
+  const hadCity = useRef(false)
+  const hasCity = criteria.locations.length + criteria.prefLocations.length > 0
+  useEffect(() => {
+    if (hasCity && !hadCity.current) setSort((s) => (s === 'relevance' ? 'location' : s))
+    if (!hasCity && sort === 'location') setSort('relevance')
+    hadCity.current = hasCity
+  }, [hasCity, sort])
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(null)
   const [page, setPage] = useState(1)
@@ -112,8 +120,8 @@ export default function SearchScreen({ route }) {
       .finally(() => setLoadingMore(false))
   }, [loadingMore, hasMore, loading, debounced, sort, page, exclude])
 
-  const runQuery = (text, mode, scope) => {
-    const parsed = { ...parseQuery(text, mode), scope }
+  const runQuery = async (text, mode, scope) => {
+    const parsed = { ...(await parseQueryAI(text, mode)), scope }
     setCriteria(parsed)
     if (hasActiveCriteria(parsed)) pushRecent(parsed)
   }
@@ -122,6 +130,8 @@ export default function SearchScreen({ route }) {
   const terms = useMemo(() => [...criteria.skills, ...criteria.keywords, ...criteria.keywordGroups.flat(), ...collectTerms(criteria.boolExpr)], [criteria])
   const active = hasActiveCriteria(criteria)
   const scored = rows.some((r) => r.match.overall != null)
+  const pageIds = rows.map((r) => r.candidate.id)
+  const allSelected = pageIds.length > 0 && pageIds.every((i) => selected.includes(i))
   const aiUnderstood = criteria.mode === 'ai' && criteria.q.trim() && chips.length > 0
 
   const openSave = () => {
@@ -197,15 +207,17 @@ export default function SearchScreen({ route }) {
       <View style={{ gap: 10, marginTop: 6 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
           <View style={{ flex: 1 }}>
-            {chips.length > 0 ? <T s={15} w="s">{loading && total == null ? 'Searching…' : `${(total ?? 0).toLocaleString('en-IN')} candidate${total === 1 ? '' : 's'} found`}</T> : null}
+            <T s={15} w="s">{loading && total == null ? 'Searching…' : `${(total ?? 0).toLocaleString('en-IN')} candidate${total === 1 ? '' : 's'} found`}</T>
             {scored && !loading ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Sparkles size={12} color={C.accentText} />
                 <T s={12.5} c={C.accentText} style={{ flex: 1 }}>Mzobs AI ranked {total?.toLocaleString('en-IN')} candidate{total === 1 ? '' : 's'} against your requirements.</T>
               </View>
             ) : null}
+            {!scored && !loading ? <T s={12.5} c={C.muted}>{chips.length ? 'Filtered by your search. Add skills, a role or location to rank by AI match.' : 'Showing all talent. Add skills, a role or location to rank by AI match.'}</T> : null}
           </View>
         </View>
+        {pageIds.length > 0 ? <CheckBox checked={allSelected} onChange={() => (allSelected ? clearSelection() : selectMany(pageIds))}>Select all on this page</CheckBox> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Btn icon={SlidersHorizontal} onPress={() => setFiltersOpen(true)}>{`Filters${chips.length > 0 ? ` (${chips.length})` : ''}`}</Btn>
           <Select value={sort} onChange={setSort} options={SORTS.map((s) => [s.id, s.label])} title="Sort by" style={{ flex: 1, minHeight: 40 }} />
