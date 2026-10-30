@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { ROUTES } from '../../lib/routes'
 import { usePermissions } from '../../services/recruiter'
+import BottomBar from './BottomBar'
 import { getPlanSnapshot, refreshPlan, subscribePlan } from '../../services/plan'
 import { listNotifications } from '../../services/notificationsService'
 import { queryKeys } from '../../lib/queryClient'
@@ -152,6 +153,7 @@ export function Shell({ children }) {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <TopNav />
       <View style={{ flex: 1 }}>{children}</View>
+      <BottomBar />
     </View>
   )
 }
