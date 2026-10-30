@@ -12,7 +12,7 @@ import { getTalentMany, listJobs, listPipelineShortlisted, searchTalent } from '
 import { listUnlocks, setCandidateStage } from '../../services/talentApi'
 import { useWorkspace } from '../../store/workspace'
 import { agoDate, lpa, years } from '../../lib/tfmt'
-import { isRevealed } from '../../lib/reveal'
+import { contactOpen, isRevealed } from '../../lib/reveal'
 
 // ─── Shortlists ─────────────────────────────────────────────────────────────────────────
 // The default "Shortlisted" list is the server's own record, not just this device's: anyone in the company's
@@ -299,16 +299,20 @@ export function UnlockedCvsScreen() {
                     </View>
                     {p?.contact ? (
                       <View style={{ gap: 4 }}>
-                        {['email', 'phone'].map((part) =>
-                          isRevealed(p, part) ? (
-                            <T key={part} s={13} w={part === 'email' ? 'm' : 'r'} c={part === 'email' ? C.ink : C.ink2}>{p.contact[part] || '—'}</T>
-                          ) : (
-                            <Pressable key={part} onPress={() => onAction('unlock', p, part)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 28 }}>
-                              <T s={13} c={C.ink2}>{p._live?.contactPreview?.[part] ?? '—'}</T>
+                        {contactOpen(p) ? (
+                          <>
+                            <T s={13} w="m" c={C.ink}>{p.contact.email || '—'}</T>
+                            <T s={13} c={C.ink2}>{p.contact.phone || '—'}</T>
+                          </>
+                        ) : (
+                          <>
+                            <T s={13} c={C.ink2}>{p._live?.contactPreview?.email ?? '—'}</T>
+                            <T s={13} c={C.ink2}>{p._live?.contactPreview?.phone ?? '—'}</T>
+                            <Pressable onPress={() => onAction('unlock', p, 'contact')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 28 }}>
                               <Eye size={12} color={C.accent} />
-                              <T s={13} w="s" c={C.accent}>View</T>
+                              <T s={13} w="s" c={C.accent}>Unlock email & number</T>
                             </Pressable>
-                          ),
+                          </>
                         )}
                       </View>
                     ) : null}
