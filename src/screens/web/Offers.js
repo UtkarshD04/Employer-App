@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { Gift, Plus } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { PickerField } from '../../components/web/ActionModals'
-import { ErrorBlock, ListSkeleton, fmtDate, useRefresh, ymd } from '../../components/web/rc'
+import { ErrorBlock, ListSkeleton, Tabs, fmtDate, useRefresh, ymd } from '../../components/web/rc'
 import { Avatar, Btn, C, EmptyState, Field, Input, Select, Sheet, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, createOffer, listApplicants, listOffers, setOfferStatus, usePermissions } from '../../services/recruiter'
@@ -80,7 +80,9 @@ export default function OffersScreen({ route }) {
   useEffect(() => { if (preset) setCreating(true) }, [preset])
 
   const { refreshing, onRefresh } = useRefresh(load)
-  const sorted = useMemo(() => (rows ?? []).slice().sort((a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || new Date(a.expiresOn) - new Date(b.expiresOn)), [rows])
+  const [tab, setTab] = useState('all')
+  const sorted = useMemo(() => (rows ?? []).filter((o) => tab === 'all' || o.status === tab).sort((a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || new Date(a.expiresOn) - new Date(b.expiresOn)), [rows, tab])
+  const countOf = (st) => (rows ?? []).filter((o) => o.status === st).length
   const respond = (o, status) =>
     Alert.alert(`Mark ${o.candidateName}’s offer as ${status === 'accepted' ? 'accepted' : 'declined'}?`, undefined, [
       { text: 'Cancel', style: 'cancel' },
@@ -107,8 +109,9 @@ export default function OffersScreen({ route }) {
       <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <PageTitle title="Offers" sub="Offers you have made and where each one stands." />
         {can('offers.manage') ? <Btn variant="primary" icon={Plus} onPress={() => setCreating(true)} style={{ alignSelf: 'flex-start' }}>Create offer</Btn> : null}
+        {rows && rows.length > 0 ? <Tabs value={tab} onChange={setTab} tabs={[['all', `All (${rows.length})`], ['pending', `Awaiting (${countOf('pending')})`], ['accepted', `Accepted (${countOf('accepted')})`], ['rejected', `Declined (${countOf('rejected')})`]]} /> : null}
         {error ? <ErrorBlock message={error} onRetry={load} /> : !rows ? <ListSkeleton h={110} /> : sorted.length === 0 ? (
-          <EmptyState icon={Gift} title="No offers yet" body="When a candidate is shortlisted or interviewed, create an offer here. They are notified and you can track their response." />
+          <EmptyState icon={Gift} title={rows.length ? 'No offers in this tab' : 'No offers yet'} body={rows.length ? 'Try another tab.' : 'When a candidate is shortlisted or interviewed, create an offer here. They are notified and you can track their response.'} action={!rows.length && can('offers.manage') ? <Btn variant="primary" size="sm" icon={Plus} onPress={() => setCreating(true)}>Create offer</Btn> : undefined} />
         ) : (
           <View style={{ gap: 10 }}>
             {sorted.map((o) => {
