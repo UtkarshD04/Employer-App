@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ScrollView, View } from 'react-native'
+import { Linking, ScrollView, View } from 'react-native'
 import { Activity, ArrowLeft, Award, Bookmark, Briefcase, Building2, CalendarPlus, ChevronLeft, ChevronRight, Clock, Database, ExternalLink, Eye, FileText, FolderPlus, GitCompareArrows, GraduationCap, IndianRupee, Languages, Lightbulb, Lock, Mail, MapPin, MessageSquare, Phone, Pin, Share2, Sparkles, StickyNote } from 'lucide-react-native'
 import * as WebBrowser from 'expo-web-browser'
 import { useNavigation } from '@react-navigation/native'
@@ -14,7 +14,7 @@ import { STAGES, STAGE_LABELS, REJECTION_REASONS, composeRejectionReason } from 
 import { MATCH_LABELS, computeMatch, computeTrust } from '../../lib/talent/engine'
 import { loadLastCriteria, loadLastResults } from '../../lib/lastSearch'
 import { useWorkspace } from '../../store/workspace'
-import { agoDays, lpa, notice, years } from '../../lib/tfmt'
+import { agoDays, lpa, notice, telHref, years } from '../../lib/tfmt'
 import { contactOpen, creditSpent, isRevealed } from '../../lib/reveal'
 
 // Email and phone are opened one at a time: each has its own View button. The first one opened
@@ -22,7 +22,21 @@ import { contactOpen, creditSpent, isRevealed } from '../../lib/reveal'
 function ContactFact({ candidate: c, onView }) {
   const preview = c._live?.contactPreview
   if (contactOpen(c)) {
-    return <View style={{ gap: 8 }}><T s={14} w="m">{c.contact?.email || '—'}</T><T s={14} w="m">{c.contact?.phone || '—'}</T></View>
+    const phone = c.contact?.phone
+    return (
+      <View style={{ gap: 8 }}>
+        <T s={14} w="m">{c.contact?.email || '—'}</T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <T s={14} w="m">{phone || '—'}</T>
+          {phone ? (
+            <Press onPress={() => Linking.openURL(telHref(phone))} accessibilityLabel={`Call ${phone}`} scale={0.95} style={{ minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, backgroundColor: C.okSoft, borderWidth: 1, borderColor: C.okLine, paddingHorizontal: 12 }}>
+              <Phone size={14} color={C.okText} />
+              <T s={13} w="s" c={C.okText}>Call</T>
+            </Press>
+          ) : null}
+        </View>
+      </View>
+    )
   }
   // One button opens both: the credit is spent once, then email and number are shown together.
   return (
