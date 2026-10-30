@@ -9,6 +9,7 @@ import { useWorkspace } from '../../store/workspace'
 import { refreshPlan } from '../../services/plan'
 import { getCredits, scheduleInterview, sendOutreach, setCandidateStage, unlockCandidate } from '../../services/talentApi'
 import { getTalentMany, listJobs } from '../../services/talent'
+import { listTeam } from '../../services/recruiter'
 import { agoDate, telHref } from '../../lib/tfmt'
 import { PARTS, PART_LABEL, contactOpen, creditSpent, isRevealed } from '../../lib/reveal'
 import { Banner, Btn, C, Field, Input, Select, Sheet, T } from '../wk'
@@ -301,12 +302,22 @@ export function PickerField({ mode, value, onChange, placeholder, minimumDate })
   )
 }
 
+const REMINDER_MINS = { None: undefined, '15 minutes before': 15, '1 hour before': 60, '1 day before': 1440 }
+const CAN_INTERVIEW = ['Owner', 'Admin', 'Hiring Manager', 'Recruiter', 'Interviewer']
+
 export function InterviewModal({ candidate, onClose, onScheduled }) {
   const { toast } = useWorkspace()
-  const [f, setF] = useState({ type: 'Video', date: null, time: null, interviewers: '', link: '', reminder: '1 hour before', email: true })
+  const blank = { type: 'Video', date: null, time: null, interviewers: '', interviewerIds: [], feedbackDue: null, link: '', reminder: '1 hour before', email: true }
+  const [f, setF] = useState(blank)
+  const [team, setTeam] = useState([])
   const set = (p) => setF((x) => ({ ...x, ...p }))
   const [busy, setBusy] = useState(false)
-  useEffect(() => { if (candidate) setF({ type: 'Video', date: null, time: null, interviewers: '', link: '', reminder: '1 hour before', email: true }) }, [candidate?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!candidate) return
+    setF(blank)
+    // Team members who can interview each get their own scorecard to fill in.
+    listTeam().then((m) => setTeam(m.filter((x) => x.status !== 'disabled' && CAN_INTERVIEW.includes(x.role)))).catch(() => setTeam([]))
+  }, [candidate?.id]) // eslint-disable-line react-hooks/exhaustive-deps
   const valid = f.date && f.time
   const submit = async () => {
     setBusy(true)
@@ -320,7 +331,9 @@ export function InterviewModal({ candidate, onClose, onScheduled }) {
         mode: f.type === 'On-site' ? 'On-site' : 'Video Call',
         meetingLink: f.link || undefined,
         location: f.type === 'On-site' ? 'Office' : undefined,
-        panel: f.interviewers.split(',').map((x) => x.trim()).filter(Boolean),
+        ...(team.length ? { interviewerIds: f.interviewerIds } : { panel: f.interviewers.split(',').map((x) => x.trim()).filter(Boolean) }),
+        feedbackDueOn: f.feedbackDue ? new Date(`${ymd(f.feedbackDue)}T23:59`).toISOString() : undefined,
+        reminderMinsBefore: REMINDER_MINS[f.reminder],
         notifyByEmail: f.email,
       })
       const mail = emailOutcome(f.email, created?.email)
@@ -343,7 +356,25 @@ export function InterviewModal({ candidate, onClose, onScheduled }) {
           <Field label="Date" style={{ flex: 1 }}><PickerField mode="date" value={f.date} onChange={(date) => set({ date })} placeholder="Pick a date" minimumDate={new Date()} /></Field>
           <Field label="Time" style={{ flex: 1 }}><PickerField mode="time" value={f.time} onChange={(time) => set({ time })} placeholder="Pick a time" /></Field>
         </View>
-        <Field label="Interviewers"><Input value={f.interviewers} onChangeText={(interviewers) => set({ interviewers })} placeholder="Names, comma separated" /></Field>
+        {team.length > 0 ? (
+          <Field label="Interviewers (each gets a scorecard to fill in)">
+            <View style={{ gap: 6 }}>
+              {team.map((m) => {
+                const on = f.interviewerIds.includes(m.id)
+                return (
+                  <Pressable key={m.id} onPress={() => set({ interviewerIds: on ? f.interviewerIds.filter((x) => x !== m.id) : [...f.interviewerIds, m.id] })} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 10, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? '#f1f9f7' : '#fff', paddingHorizontal: 12 }}>
+                    <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 2, borderColor: on ? C.accentText : '#b8c7d2', backgroundColor: on ? C.accentText : '#fff', alignItems: 'center', justifyContent: 'center' }}>{on ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
+                    <T s={13.5} numberOfLines={1} style={{ flex: 1 }}>{m.name}</T>
+                    <T s={11.5} c={C.muted}>{m.role}</T>
+                  </Pressable>
+                )
+              })}
+            </View>
+          </Field>
+        ) : (
+          <Field label="Interviewers"><Input value={f.interviewers} onChangeText={(interviewers) => set({ interviewers })} placeholder="Names, comma separated" /></Field>
+        )}
+        <Field label="Feedback due by (optional)"><PickerField mode="date" value={f.feedbackDue} onChange={(feedbackDue) => set({ feedbackDue })} placeholder="Pick a date" minimumDate={f.date ?? new Date()} /></Field>
         {f.type === 'Video' || f.type === 'Technical' ? <Field label="Meeting link"><Input value={f.link} onChangeText={(link) => set({ link })} placeholder="https://meet…" autoCapitalize="none" keyboardType="url" /></Field> : null}
         <Field label="Reminder"><Select value={f.reminder} onChange={(reminder) => set({ reminder })} options={['None', '15 minutes before', '1 hour before', '1 day before']} title="Reminder" /></Field>
         <EmailOption value={f.email} onChange={(email) => set({ email })} />
