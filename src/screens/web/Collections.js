@@ -13,7 +13,7 @@ import { getPoolMeta, getTalentMany, listJobs, listPipelineShortlisted, searchTa
 import { listUnlocks, setCandidateStage } from '../../services/talentApi'
 import { useWorkspace } from '../../store/workspace'
 import { agoDate, lpa, years } from '../../lib/tfmt'
-import { contactOpen, isRevealed } from '../../lib/reveal'
+import { contactOpen } from '../../lib/reveal'
 
 // ─── Shortlists ─────────────────────────────────────────────────────────────────────────
 // The default "Shortlisted" list is the server's own record, not just this device's: anyone in the company's
