@@ -34,7 +34,7 @@ export function StatTile({ label, value, hint, onPress, warn }) {
   return onPress ? <Press onPress={onPress} style={{ width: '48.5%' }}>{body}</Press> : <View style={{ width: '48.5%' }}>{body}</View>
 }
 
-const STAGE_TONE = {
+export const STAGE_TONE = {
   new: ['#eef1f3', C.ink2],
   reviewed: ['#e8eef3', C.ink2],
   shortlisted: [C.accentSoft, C.accent],
