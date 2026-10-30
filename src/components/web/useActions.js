@@ -136,7 +136,7 @@ function CompareTray({ count, onOpen }) {
   if (count === 0 || selected.length > 0) return null
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 12, alignItems: 'center' }}>
-      <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, backgroundColor: C.ink, paddingHorizontal: 12, paddingVertical: 8 }, shadowPop]}>
+      <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, backgroundColor: C.inverse, paddingHorizontal: 12, paddingVertical: 8 }, shadowPop]}>
         <GitCompareArrows size={15} color="#fff" />
         <T s={13} c="#fff">{count} to compare</T>
         <Btn size="sm" variant="ai" disabled={count < 2} onPress={onOpen}>Compare</Btn>
@@ -157,7 +157,7 @@ function SelectionBar({ onBulk }) {
   )
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 12, paddingHorizontal: 12 }}>
-      <View style={[{ flexDirection: 'row', alignItems: 'center', borderRadius: 16, backgroundColor: C.ink, padding: 6, paddingLeft: 16 }, shadowPop]}>
+      <View style={[{ flexDirection: 'row', alignItems: 'center', borderRadius: 16, backgroundColor: C.inverse, padding: 6, paddingLeft: 16 }, shadowPop]}>
         <T s={13} w="s" c="#fff" style={{ marginRight: 8 }}>{selected.length} selected</T>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center' }}>
           {item(Bookmark, 'Shortlist', 'shortlist')}
