@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Briefcase, Flame, Search, Users, X } from 'lucide-react-native'
 import { canonCity } from '../../lib/talent/vocab'
 import { areaSummary, getCityPincodes, getPinInfo, isPinSettled, peekPinInfo, prefetchPinInfo } from '../../services/geo'
-import { C, F, Skeleton, T } from '../wk'
+import { C, F, Skeleton, T, isDarkPalette } from '../wk'
 
 // PIN Radar — step 3 of the Talent Radar. Every PIN code of the chosen cities as a heat tile,
 // from three real sources at once:
@@ -28,11 +28,12 @@ const order = (a, b) => b.match - a.match || b.active - a.active || b.talent - a
 // Columns follow the width the grid actually gets: 2 on a phone, more on a tablet.
 const colsFor = (w) => (w >= 640 ? 4 : w >= 440 ? 3 : 2)
 
-/** `hex` mixed into white by `share` (0–1) — the web's color-mix(), which React Native lacks. */
+/** `hex` mixed into the card colour (white, or the dark surface) by `share` (0–1) — the web's color-mix(), which React Native lacks. */
 function tint(hex, share) {
   const v = parseInt(hex.slice(1), 16)
-  const mix = (c) => Math.round(255 + (c - 255) * share)
-  return `rgb(${mix(v >> 16)}, ${mix((v >> 8) & 255)}, ${mix(v & 255)})`
+  const base = isDarkPalette() ? [18, 33, 46] : [255, 255, 255]
+  const mix = (c, b) => Math.round(b + (c - b) * share)
+  return `rgb(${mix(v >> 16, base[0])}, ${mix((v >> 8) & 255, base[1])}, ${mix(v & 255, base[2])})`
 }
 
 /** Postal areas for a PIN: the directory's (already cached) or one lookup once the tile is shown. */
@@ -73,7 +74,7 @@ function PinTile({ p, width, maxMatch, hot, on, onPress }) {
         width, minHeight: 66, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 6,
         borderWidth: on ? 2 : 1, borderStyle: !on && !heat ? 'dashed' : 'solid',
         borderColor: on ? C.accent : heat ? 'transparent' : C.line,
-        backgroundColor: heat ? tint(C.accent2, heat) : '#fff',
+        backgroundColor: heat ? tint(C.accent2, heat) : C.surface,
         opacity: pressed ? 0.85 : 1,
       })}
     >
@@ -235,7 +236,7 @@ export default function PinRadar({ cities, stateName, hiring, hiringFailed, tale
         {loading ? <ActivityIndicator size="small" color={C.accent} style={{ marginLeft: 'auto' }} accessibilityLabel="Loading PIN codes" /> : null}
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 10 }}>
         <Search size={13} color={C.muted} />
         <TextInput value={q} onChangeText={setQ} onFocus={startPrefetch} placeholder="Search PIN or locality" placeholderTextColor={C.ph} selectionColor={C.accent}
           autoCapitalize="none" autoCorrect={false} accessibilityLabel="Search PIN or locality"
