@@ -20,7 +20,7 @@ export const dial = (phone) => Linking.openURL(telHref(phone))
 
 function Choice({ active, onPress, icon: Icon, children, disabled, tone = 'accent' }) {
   return (
-    <Pressable onPress={onPress} disabled={disabled} style={{ minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: active ? C.accent : C.line, backgroundColor: active ? C.accentSoft : '#fff', paddingHorizontal: 12, opacity: disabled ? 0.45 : 1 }}>
+    <Pressable onPress={onPress} disabled={disabled} style={{ minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: active ? C.accent : C.line, backgroundColor: active ? C.accentSoft : C.surface, paddingHorizontal: 12, opacity: disabled ? 0.45 : 1 }}>
       {Icon ? <Icon size={14} color={active ? C.accent : C.ink2} /> : null}
       <T s={13} w="m" c={active ? C.accentText : C.ink}>{children}</T>
     </Pressable>
@@ -30,8 +30,8 @@ function Choice({ active, onPress, icon: Icon, children, disabled, tone = 'accen
 // A tick-box row: "Email the candidate…". Shared by the schedule form and the reschedule sheet.
 export function EmailOption({ value, onChange, label = 'Email the candidate the details', sub = 'Date, time, mode and meeting link, with your email as the reply-to. They also get a notification in Mzobs.' }) {
   return (
-    <Pressable onPress={() => onChange(!value)} accessibilityRole="checkbox" accessibilityState={{ checked: value }} style={{ flexDirection: 'row', gap: 12, borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: '#f5f9fb', padding: 12 }}>
-      <View style={{ width: 20, height: 20, marginTop: 1, borderRadius: 5, borderWidth: 1.5, borderColor: value ? C.accent : C.line, backgroundColor: value ? C.accent : '#fff', alignItems: 'center', justifyContent: 'center' }}>{value ? <Check size={13} color="#fff" /> : null}</View>
+    <Pressable onPress={() => onChange(!value)} accessibilityRole="checkbox" accessibilityState={{ checked: value }} style={{ flexDirection: 'row', gap: 12, borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.panel, padding: 12 }}>
+      <View style={{ width: 20, height: 20, marginTop: 1, borderRadius: 5, borderWidth: 1.5, borderColor: value ? C.accent : C.line, backgroundColor: value ? C.accent : C.surface, alignItems: 'center', justifyContent: 'center' }}>{value ? <Check size={13} color="#fff" /> : null}</View>
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Mail size={14} color={C.ink} /><T s={13.5} w="s">{label}</T></View>
         <T s={12} c={C.muted}>{sub}</T>
@@ -221,7 +221,7 @@ export function OutreachModal({ candidates, channel: initial = 'email', onClose,
               {many ? `${blocked.length} of ${candidates.length} candidates will be skipped — you haven't viewed their ${PART_LABEL[part]} yet.` : `To ${channel === 'sms' ? 'text' : 'email'} ${first.name.split(' ')[0]} from here, view their ${PART_LABEL[part]} first.`}
             </T>
             {!many && onReveal ? (
-              <Pressable onPress={() => onReveal(first, part)} style={{ alignSelf: 'flex-start', marginTop: 8, borderRadius: 6, borderWidth: 1, borderColor: C.warn, backgroundColor: '#fff', paddingHorizontal: 10, paddingVertical: 6 }}>
+              <Pressable onPress={() => onReveal(first, part)} style={{ alignSelf: 'flex-start', marginTop: 8, borderRadius: 6, borderWidth: 1, borderColor: C.warn, backgroundColor: C.surface, paddingHorizontal: 10, paddingVertical: 6 }}>
                 <T s={12.5} w="s" c={C.warn}>Unlock email & number</T>
               </Pressable>
             ) : null}
@@ -242,7 +242,7 @@ export function OutreachModal({ candidates, channel: initial = 'email', onClose,
               </View>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                 {Object.entries(TEMPLATES).map(([k, t]) => (
-                  <Pressable key={k} onPress={() => { setTpl(k); setBody(draft(k)) }} style={{ borderRadius: 6, borderWidth: 1, borderColor: tpl === k ? '#a9dcd3' : C.line, backgroundColor: tpl === k ? C.aiSoft : '#fff', paddingHorizontal: 10, paddingVertical: 6 }}>
+                  <Pressable key={k} onPress={() => { setTpl(k); setBody(draft(k)) }} style={{ borderRadius: 6, borderWidth: 1, borderColor: tpl === k ? C.aiLine : C.line, backgroundColor: tpl === k ? C.aiSoft : C.surface, paddingHorizontal: 10, paddingVertical: 6 }}>
                     <T s={12.5} c={tpl === k ? C.accentText : C.ink}>{t.label}</T>
                   </Pressable>
                 ))}
@@ -283,7 +283,7 @@ export function PickerField({ mode, value, onChange, placeholder, minimumDate })
   const label = value ? (mode === 'date' ? value.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : value.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })) : placeholder
   return (
     <>
-      <Pressable onPress={() => setShow(true)} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12 }}>
+      <Pressable onPress={() => setShow(true)} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: C.line, borderRadius: 8, backgroundColor: C.surface, paddingHorizontal: 12 }}>
         <T s={14} c={value ? C.ink : C.ph}>{label}</T>
         {mode === 'date' ? <Calendar size={15} color={C.muted} /> : <Clock size={15} color={C.muted} />}
       </Pressable>
@@ -362,8 +362,8 @@ export function InterviewModal({ candidate, onClose, onScheduled }) {
               {team.map((m) => {
                 const on = f.interviewerIds.includes(m.id)
                 return (
-                  <Pressable key={m.id} onPress={() => set({ interviewerIds: on ? f.interviewerIds.filter((x) => x !== m.id) : [...f.interviewerIds, m.id] })} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 10, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? '#f1f9f7' : '#fff', paddingHorizontal: 12 }}>
-                    <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 2, borderColor: on ? C.accentText : '#b8c7d2', backgroundColor: on ? C.accentText : '#fff', alignItems: 'center', justifyContent: 'center' }}>{on ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
+                  <Pressable key={m.id} onPress={() => set({ interviewerIds: on ? f.interviewerIds.filter((x) => x !== m.id) : [...f.interviewerIds, m.id] })} style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 10, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentTint : C.surface, paddingHorizontal: 12 }}>
+                    <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 2, borderColor: on ? C.accentText : C.boxLine, backgroundColor: on ? C.accentText : C.surface, alignItems: 'center', justifyContent: 'center' }}>{on ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
                     <T s={13.5} numberOfLines={1} style={{ flex: 1 }}>{m.name}</T>
                     <T s={11.5} c={C.muted}>{m.role}</T>
                   </Pressable>
