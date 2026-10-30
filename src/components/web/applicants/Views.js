@@ -33,7 +33,7 @@ function Highlights({ list, max = 2 }) {
 /** One applicant. Tapping opens them; the checkbox (managers only) selects for bulk actions. */
 export function ApplicantCard({ c, selected, onSelect, onOpen, canManage, showJob, showStage }) {
   return (
-    <Pressable onPress={() => onOpen(c.id)} style={[card, { padding: 12, borderRadius: 12, gap: 6 }, selected && { borderColor: C.accent, backgroundColor: '#f1f9f7' }]}>
+    <Pressable onPress={() => onOpen(c.id)} accessibilityRole="button" accessibilityLabel={`${c.name}, ${c.currentRole || 'role not stated'}, ${STAGE_LABEL[c.stage]}`} style={[card, { padding: 12, borderRadius: 12, gap: 6 }, selected && { borderColor: C.accent, backgroundColor: '#f1f9f7' }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         {canManage ? <CheckBox checked={selected} onChange={() => onSelect(c.id)} style={{ minHeight: 0 }} /> : null}
         <Avatar candidate={c} size={34} />
