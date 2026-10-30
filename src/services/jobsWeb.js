@@ -27,13 +27,13 @@ export const TRACKS = [
 ]
 
 export const STATUS_META = {
-  draft: { label: 'Draft', bg: '#eef3f6', fg: '#33506a' },
+  draft: { label: 'Draft', bg: '#eceff0', fg: '#33506a' },
   pending_review: { label: 'In review', bg: '#fdf0dd', fg: '#a8500c' },
   awaiting_payment: { label: 'Awaiting payment', bg: '#fdf0dd', fg: '#a8500c' },
   sourcing: { label: 'Live', bg: '#e3f5ea', fg: '#1a8f5a' },
   delivered: { label: 'Delivered', bg: '#e9f2fc', fg: '#1f6fb2' },
-  closed: { label: 'Closed', bg: '#eef3f6', fg: '#5a7488' },
-  archived: { label: 'Archived', bg: '#eef3f6', fg: '#5a7488' },
+  closed: { label: 'Closed', bg: '#eceff0', fg: '#5a7488' },
+  archived: { label: 'Archived', bg: '#eceff0', fg: '#5a7488' },
 }
 
 export const lpaToRupees = (lpa) => Math.round(Number(lpa) * 100000)
