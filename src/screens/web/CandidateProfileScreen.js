@@ -19,6 +19,12 @@ import { contactOpen, creditSpent, isRevealed } from '../../lib/reveal'
 
 // Email and phone are opened one at a time: each has its own View button. The first one opened
 // costs 1 credit for the candidate; the other is then free.
+// wa.me wants the number with country code and no symbols; a bare 10-digit Indian mobile gets +91.
+const waHref = (phone) => {
+  const d = String(phone).replace(/\D/g, '').replace(/^0+/, '')
+  return `https://wa.me/${d.length === 10 ? `91${d}` : d}`
+}
+
 function ContactFact({ candidate: c, onView }) {
   const preview = c._live?.contactPreview
   if (contactOpen(c)) {
@@ -32,6 +38,12 @@ function ContactFact({ candidate: c, onView }) {
             <Press onPress={() => Linking.openURL(telHref(phone))} accessibilityLabel={`Call ${phone}`} scale={0.95} style={{ minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, backgroundColor: C.okSoft, borderWidth: 1, borderColor: C.okLine, paddingHorizontal: 12 }}>
               <Phone size={14} color={C.okText} />
               <T s={13} w="s" c={C.okText}>Call</T>
+            </Press>
+          ) : null}
+          {phone ? (
+            <Press onPress={() => Linking.openURL(waHref(phone))} accessibilityLabel={`WhatsApp ${phone}`} scale={0.95} style={{ minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, borderWidth: 1, borderColor: C.line, paddingHorizontal: 12 }}>
+              <MessageSquare size={14} color={C.ink2} />
+              <T s={13} w="s" c={C.ink2}>WhatsApp</T>
             </Press>
           ) : null}
         </View>
