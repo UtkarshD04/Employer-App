@@ -13,14 +13,19 @@ const CHANNEL = { email: 'Email', in_app: 'MZOBS inbox' }
 function Log() {
   const [rows, setRows] = useState(null)
   const [error, setError] = useState('')
+  const [text, setText] = useState('')
   const load = useCallback(() => { setError(''); listCommLog().then(setRows).catch((e) => setError(apiMessage(e, 'Could not load the message log.'))) }, [])
   useEffect(() => { load() }, [load])
   if (error) return <ErrorBlock message={error} onRetry={load} />
   if (!rows) return <ListSkeleton />
   if (rows.length === 0) return <EmptyState icon={MessageSquare} title="No messages sent yet" body="Open an applicant and choose Message to send an interview invite, shortlist update or any other template. Every message is logged here and on the candidate’s history." />
+  const t = text.trim().toLowerCase()
+  const shown = t ? rows.filter((r) => [r.candidateName, r.subject, r.text, r.sentBy].some((v) => v?.toLowerCase().includes(t))) : rows
   return (
     <View style={{ gap: 8 }}>
-      {rows.map((r) => (
+      <Input value={text} onChangeText={setText} placeholder="Search by candidate, subject or sender" />
+      {shown.length === 0 ? <T s={13} c={C.muted} style={{ textAlign: 'center', paddingVertical: 20 }}>No messages match “{text}”.</T> : null}
+      {shown.map((r) => (
         <View key={r.id} style={[card, { padding: 12, gap: 2 }]}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
             <T s={14} w="s" style={{ flex: 1 }} numberOfLines={1}>{r.candidateName}</T>
