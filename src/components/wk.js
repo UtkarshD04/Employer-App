@@ -301,14 +301,20 @@ export function Select({ value, onChange, options, placeholder = 'Select', title
   const [open, setOpen] = useState(false)
   const opts = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : Array.isArray(o) ? { value: o[0], label: o[1] } : o))
   const cur = opts.find((o) => o.value === value)
+  const [q, setQ] = useState('')
+  // Long lists (jobs, team members, cities) get a search box at the top of the sheet.
+  const searchable = opts.length > 8
+  const shown = searchable && q.trim() ? opts.filter((o) => String(o.label).toLowerCase().includes(q.trim().toLowerCase())) : opts
   return (
     <>
-      <Pressable disabled={disabled} onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel={`${title ?? placeholder}: ${cur?.label ?? 'none selected'}`} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: error ? C.bad : C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12, opacity: disabled ? 0.55 : 1 }, style]}>
+      <Pressable disabled={disabled} onPress={() => { setQ(''); setOpen(true) }} accessibilityRole="button" accessibilityLabel={`${title ?? placeholder}: ${cur?.label ?? 'none selected'}`} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: error ? C.bad : C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12, opacity: disabled ? 0.55 : 1 }, style]}>
         <T s={14} c={cur ? C.ink : C.ph} numberOfLines={1} style={{ flex: 1 }}>{cur?.label ?? placeholder}</T>
         <ChevronDown size={15} color={C.muted} />
       </Pressable>
       <Sheet open={open} onClose={() => setOpen(false)} title={title ?? placeholder}>
-        {opts.map((o) => (
+        {searchable ? <Input value={q} onChangeText={setQ} placeholder="Search" autoCorrect={false} style={{ marginBottom: 8 }} /> : null}
+        {searchable && shown.length === 0 ? <T s={13} c={C.muted} style={{ paddingVertical: 12 }}>No match.</T> : null}
+        {shown.map((o) => (
           <Pressable key={String(o.value)} onPress={() => { onChange(o.value); setOpen(false) }} style={{ minHeight: 46, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: C.line2 }}>
             <T s={14.5} w={o.value === value ? 's' : 'r'} c={o.value === value ? C.accent : C.ink}>{o.label}</T>
             {o.value === value ? <Check size={16} color={C.accent} /> : null}
