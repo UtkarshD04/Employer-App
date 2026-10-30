@@ -65,7 +65,7 @@ export function Btn({ variant = 'outline', size = 'md', icon: Icon, children, on
   )
   const base = { height: z.h, paddingHorizontal: z.px, borderRadius: 999, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, overflow: 'hidden' }
   return (
-    <Press onPress={onPress} disabled={off} style={[{ opacity: off ? 0.5 : 1, borderRadius: 999 }, style]}>
+    <Press onPress={onPress} disabled={off} accessibilityRole="button" accessibilityState={{ disabled: off, busy: !!loading }} style={[{ opacity: off ? 0.5 : 1, borderRadius: 999 }, style]}>
       {v.grad ? (
         <LinearGradient colors={v.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[base, { shadowColor: '#0e2237', shadowOpacity: 0.25, shadowRadius: 2, shadowOffset: { width: 0, height: 1 } }]}>{inner}</LinearGradient>
       ) : (
