@@ -73,7 +73,7 @@ function InterviewCard({ i, past, onReschedule, onCancel, onComplete, onScorecar
   const end = i.durationMins ? new Date(d.getTime() + i.durationMins * 60000) : null
   const cancelled = i.status === 'Cancelled'
   const video = i.mode !== 'On-site'
-  const [bg, fg] = tone[i.status] ?? [C.blueSoft, '#1f6fb2']
+  const [bg, fg] = tones()[i.status] ?? [C.blueSoft, C.blueText]
   const active = !past && !['Cancelled', 'Completed'].includes(i.status)
   const started = d <= new Date()
   // Today's interviews get a solid date tile so they stand out in the list.
@@ -149,7 +149,7 @@ function InterviewCard({ i, past, onReschedule, onCancel, onComplete, onScorecar
   )
 }
 
-const tone = { Confirmed: [C.okSoft, C.okText], 'Awaiting confirmation': [C.warnSoft, C.warn], Rescheduled: ['#f1eefc', '#6d4fc7'], Completed: [C.blueSoft, '#1f6fb2'], Cancelled: [C.line2, C.muted] }
+const tones = () => ({ Confirmed: [C.okSoft, C.okText], 'Awaiting confirmation': [C.warnSoft, C.warn], Rescheduled: ['#f1eefc', '#6d4fc7'], Completed: [C.blueSoft, C.blueText], Cancelled: [C.line2, C.muted] })
 
 // Pick who to interview, then hand over to the usual scheduling form.
 function SchedulePicker({ open, onClose, onPick }) {
