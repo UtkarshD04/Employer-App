@@ -56,6 +56,14 @@ export const EMPTY_CRITERIA = {
   cvAccess: '', // live: '' | 'unlocked' | 'locked' — whether this company has spent a CV credit on them
   verifiedOnly: false,
   contactVerified: false,
+  phoneVerified: false,
+  emailVerified: false,
+  experienceLevel: '', // '' | 'fresher' | 'experienced' — as the candidate declared it
+  hasLinkedin: false,
+  hasGithub: false,
+  hasPhoto: false,
+  premiumOnly: false,
+  appliedDays: null, // applied to one of your jobs within N days
   resumeFreshDays: null,
   activeDays: null,
   minMatch: null,
@@ -157,6 +165,14 @@ export function criteriaToChips(c) {
   if (c.hasVideo) chips.push({ key: 'hasVideo', label: 'Video intro', group: 'Quality' })
   if (c.verifiedOnly) chips.push({ key: 'verifiedOnly', label: 'Verified profile', group: 'Quality' })
   if (c.contactVerified) chips.push({ key: 'contactVerified', label: 'Verified contact', group: 'Quality' })
+  if (c.phoneVerified) chips.push({ key: 'phoneVerified', label: 'Phone verified', group: 'Quality' })
+  if (c.emailVerified) chips.push({ key: 'emailVerified', label: 'Email verified', group: 'Quality' })
+  if (c.experienceLevel) chips.push({ key: 'experienceLevel', label: c.experienceLevel === 'fresher' ? 'Fresher' : 'Experienced', group: 'Experience' })
+  if (c.hasLinkedin) chips.push({ key: 'hasLinkedin', label: 'Has LinkedIn', group: 'Quality' })
+  if (c.hasGithub) chips.push({ key: 'hasGithub', label: 'Has GitHub', group: 'Quality' })
+  if (c.hasPhoto) chips.push({ key: 'hasPhoto', label: 'Has photo', group: 'Quality' })
+  if (c.premiumOnly) chips.push({ key: 'premiumOnly', label: 'Premium candidates', group: 'Quality' })
+  if (c.appliedDays != null) chips.push({ key: 'appliedDays', label: `Applied ≤ ${c.appliedDays}d ago`, group: 'Activity' })
   if (c.resumeFreshDays != null) chips.push({ key: 'resumeFresh', label: `Resume ≤ ${c.resumeFreshDays}d old`, group: 'Quality' })
   if (c.activeDays != null) chips.push({ key: 'active', label: `Active ≤ ${c.activeDays}d`, group: 'Activity' })
   if (c.minMatch != null) chips.push({ key: 'minMatch', label: `AI match > ${c.minMatch}`, group: 'AI' })
