@@ -56,7 +56,7 @@ export default function CompareSheet({ ids, onClose }) {
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
             {c.skills.map((s) => {
               const shared = sharedSet.has(s.toLowerCase())
-              return <View key={s} style={{ borderRadius: 5, backgroundColor: shared ? '#eceff0' : C.accentSoft, paddingHorizontal: 6, paddingVertical: 1.5 }}><T s={11.5} w={shared ? 'r' : 's'} c={shared ? C.ink2 : C.accent}>{s}</T></View>
+              return <View key={s} style={{ borderRadius: 5, backgroundColor: shared ? C.line2 : C.accentSoft, paddingHorizontal: 6, paddingVertical: 1.5 }}><T s={11.5} w={shared ? 'r' : 's'} c={shared ? C.ink2 : C.accent}>{s}</T></View>
             })}
           </View>
         ) : <Na />,
@@ -137,7 +137,7 @@ export default function CompareSheet({ ids, onClose }) {
               ))}
             </View>
             {rows.map((r) => (
-              <View key={r.label} style={{ borderBottomWidth: 1, borderBottomColor: C.line2, backgroundColor: r.diff ? '#f4f9f7' : 'transparent', paddingVertical: 10 }}>
+              <View key={r.label} style={{ borderBottomWidth: 1, borderBottomColor: C.line2, backgroundColor: r.diff ? C.accentTint : 'transparent', paddingVertical: 10 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <T s={11.5} w="b" c={C.ink2} style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>{r.label}</T>
                   {r.diff ? <T s={10.5} w="s" c={C.accent}>Differs</T> : null}
