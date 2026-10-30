@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
 import { Bell, CheckCheck, CreditCard, FileText, HelpCircle, LifeBuoy, Building2, LogOut, Mail, Pencil, Settings as Cog, Trash2, Users } from 'lucide-react-native'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import Constants from 'expo-constants'
 import { useNavigation } from '@react-navigation/native'
 import { PageScroll, PageTitle, Shell, useSignOut } from '../../components/web/Shell'
 import { Btn, C, EmptyState, Field, Input, Select, Sheet, Skeleton, T, card } from '../../components/wk'
@@ -252,6 +253,7 @@ export function SettingsScreen() {
         <Btn icon={LogOut} onPress={signOut} style={{ alignSelf: 'flex-start' }}>Sign out</Btn>
         <DeleteAccount />
         <EditName open={editingName} onClose={() => setEditingName(false)} />
+        <T s={12} c={C.muted}>Mzobs Employer {Constants.expoConfig?.version ?? ''}</T>
         <T s={12} c={C.muted}>Password and profile changes are managed from your Mzobs employer account. <T s={12} c={C.accent} onPress={() => nav.navigate('Help')}>Need help?</T></T>
       </PageScroll>
     </Shell>
