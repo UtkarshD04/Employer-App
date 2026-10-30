@@ -9,7 +9,7 @@ import { Btn, C, EmptyState, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, exportApplicants, getApplicantsSummary, PIPELINE, usePermissions } from '../../services/recruiter'
 
-const BAR = { new: '#9db0bd', reviewed: '#6f8ca3', shortlisted: '#0a8a7a', interview: '#24557f', offer: '#c9a227', hired: '#187a4d', rejected: '#c98a82' }
+const bar = () => ({ new: C.dot, reviewed: '#6f8ca3', shortlisted: C.accent2, interview: '#24557f', offer: '#c9a227', hired: C.ok, rejected: '#c98a82' })
 
 // Hiring funnel per job, straight from the stored pipeline. Nothing here is projected.
 export default function ReportsScreen() {
@@ -51,7 +51,7 @@ export default function ReportsScreen() {
                 </View>
                 {j.total > 0 ? (
                   <View style={{ flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: C.line2 }} accessibilityLabel="Applicants by stage">
-                    {PIPELINE.map((s) => (j.counts[s.key] ? <View key={s.key} style={{ flex: j.counts[s.key], backgroundColor: BAR[s.key] }} /> : null))}
+                    {PIPELINE.map((s) => (j.counts[s.key] ? <View key={s.key} style={{ flex: j.counts[s.key], backgroundColor: bar()[s.key] }} /> : null))}
                   </View>
                 ) : null}
                 {j.total > 0 ? <T s={12} c={C.muted}>{Math.round((((j.counts.shortlisted ?? 0) + (j.counts.interview ?? 0) + (j.counts.offer ?? 0) + (j.counts.hired ?? 0)) / j.total) * 100)}% shortlisted or further · {j.counts.hired ?? 0} hired</T> : null}
