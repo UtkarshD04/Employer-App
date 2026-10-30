@@ -107,7 +107,7 @@ export function TopNav() {
     if (name !== route.name) section(name)
   }
   return (
-    <View style={{ backgroundColor: 'rgba(246,248,251,0.96)', borderBottomWidth: 1, borderBottomColor: 'rgba(14,34,55,0.1)', paddingTop: insets.top, zIndex: 40 }}>
+    <View style={{ backgroundColor: 'rgba(247,245,240,0.96)', borderBottomWidth: 1, borderBottomColor: 'rgba(14,34,55,0.1)', paddingTop: insets.top, zIndex: 40 }}>
       <View style={{ height: 64, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 }}>
         <Press onPress={() => setMenu((v) => !v)} accessibilityLabel="Menu" scale={0.92} style={{ width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
           {menu ? <X size={18} color={C.ink} /> : <Menu size={18} color={C.ink} />}
