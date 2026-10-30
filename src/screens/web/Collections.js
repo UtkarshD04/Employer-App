@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Pressable, Share, View } from 'react-native'
-import { ArrowRight, ArrowLeft, Bell, BellOff, Bookmark, Briefcase, CalendarPlus, Download, Eye, FileText, FolderOpen, Mail, Pencil, Play, Plus, Search, Sparkles, Trash2, Unlock, X } from 'lucide-react-native'
+import { ArrowRight, ArrowLeft, Bell, BellOff, Bookmark, Briefcase, CalendarPlus, Download, Eye, FileText, FolderOpen, Mail, Pencil, Play, Plus, RotateCcw, Search, SlidersHorizontal, Sparkles, Trash2, Unlock, X } from 'lucide-react-native'
 import { useNavigation } from '@react-navigation/native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { useActions } from '../../components/web/useActions'
 import CandidateCard from '../../components/web/CandidateCard'
-import { Avatar, Btn, C, CardSkeleton, Chip, EmptyState, Field, Input, Press, Select, Skeleton, T, card } from '../../components/wk'
+import FilterPanel from '../../components/web/FilterPanel'
+import { Avatar, Btn, C, CardSkeleton, Chip, EmptyState, Field, Input, Press, Select, Sheet, Skeleton, T, card } from '../../components/wk'
 import { criteriaFromJob } from '../../lib/talent/engine'
-import { criteriaToChips, makeCriteria, STAGE_LABELS } from '../../lib/talent/criteria'
-import { getTalentMany, listJobs, listPipelineShortlisted, searchTalent } from '../../services/talent'
+import { criteriaToChips, makeCriteria, SORTS, STAGE_LABELS } from '../../lib/talent/criteria'
+import { getPoolMeta, getTalentMany, listJobs, listPipelineShortlisted, searchTalent } from '../../services/talent'
 import { listUnlocks, setCandidateStage } from '../../services/talentApi'
 import { useWorkspace } from '../../store/workspace'
 import { agoDate, lpa, years } from '../../lib/tfmt'
@@ -342,8 +343,22 @@ export function JobTalentScreen({ route }) {
   const [rows, setRows] = useState(null)
   const [total, setTotal] = useState(0)
   const job = jobs?.find((j) => j.id === jobId)
-  const criteria = useMemo(() => (job ? makeCriteria(criteriaFromJob(job)) : makeCriteria()), [job])
-  const { onAction, host } = useActions(criteria)
+  const base = useMemo(() => (job ? makeCriteria(criteriaFromJob(job)) : makeCriteria()), [job])
+  // Starts from the job's requirements; every filter in the panel can then be changed on top of it.
+  const [criteria, setCriteria] = useState(base)
+  const [debounced, setDebounced] = useState(base)
+  const [sort, setSort] = useState('match')
+  const [meta, setMeta] = useState(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const { onAction, host } = useActions(criteria, { onUnlocked: () => setCriteria((c) => ({ ...c })) })
+  useEffect(() => setCriteria(base), [base])
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(criteria), 300)
+    return () => clearTimeout(t)
+  }, [criteria])
+  useEffect(() => {
+    getPoolMeta().then(setMeta).catch(() => setMeta(null))
+  }, [])
 
   useEffect(() => {
     listJobs()
@@ -357,17 +372,18 @@ export function JobTalentScreen({ route }) {
   useEffect(() => {
     if (!job) return
     setRows(null)
-    searchTalent(criteria, { sort: 'match', pageSize: 10 }).then((r) => {
-      setRows(r.items)
-      setTotal(r.total)
-    })
-  }, [job, criteria])
+    let live = true
+    searchTalent(debounced, { sort, pageSize: 20 })
+      .then((r) => live && (setRows(r.items), setTotal(r.total)))
+      .catch(() => live && (setRows([]), setTotal(0)))
+    return () => { live = false }
+  }, [job, debounced, sort])
 
   return (
     <Shell>
       <View style={{ flex: 1 }}>
         <PageScroll>
-          <PageTitle title="Job talent pool" sub="Pick a job and Mzobs builds the search from its requirements, then ranks talent for it." />
+          <PageTitle title="Talent pool" sub="Pick a job and Mzobs builds the search from its requirements, then ranks talent for it. Use the filters to narrow it further." />
           {jobs && jobs.length === 0 ? <EmptyState icon={Briefcase} title="No jobs to match against" body="Post a job and its requirements will drive the search here." /> : null}
           {jobs && jobs.length > 0 ? (
             <>
@@ -388,11 +404,15 @@ export function JobTalentScreen({ route }) {
                     <Sparkles size={13} color={C.accentText} />
                     <T s={12.5} c={C.accentText}>{rows ? `${total} AI-ranked candidates` : 'Ranking…'}</T>
                   </View>
-                  <Btn iconRight={ArrowRight} onPress={() => nav.navigate('Search', { criteria, nonce: Date.now() })}>Refine in search</Btn>
+                  <Btn iconRight={ArrowRight} onPress={() => nav.navigate('Search', { criteria, nonce: Date.now() })}>Open in search</Btn>
+                </View>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <Btn icon={SlidersHorizontal} onPress={() => setFiltersOpen(true)} style={{ flex: 1 }}>Filters</Btn>
+                  <Select value={sort} onChange={setSort} options={SORTS.map((o) => [o.id, o.label])} title="Sort by" style={{ flex: 1, minHeight: 40 }} />
                 </View>
               </View>
               <View style={{ gap: 12 }}>
-                {!rows ? [0, 1, 2].map((i) => <CardSkeleton key={i} />) : rows.map((r) => <CandidateCard key={r.candidate.id} row={r} terms={criteria.skills} onAction={onAction} />)}
+                {!rows ? [0, 1, 2].map((i) => <CardSkeleton key={i} />) : rows.length === 0 ? <EmptyState icon={Briefcase} title="No candidates match these filters" body="Loosen a filter or press Reset to go back to the job’s requirements." /> : rows.map((r) => <CandidateCard key={r.candidate.id} row={r} terms={criteria.skills} onAction={onAction} />)}
               </View>
             </>
           ) : null}
@@ -400,6 +420,9 @@ export function JobTalentScreen({ route }) {
         </PageScroll>
         {host}
       </View>
+      <Sheet open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters" subtitle="Starts from this job’s requirements" footer={<><Btn variant="ghost" icon={RotateCcw} onPress={() => setCriteria(base)}>Reset</Btn><Btn variant="primary" onPress={() => setFiltersOpen(false)} style={{ flex: 1 }}>{`Show ${total} candidates`}</Btn></>}>
+        <FilterPanel criteria={criteria} onChange={setCriteria} onSave={() => { setFiltersOpen(false); nav.navigate('Search', { criteria, nonce: Date.now() }) }} onClear={() => setCriteria(makeCriteria())} meta={meta} />
+      </Sheet>
     </Shell>
   )
 }
