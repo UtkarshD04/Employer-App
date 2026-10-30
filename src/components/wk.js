@@ -296,13 +296,13 @@ export function Field({ label, error, hint, children, style }) {
   )
 }
 /** A <select>: shows the current label, opens a bottom sheet of options. `options`: strings or [value,label]/{value,label}. */
-export function Select({ value, onChange, options, placeholder = 'Select', title, style, error }) {
+export function Select({ value, onChange, options, placeholder = 'Select', title, style, error, disabled }) {
   const [open, setOpen] = useState(false)
   const opts = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : Array.isArray(o) ? { value: o[0], label: o[1] } : o))
   const cur = opts.find((o) => o.value === value)
   return (
     <>
-      <Pressable onPress={() => setOpen(true)} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: error ? C.bad : C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12 }, style]}>
+      <Pressable disabled={disabled} onPress={() => setOpen(true)} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: error ? C.bad : C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12, opacity: disabled ? 0.55 : 1 }, style]}>
         <T s={14} c={cur ? C.ink : C.ph} numberOfLines={1} style={{ flex: 1 }}>{cur?.label ?? placeholder}</T>
         <ChevronDown size={15} color={C.muted} />
       </Pressable>
