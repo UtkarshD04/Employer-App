@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native'
 import { Shell } from '../../components/web/Shell'
 import SearchComposer from '../../components/web/SearchComposer'
 import FilterPanel from '../../components/web/FilterPanel'
+import { RecentCandidates, SavedSearchStrip } from '../../components/web/SearchHome'
 import CandidateCard from '../../components/web/CandidateCard'
 import { useActions } from '../../components/web/useActions'
 import { Btn, C, CardSkeleton, CheckBox, Chip, EmptyState, F, Input, Modal, Select, T, card } from '../../components/wk'
@@ -204,6 +205,9 @@ export default function SearchScreen({ route }) {
           ))}
         </View>
       ) : null}
+
+      {!active ? <SavedSearchStrip /> : null}
+      {!active ? <RecentCandidates /> : null}
 
       <View style={{ gap: 10, marginTop: 6 }}>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
