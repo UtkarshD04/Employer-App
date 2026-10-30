@@ -135,6 +135,7 @@ function Presets({ items, active, onPick }) {
 }
 
 const EXP_PRESETS = [['Fresher', [0, 1]], ['1–3', [1, 3]], ['3–5', [3, 5]], ['5–8', [5, 8]], ['8–12', [8, 12]], ['12+', [12, null]]]
+const APPLIED_OPTIONS = [['Any time', null], ['Last 1 day', 1], ['Last 3 days', 3], ['Last 7 days', 7], ['Last 14 days', 14], ['Last 30 days', 30]]
 const ACTIVE_OPTIONS = [['Any time', null], ['Last 1 day', 1], ['Last 7 days', 7], ['Last 14 days', 14], ['Last 30 days', 30], ['Last 90 days', 90]]
 const FRESH_OPTIONS = [['Any time', null], ['Last 7 days', 7], ['Last 30 days', 30], ['Last 90 days', 90], ['Last 6 months', 180]]
 const PROFILE_OPTIONS = [['Any', null], ['≥ 50%', 50], ['≥ 70%', 70], ['≥ 90%', 90]]
@@ -144,7 +145,7 @@ const CV_ACCESS_OPTIONS = [['Any', ''], ['CV unlocked', 'unlocked'], ['Not unloc
 const Choice = ({ value, options, onChange }) => options.map(([label, v]) => <Radio key={label} checked={value === v} onPress={() => onChange(v)}>{label}</Radio>)
 const anyOpt = (placeholder) => (list) => [['', placeholder], ...list.map((x) => [x, x])]
 
-export default function FilterPanel({ criteria, onChange, onSave, onClear, meta }) {
+export default function FilterPanel({ criteria, onChange, onSave, onClear, meta, onAddPins }) {
   const m = meta ?? {}
   const c = criteria
   const set = (patch) => onChange({ ...c, ...patch })
@@ -220,6 +221,7 @@ export default function FilterPanel({ criteria, onChange, onSave, onClear, meta 
             set={set}
             meta={m}
             relocationEnabled={show('relocation')}
+            onAddPins={onAddPins}
             customPanel={
               <>
                 {hiringPicks.length > 0 ? (
@@ -277,8 +279,9 @@ export default function FilterPanel({ criteria, onChange, onSave, onClear, meta 
         </Section>
 
         {show('workMode') || show('employmentType') ? (
-          <Section title="Work preferences" count={n(c.workMode, c.employmentType)}>
-            {show('workMode') ? (<><Label first>Work mode</Label>{['', 'Remote', 'Hybrid', 'On-site'].map((w) => <Radio key={w || 'any'} checked={c.workMode === w} onPress={() => set({ workMode: w })}>{w || 'Any'}</Radio>)}</>) : null}
+          <Section title="Work preferences" count={n(c.workMode, c.employmentType, c.experienceLevel)}>
+            {m.experienceLevel ? (<><Label first>Career stage</Label>{[['', 'Any'], ['fresher', 'Fresher'], ['experienced', 'Experienced']].map(([v, l]) => <Radio key={l} checked={c.experienceLevel === v} onPress={() => set({ experienceLevel: v })}>{l}</Radio>)}</>) : null}
+            {show('workMode') ? (<><Label first={!m.experienceLevel}>Work mode</Label>{['', 'Remote', 'Hybrid', 'On-site'].map((w) => <Radio key={w || 'any'} checked={c.workMode === w} onPress={() => set({ workMode: w })}>{w || 'Any'}</Radio>)}</>) : null}
             {show('employmentType') ? (<><Label>Employment type</Label><Select value={c.employmentType} onChange={(employmentType) => set({ employmentType })} options={anyOpt('Any type')(EMPLOYMENT_TYPE_LIST)} title="Employment type" /></>) : null}
           </Section>
         ) : null}
@@ -291,17 +294,24 @@ export default function FilterPanel({ criteria, onChange, onSave, onClear, meta 
         ) : null}
 
         {show('activity') || show('resumeDate') ? (
-          <Section title="Candidate activity" count={n(c.activeDays != null, c.resumeFreshDays != null)}>
-            {show('activity') ? (<><Label first>Active in</Label><Choice value={c.activeDays} options={ACTIVE_OPTIONS} onChange={(activeDays) => set({ activeDays })} /></>) : null}
+          <Section title="Candidate activity" count={n(c.activeDays != null, c.resumeFreshDays != null, c.appliedDays != null)}>
+            {m.appliedDate ? (<><Label first>Applied to your jobs</Label><Choice value={c.appliedDays} options={APPLIED_OPTIONS} onChange={(appliedDays) => set({ appliedDays })} /></>) : null}
+            {show('activity') ? (<><Label first={!m.appliedDate}>Active in</Label><Choice value={c.activeDays} options={ACTIVE_OPTIONS} onChange={(activeDays) => set({ activeDays })} /></>) : null}
             {show('resumeDate') ? (<><Label>Resume updated</Label><Choice value={c.resumeFreshDays} options={FRESH_OPTIONS} onChange={(resumeFreshDays) => set({ resumeFreshDays })} /></>) : null}
           </Section>
         ) : null}
 
-        <Section title="Verification & quality" defaultOpen count={n(c.verifiedOnly, c.contactVerified, c.verifiedEducation, c.verifiedEmployment, c.minMatch != null, c.profileMin != null, c.trustMin != null, c.hasPortfolio, c.hasVideo)}>
+        <Section title="Verification & quality" defaultOpen count={n(c.verifiedOnly, c.contactVerified, c.phoneVerified, c.emailVerified, c.hasLinkedin, c.hasGithub, c.hasPhoto, c.premiumOnly, c.verifiedEducation, c.verifiedEmployment, c.minMatch != null, c.profileMin != null, c.trustMin != null, c.hasPortfolio, c.hasVideo)}>
           <CheckBox checked={c.verifiedOnly} onChange={(verifiedOnly) => set({ verifiedOnly })}>Identity verified</CheckBox>
           {show('contactVerified') ? <CheckBox checked={c.contactVerified} onChange={(contactVerified) => set({ contactVerified })}>Phone &amp; email verified</CheckBox> : null}
+          {show('contactVerified') ? <CheckBox checked={c.phoneVerified} onChange={(phoneVerified) => set({ phoneVerified })}>Phone verified</CheckBox> : null}
+          {show('contactVerified') ? <CheckBox checked={c.emailVerified} onChange={(emailVerified) => set({ emailVerified })}>Email verified</CheckBox> : null}
           <CheckBox checked={c.verifiedEducation} onChange={(verifiedEducation) => set({ verifiedEducation })}>Education verified</CheckBox>
           <CheckBox checked={c.verifiedEmployment} onChange={(verifiedEmployment) => set({ verifiedEmployment })}>Employment verified</CheckBox>
+          {m.linkedin ? <CheckBox checked={c.hasLinkedin} onChange={(hasLinkedin) => set({ hasLinkedin })}>Has LinkedIn</CheckBox> : null}
+          {m.github ? <CheckBox checked={c.hasGithub} onChange={(hasGithub) => set({ hasGithub })}>Has GitHub</CheckBox> : null}
+          {m.photo ? <CheckBox checked={c.hasPhoto} onChange={(hasPhoto) => set({ hasPhoto })}>Has profile photo</CheckBox> : null}
+          {m.premium ? <CheckBox checked={c.premiumOnly} onChange={(premiumOnly) => set({ premiumOnly })}>Premium candidates only</CheckBox> : null}
           {m.portfolio ? <CheckBox checked={c.hasPortfolio} onChange={(hasPortfolio) => set({ hasPortfolio })}>Has portfolio</CheckBox> : null}
           {m.video ? <CheckBox checked={c.hasVideo} onChange={(hasVideo) => set({ hasVideo })}>Has video intro</CheckBox> : null}
           <CheckBox checked={c.minMatch != null} onChange={(v) => set({ minMatch: v ? 80 : null })}>AI match &gt; 80</CheckBox>
