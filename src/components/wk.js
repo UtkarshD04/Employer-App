@@ -11,18 +11,39 @@ import { matchTone } from '../lib/talent/engine'
 import { escapeRegex } from '../lib/tfmt'
 import { tap } from '../lib/haptics'
 
-export const C = {
+// Two palettes behind one object: `C` is mutated in place by applyPalette(), and the app remounts on a theme
+// change (see lib/appearance.js), so every `C.x` read at render time picks up the new value.
+export const LIGHT = {
   bg: '#f7f5f0', surface: '#ffffff', ink: '#0e2237', ink2: '#33506a', muted: '#5a7488', line: '#dde3e8', line2: '#eceff0', panel: '#f5f9fb',
   accent: '#08685e', accent2: '#0a8a7a', accentSoft: '#e6f7f3', accentText: '#0a6f64', blue: '#1c68ab', blueText: '#1f6fb2', blueSoft: '#e9f2fc',
   ai: '#0f9e8e', aiSoft: '#e1f5f0', aiLine: '#bfe6df', ok: '#187a4d', okText: '#1a8f5a', okSoft: '#e3f5ea', okLine: '#bfe8cf',
   warn: '#a8500c', warnSoft: '#fdf0dd', warnLine: '#f3dfb8', bad: '#d33a2c', badSoft: '#fdecec', icon: '#7d93a6', ph: '#8aa0b2', amber: '#f59e0b',
+  // tints and borders that used to be hard-coded hex values
+  sunken: '#faf9f6', accentTint: '#f1f9f7', badTint: '#f5e9e7', badText: '#9a3a2c', warnText: '#7a5a14', warnTint: '#f6efdc',
+  blueLine: '#bfdbfe', blueTint: '#eaf2ff', boxLine: '#b8c7d2', dot: '#9db0bd', chipBg: '#eef1f3', overlay: 'rgba(14,34,55,0.45)', topBar: 'rgba(247,245,240,0.96)',
 }
+export const DARK = {
+  bg: '#0b1620', surface: '#12212e', ink: '#e8eef3', ink2: '#b6c6d3', muted: '#8ba2b4', line: '#233646', line2: '#1b2b39', panel: '#0f1c27',
+  accent: '#20b2a0', accent2: '#2cc4b0', accentSoft: '#10352f', accentText: '#4fd6c4', blue: '#5aa7e6', blueText: '#7bb9ee', blueSoft: '#12304a',
+  ai: '#2cc4b0', aiSoft: '#10352f', aiLine: '#1c5a50', ok: '#3fcf8e', okText: '#4fd89a', okSoft: '#10321f', okLine: '#1f5c3a',
+  warn: '#f0a35a', warnSoft: '#35260f', warnLine: '#5a431c', bad: '#ff6b5e', badSoft: '#3a1715', icon: '#8ba2b4', ph: '#6d8396', amber: '#f59e0b',
+  sunken: '#0f1c27', accentTint: '#0f2a27', badTint: '#3a1b19', badText: '#ff8a7c', warnText: '#e5b565', warnTint: '#33280f',
+  blueLine: '#24517a', blueTint: '#12304a', boxLine: '#4a6073', dot: '#4a6073', chipBg: '#1d2f3d', overlay: 'rgba(0,0,0,0.6)', topBar: 'rgba(11,22,32,0.96)',
+}
+export const C = { ...LIGHT }
+let darkOn = false
+export function applyPalette(dark) {
+  darkOn = !!dark
+  Object.assign(C, dark ? DARK : LIGHT)
+}
+export const isDarkPalette = () => darkOn
 export const F = { r: 'Inter_400Regular', m: 'Inter_500Medium', s: 'Inter_600SemiBold', b: 'Inter_700Bold', x: 'Inter_800ExtraBold', i: 'Inter_600SemiBold_Italic' }
 const W = { r: F.r, m: F.m, s: F.s, b: F.b, x: F.x }
 
 export const shadowCard = { shadowColor: '#0e2237', shadowOpacity: 0.07, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 }
 export const shadowPop = { shadowColor: '#0e2237', shadowOpacity: 0.3, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 12 }
-export const card = { backgroundColor: C.surface, borderRadius: 16, borderWidth: 1, borderColor: C.line, ...shadowCard }
+// Getters, so a card picks up the current palette each time it is rendered.
+export const card = { get backgroundColor() { return C.surface }, borderRadius: 16, borderWidth: 1, get borderColor() { return C.line }, ...shadowCard }
 
 /** Text: size, weight (r m s b x), colour. */
 export function T({ s = 14, w = 'r', c = C.ink, style, ...p }) {
