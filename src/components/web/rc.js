@@ -1,7 +1,7 @@
 // Small building blocks shared by the recruiter-console screens (Overview, Applicants, Offers, Team, ...) —
 // the website's components/rc.jsx for React Native.
-import { useCallback, useState } from 'react'
-import { Pressable, ScrollView, View } from 'react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Animated, Easing, Pressable, ScrollView, View } from 'react-native'
 import { AlertCircle } from 'lucide-react-native'
 import { Btn, C, Press, Skeleton, T, card } from '../wk'
 
@@ -96,4 +96,13 @@ export function useRefresh(reload) {
     }
   }, [reload])
   return { refreshing, onRefresh }
+}
+
+/** Fades and lifts its children in on mount; `index` staggers a list of them. */
+export function FadeIn({ children, index = 0, style }) {
+  const v = useRef(new Animated.Value(0)).current
+  useEffect(() => {
+    Animated.timing(v, { toValue: 1, duration: 320, delay: Math.min(index, 8) * 50, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start()
+  }, [v, index])
+  return <Animated.View style={[{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }, style]}>{children}</Animated.View>
 }
