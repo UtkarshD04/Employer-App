@@ -108,7 +108,7 @@ export default function RejectionFeedbackSheet({ open, onClose, onSubmit, candid
                         const on = reasons.includes(r.code)
                         const locked = !on && reasons.length >= MAX_REASONS
                         return (
-                          <Pressable key={r.code} accessibilityState={{ selected: on, disabled: locked }} disabled={locked} onPress={() => toggle(r.code)} style={{ minHeight: 36, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : '#fff', paddingHorizontal: 12, opacity: locked ? 0.5 : 1 }}>
+                          <Pressable key={r.code} accessibilityState={{ selected: on, disabled: locked }} disabled={locked} onPress={() => toggle(r.code)} style={{ minHeight: 36, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : C.surface, paddingHorizontal: 12, opacity: locked ? 0.5 : 1 }}>
                             <T s={12.5} w="m" c={on ? C.accentText : C.ink2}>{r.label}</T>
                           </Pressable>
                         )
