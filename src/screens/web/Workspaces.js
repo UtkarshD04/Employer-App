@@ -75,15 +75,18 @@ function InterviewCard({ i, past, onReschedule, onCancel, onComplete, onScorecar
   const [bg, fg] = tone[i.status] ?? [C.blueSoft, '#1f6fb2']
   const active = !past && !['Cancelled', 'Completed'].includes(i.status)
   const started = d <= new Date()
+  // Today's interviews get a solid date tile so they stand out in the list.
+  const isToday = !past && !cancelled && relativeDay(d) === 'Today'
+  const tileFg = cancelled ? C.muted : isToday ? '#fff' : C.accentText
   const manageable = !['Cancelled', 'Completed'].includes(i.status) && (onReschedule || onCancel || onComplete)
   const sent = i.email?.status === 'sent'
   return (
     <View style={[card, { padding: 14, gap: 12, opacity: past || cancelled ? 0.8 : 1 }]}>
       <View style={{ flexDirection: 'row', gap: 14 }}>
-        <View style={{ width: 64, height: 76, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: cancelled ? C.line2 : C.accentSoft }}>
-          <T s={11} w="b" c={cancelled ? C.muted : C.accentText} style={{ textTransform: 'uppercase', letterSpacing: 1 }}>{MON(d)}</T>
-          <T s={27} w="b" c={cancelled ? C.muted : C.accentText} style={{ lineHeight: 30 }}>{d.getDate()}</T>
-          <T s={11} w="m" c={cancelled ? C.muted : C.accentText}>{WKD(d)}</T>
+        <View style={{ width: 64, height: 76, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: cancelled ? C.line2 : isToday ? C.accent : C.accentSoft }}>
+          <T s={11} w="b" c={tileFg} style={{ textTransform: 'uppercase', letterSpacing: 1 }}>{MON(d)}</T>
+          <T s={27} w="b" c={tileFg} style={{ lineHeight: 30 }}>{d.getDate()}</T>
+          <T s={11} w="m" c={tileFg}>{WKD(d)}</T>
         </View>
         <View style={{ flex: 1, gap: 6 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
