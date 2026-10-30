@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Alert, Pressable, View } from 'react-native'
-import { MessageSquare, RotateCcw } from 'lucide-react-native'
+import { Inbox, Mail, MessageSquare, RotateCcw } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
-import { ErrorBlock, ListSkeleton, Tabs, ago, fmtDateTime } from '../../components/web/rc'
+import { ErrorBlock, FadeIn, ListSkeleton, Tabs, ago, fmtDateTime } from '../../components/web/rc'
 import { Btn, C, EmptyState, Field, Input, T, card } from '../../components/wk'
 import { LocalMessages } from './Workspaces'
 import { useWorkspace } from '../../store/workspace'
@@ -25,15 +25,16 @@ function Log() {
     <View style={{ gap: 8 }}>
       <Input value={text} onChangeText={setText} placeholder="Search by candidate, subject or sender" />
       {shown.length === 0 ? <T s={13} c={C.muted} style={{ textAlign: 'center', paddingVertical: 20 }}>No messages match “{text}”.</T> : null}
-      {shown.map((r) => (
-        <View key={r.id} style={[card, { padding: 12, gap: 2 }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
+      {shown.map((r, k) => (
+        <FadeIn key={r.id} index={k}><View style={[card, { padding: 12, gap: 2 }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            {r.channel === 'email' ? <Mail size={14} color={C.muted} /> : <Inbox size={14} color={C.muted} />}
             <T s={14} w="s" style={{ flex: 1 }} numberOfLines={1}>{r.candidateName}</T>
             <T s={12} c={C.muted}>{ago(r.at)}</T>
           </View>
           <T s={13} c={C.ink2} numberOfLines={2}>{r.subject || r.text}</T>
           <T s={12} c={C.muted}>{CHANNEL[r.channel] ?? r.channel} · {r.sentBy || '—'} · {fmtDateTime(r.at)}</T>
-        </View>
+        </View></FadeIn>
       ))}
     </View>
   )
