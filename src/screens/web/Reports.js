@@ -9,6 +9,8 @@ import { Btn, C, EmptyState, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, exportApplicants, getApplicantsSummary, PIPELINE, usePermissions } from '../../services/recruiter'
 
+const BAR = { new: '#9db0bd', reviewed: '#6f8ca3', shortlisted: '#0a8a7a', interview: '#24557f', offer: '#c9a227', hired: '#187a4d', rejected: '#c98a82' }
+
 // Hiring funnel per job, straight from the stored pipeline. Nothing here is projected.
 export default function ReportsScreen() {
   const nav = useNavigation()
@@ -47,6 +49,11 @@ export default function ReportsScreen() {
                   </View>
                   <View style={{ alignItems: 'flex-end' }}><T s={20} w="x" style={{ lineHeight: 24 }}>{j.total}</T><T s={11} c={C.muted}>total</T></View>
                 </View>
+                {j.total > 0 ? (
+                  <View style={{ flexDirection: 'row', height: 8, borderRadius: 4, overflow: 'hidden', backgroundColor: C.line2 }} accessibilityLabel="Applicants by stage">
+                    {PIPELINE.map((s) => (j.counts[s.key] ? <View key={s.key} style={{ flex: j.counts[s.key], backgroundColor: BAR[s.key] }} /> : null))}
+                  </View>
+                ) : null}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
                   {PIPELINE.map((s) => (
                     <View key={s.key} style={{ alignItems: 'center', minWidth: 56 }}>
