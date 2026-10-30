@@ -11,11 +11,11 @@ function Toggle({ on, onPress, icon: Icon, tone, children }) {
   const ai = tone === 'ai'
   const fg = on ? (ai ? C.accentText : C.blueText) : C.muted
   return (
-    <Press onPress={onPress} scale={0.96} accessibilityRole="switch" accessibilityState={{ checked: on }} style={{ minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, borderColor: on ? (ai ? '#a9dcd3' : '#bfdbfe') : C.line, backgroundColor: on ? (ai ? C.aiSoft : C.blueSoft) : '#fff' }}>
+    <Press onPress={onPress} scale={0.96} accessibilityRole="switch" accessibilityState={{ checked: on }} style={{ minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, borderColor: on ? (ai ? C.aiLine : C.blueLine) : C.line, backgroundColor: on ? (ai ? C.aiSoft : C.blueSoft) : C.surface }}>
       <Icon size={13} color={fg} />
       <T s={12.5} w="m" c={fg}>{children}</T>
-      <View style={{ width: 26, height: 15, borderRadius: 8, padding: 2, backgroundColor: on ? (ai ? C.ai : C.blue) : '#c4d1db', justifyContent: 'center' }}>
-        <View style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: '#fff', transform: [{ translateX: on ? 11 : 0 }] }} />
+      <View style={{ width: 26, height: 15, borderRadius: 8, padding: 2, backgroundColor: on ? (ai ? C.ai : C.blue) : C.boxLine, justifyContent: 'center' }}>
+        <View style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: C.surface, transform: [{ translateX: on ? 11 : 0 }] }} />
       </View>
     </Press>
   )
@@ -111,18 +111,18 @@ export default function SearchComposer({ criteria, onSearch, onClear, canClear, 
       <View style={{ marginTop: 8, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, borderTopWidth: 1, borderTopColor: C.line2, paddingHorizontal: 4, paddingTop: 10 }}>
         <Toggle on={ai} tone="ai" icon={Sparkles} onPress={() => setMode(ai ? 'keyword' : 'ai')}>AI search</Toggle>
         <Toggle on={isBool} tone="blue" icon={Braces} onPress={() => setMode(isBool ? 'ai' : 'boolean')}>Boolean</Toggle>
-        <Pressable onPress={() => setScopeOpen(true)} style={{ minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 10 }}>
+        <Pressable onPress={() => setScopeOpen(true)} style={{ minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 10 }}>
           <T s={12.5} w="m" c={C.ink2}>Search in: <T s={12.5} w="s">{SCOPES.find((s) => s.id === scope).label}</T></T>
           <ChevronDown size={13} color={C.ink2} />
         </Pressable>
       </View>
 
       {ai && !text && examples.length > 0 ? (
-        <View style={{ marginTop: 12, borderRadius: 16, backgroundColor: '#f2fbf9', paddingHorizontal: 12, paddingVertical: 10, gap: 8 }}>
+        <View style={{ marginTop: 12, borderRadius: 16, backgroundColor: C.accentTint, paddingHorizontal: 12, paddingVertical: 10, gap: 8 }}>
           <T s={12} c={C.muted}>Mzobs understands natural language — describe who you need and it turns it into filters you can edit. Try:</T>
           <View style={{ gap: 6, alignItems: 'flex-start' }}>
             {examples.map((q) => (
-              <Press key={q} scale={0.98} onPress={() => { setText(q); submit(q) }} style={{ maxWidth: '100%', minHeight: 36, justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#bfe6df', backgroundColor: '#fff', paddingHorizontal: 10 }}>
+              <Press key={q} scale={0.98} onPress={() => { setText(q); submit(q) }} style={{ maxWidth: '100%', minHeight: 36, justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: C.aiLine, backgroundColor: C.surface, paddingHorizontal: 10 }}>
                 <T s={12.5} c={C.accentText} numberOfLines={1}>“{q}”</T>
               </Press>
             ))}
@@ -135,7 +135,7 @@ export default function SearchComposer({ criteria, onSearch, onClear, canClear, 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
             <T s={11.5} w="s" c={C.muted} style={{ letterSpacing: 0.6 }}>INSERT</T>
             {[['AND', 'AND'], ['OR', 'OR'], ['NOT', 'NOT'], ['( )', '()'], ['" "', '""']].map(([label, snip]) => (
-              <Pressable key={label} onPress={() => insert(snip)} style={{ minHeight: 34, minWidth: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 10 }}>
+              <Pressable key={label} onPress={() => insert(snip)} style={{ minHeight: 34, minWidth: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 6, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 10 }}>
                 <T s={12} w="s" c={C.ink2}>{label}</T>
               </Pressable>
             ))}
@@ -172,7 +172,7 @@ export default function SearchComposer({ criteria, onSearch, onClear, canClear, 
               <View style={{ marginTop: 6, borderTopWidth: 1, borderTopColor: C.line, paddingTop: 8, gap: 6, alignItems: 'flex-start' }}>
                 <T s={11.5} w="s" c={C.muted} style={{ letterSpacing: 0.6 }}>TRY</T>
                 {BOOLEAN_EXAMPLES.map((q) => (
-                  <Press key={q} scale={0.98} onPress={() => { setText(q); submit(q) }} style={{ maxWidth: '100%', minHeight: 34, justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: '#bfdbfe', backgroundColor: '#fff', paddingHorizontal: 10 }}>
+                  <Press key={q} scale={0.98} onPress={() => { setText(q); submit(q) }} style={{ maxWidth: '100%', minHeight: 34, justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: C.blueLine, backgroundColor: C.surface, paddingHorizontal: 10 }}>
                     <T s={12} c="#185a94" numberOfLines={1}>{q}</T>
                   </Press>
                 ))}
