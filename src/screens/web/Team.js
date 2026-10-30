@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { Check, Minus, UserPlus, Users } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
-import { ErrorBlock, ListSkeleton, Tabs, ago, fmtDateTime } from '../../components/web/rc'
+import { ErrorBlock, FadeIn, ListSkeleton, Tabs, ago, fmtDateTime } from '../../components/web/rc'
 import { Avatar, Btn, C, EmptyState, Field, Input, Select, Sheet, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, getRoleMatrix, inviteMember, listAudit, listTeam, removeMember, setMemberRole, usePermissions } from '../../services/recruiter'
@@ -67,8 +67,8 @@ function Members({ can, role: myRole, myId, toast }) {
   return (
     <View style={{ gap: 12 }}>
       {manage ? <Btn variant="primary" size="sm" icon={UserPlus} onPress={() => setInviting(true)} style={{ alignSelf: 'flex-end' }}>Add team member</Btn> : null}
-      {members.map((m) => (
-        <View key={m.id} style={[card, { padding: 14, gap: 8 }]}>
+      {members.map((m, k) => (
+        <FadeIn key={m.id} index={k}><View style={[card, { padding: 14, gap: 8 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Avatar candidate={{ id: m.id, initials: initials(m.name) }} size={36} />
             <View style={{ flex: 1 }}>
@@ -84,7 +84,7 @@ function Members({ can, role: myRole, myId, toast }) {
               <Pressable onPress={() => confirmRemove(m)} hitSlop={8}><T s={12.5} w="s" c={C.bad}>Remove</T></Pressable>
             </View>
           ) : <T s={13} w="s">{m.role}</T>}
-        </View>
+        </View></FadeIn>
       ))}
       <Sheet open={inviting} onClose={busy ? () => {} : () => setInviting(false)} title="Add team member" footer={<><Btn onPress={() => setInviting(false)} disabled={busy}>Cancel</Btn><Btn variant="primary" onPress={invite} loading={busy} disabled={!f.name.trim() || !f.email.trim()}>Add member</Btn></>}>
         <View style={{ gap: 16 }}>
