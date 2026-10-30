@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FlatList, Pressable, RefreshControl, View } from 'react-native'
-import { History, Radio, RefreshCw, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react-native'
+import { History, LayoutList, Radio, RefreshCw, Rows3, Search, SlidersHorizontal, Sparkles, X } from 'lucide-react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Shell } from '../../components/web/Shell'
 import SearchComposer from '../../components/web/SearchComposer'
@@ -40,6 +40,7 @@ export default function SearchScreen({ route }) {
     if (!hasCity && sort === 'location') setSort('relevance')
     hadCity.current = hasCity
   }, [hasCity, sort])
+  const [view, setView] = useState('list')
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(null)
   const [page, setPage] = useState(1)
@@ -147,7 +148,7 @@ export default function SearchScreen({ route }) {
     setCriteria(next)
   }
 
-  const filterPanel = <FilterPanel criteria={criteria} onChange={setCriteria} onSave={() => { setFiltersOpen(false); openSave() }} onClear={clearAll} meta={meta} />
+  const filterPanel = <FilterPanel criteria={criteria} onChange={setCriteria} onSave={() => { setFiltersOpen(false); openSave() }} onClear={clearAll} meta={meta} onAddPins={() => { setFiltersOpen(false); nav.navigate('Jobs') }} />
 
   const header = (
     <View style={{ gap: 12, marginBottom: 4 }}>
@@ -221,6 +222,13 @@ export default function SearchScreen({ route }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Btn icon={SlidersHorizontal} onPress={() => setFiltersOpen(true)}>{`Filters${chips.length > 0 ? ` (${chips.length})` : ''}`}</Btn>
           <Select value={sort} onChange={setSort} options={SORTS.map((s) => [s.id, s.label])} title="Sort by" style={{ flex: 1, minHeight: 40 }} />
+          <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', padding: 2 }}>
+            {[['list', LayoutList, 'List view'], ['compact', Rows3, 'Compact view']].map(([id, Icon, label]) => (
+              <Pressable key={id} onPress={() => setView(id)} accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ checked: view === id }} style={{ width: 36, height: 36, borderRadius: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: view === id ? C.accentSoft : 'transparent' }}>
+                <Icon size={15} color={view === id ? C.accent : C.muted} />
+              </Pressable>
+            ))}
+          </View>
         </View>
       </View>
     </View>
@@ -234,7 +242,7 @@ export default function SearchScreen({ route }) {
           keyExtractor={(r) => r.candidate.id}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16, paddingTop: 20, paddingBottom: 140, gap: 12 }}
+          contentContainerStyle={{ padding: 16, paddingTop: 20, paddingBottom: 140, gap: view === 'compact' ? 8 : 12 }}
           ListHeaderComponent={header}
           onEndReached={loadMore}
           onEndReachedThreshold={0.6}
@@ -254,7 +262,8 @@ export default function SearchScreen({ route }) {
             )
           }
           ListFooterComponent={loadingMore ? <CardSkeleton /> : !loading && !hasMore && rows.length > PAGE ? <T s={12.5} c={C.muted} style={{ textAlign: 'center', paddingVertical: 24 }}>You've reached the end of the results.</T> : null}
-          renderItem={({ item }) => <CandidateCard row={item} terms={terms} onAction={onAction} />}
+          extraData={view}
+          renderItem={({ item }) => <CandidateCard row={item} terms={terms} compact={view === 'compact'} onAction={onAction} />}
         />
         {host}
       </View>
