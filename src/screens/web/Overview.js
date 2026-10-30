@@ -24,11 +24,11 @@ function dayLabel(iso) {
   return diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : null
 }
 
-const SEVERITY = { high: C.bad, medium: C.warn, low: C.muted }
+const severityColor = (s) => ({ high: C.bad, medium: C.warn, low: C.muted })[s] ?? C.muted
 const HEALTH_LABEL = { low_applications: 'Low applications', expiring: 'Closing soon', deadline_passed: 'Deadline passed', no_shortlist: 'No shortlist', feedback_pending: 'Feedback pending' }
 
 function Dot({ severity, top }) {
-  return <View style={{ width: 8, height: 8, borderRadius: 4, marginTop: top, backgroundColor: SEVERITY[severity] ?? C.muted }} />
+  return <View style={{ width: 8, height: 8, borderRadius: 4, marginTop: top, backgroundColor: severityColor(severity) }} />
 }
 
 export default function OverviewScreen() {
