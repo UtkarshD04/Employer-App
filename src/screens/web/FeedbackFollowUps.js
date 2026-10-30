@@ -5,6 +5,7 @@ import { MessageSquareWarning } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import RejectionFeedbackSheet, { feedbackSubmitError } from '../../components/web/RejectionFeedbackSheet'
 import { Btn, C, Chip, EmptyState, Skeleton, T, card } from '../../components/wk'
+import { useRefresh } from '../../components/web/rc'
 import { useWorkspace } from '../../store/workspace'
 import { getCandidateFeedback, listFeedbackFollowUps, resubmitFeedback } from '../../services/recruiter'
 import { agoDate } from '../../lib/tfmt'
@@ -24,6 +25,8 @@ export default function FeedbackFollowUpsScreen() {
     return listFeedbackFollowUps().then(setRows).catch(() => setError(true))
   }, [])
   useEffect(() => { load() }, [load])
+
+  const { refreshing, onRefresh } = useRefresh(load)
 
   // The form is pre-filled with what the employer sent last time, so they correct it rather than retype it.
   const startEditing = async (row) => {
@@ -51,7 +54,7 @@ export default function FeedbackFollowUpsScreen() {
 
   return (
     <Shell>
-      <PageScroll>
+      <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <PageTitle title="Feedback" accent="follow-ups" sub="Mzobs reviews the reasons you give when rejecting a candidate. When we need more detail, it shows up here." />
         <View style={{ gap: 12 }}>
           {rows === null && !error ? [0, 1].map((i) => <Skeleton key={i} h={96} r={16} />) : null}
