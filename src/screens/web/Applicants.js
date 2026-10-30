@@ -131,7 +131,7 @@ export default function ApplicantsScreen({ route }) {
   return (
     <Shell>
       <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
-        <PageTitle title={job ? job.title : 'Applicants'} sub={job ? `${job.location ?? ''}${job.department ? ` · ${job.department}` : ''}` : 'Every candidate across your jobs, by stage.'} />
+        <PageTitle title={job ? job.title : 'Applicants'} sub={(job ? `${job.location ?? ''}${job.department ? ` · ${job.department}` : ''}` : 'Every candidate across your jobs, by stage.') + (data?.total != null ? ` · ${data.total} applicant${data.total === 1 ? '' : 's'}` : '')} />
 
         <View style={{ gap: 10 }}>
           <Select value={jobId} title="Choose job" onChange={(v) => nav.setParams({ jobId: v === 'all' ? undefined : v })} options={jobOptions} />
