@@ -20,7 +20,7 @@ export const LIGHT = {
   warn: '#a8500c', warnSoft: '#fdf0dd', warnLine: '#f3dfb8', bad: '#d33a2c', badSoft: '#fdecec', icon: '#7d93a6', ph: '#8aa0b2', amber: '#f59e0b',
   // tints and borders that used to be hard-coded hex values
   sunken: '#faf9f6', accentTint: '#f1f9f7', badTint: '#f5e9e7', badText: '#9a3a2c', warnText: '#7a5a14', warnTint: '#f6efdc',
-  blueLine: '#bfdbfe', blueTint: '#eaf2ff', boxLine: '#b8c7d2', dot: '#9db0bd', chipBg: '#eef1f3', overlay: 'rgba(14,34,55,0.45)', topBar: 'rgba(247,245,240,0.96)',
+  blueLine: '#bfdbfe', blueTint: '#eaf2ff', boxLine: '#b8c7d2', dot: '#9db0bd', chipBg: '#eef1f3', overlay: 'rgba(14,34,55,0.45)', topBar: 'rgba(247,245,240,0.96)', inverse: '#0e2237',
 }
 export const DARK = {
   bg: '#0b1620', surface: '#12212e', ink: '#e8eef3', ink2: '#b6c6d3', muted: '#8ba2b4', line: '#233646', line2: '#1b2b39', panel: '#0f1c27',
@@ -28,7 +28,7 @@ export const DARK = {
   ai: '#2cc4b0', aiSoft: '#10352f', aiLine: '#1c5a50', ok: '#3fcf8e', okText: '#4fd89a', okSoft: '#10321f', okLine: '#1f5c3a',
   warn: '#f0a35a', warnSoft: '#35260f', warnLine: '#5a431c', bad: '#ff6b5e', badSoft: '#3a1715', icon: '#8ba2b4', ph: '#6d8396', amber: '#f59e0b',
   sunken: '#0f1c27', accentTint: '#0f2a27', badTint: '#3a1b19', badText: '#ff8a7c', warnText: '#e5b565', warnTint: '#33280f',
-  blueLine: '#24517a', blueTint: '#12304a', boxLine: '#4a6073', dot: '#4a6073', chipBg: '#1d2f3d', overlay: 'rgba(0,0,0,0.6)', topBar: 'rgba(11,22,32,0.96)',
+  blueLine: '#24517a', blueTint: '#12304a', boxLine: '#4a6073', dot: '#4a6073', chipBg: '#1d2f3d', overlay: 'rgba(0,0,0,0.6)', topBar: 'rgba(11,22,32,0.96)', inverse: '#2b4256',
 }
 export const C = { ...LIGHT }
 let darkOn = false
