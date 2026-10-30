@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { Gift, Plus } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { PickerField } from '../../components/web/ActionModals'
-import { ErrorBlock, ListSkeleton, fmtDate, ymd } from '../../components/web/rc'
+import { ErrorBlock, ListSkeleton, fmtDate, useRefresh, ymd } from '../../components/web/rc'
 import { Avatar, Btn, C, EmptyState, Field, Input, Select, Sheet, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, createOffer, listApplicants, listOffers, setOfferStatus, usePermissions } from '../../services/recruiter'
@@ -74,11 +74,12 @@ export default function OffersScreen({ route }) {
   const [creating, setCreating] = useState(!!preset)
   const load = useCallback(() => {
     setError('')
-    listOffers().then(setRows).catch((e) => setError(apiMessage(e, 'Could not load offers.')))
+    return listOffers().then(setRows).catch((e) => setError(apiMessage(e, 'Could not load offers.')))
   }, [])
   useEffect(() => { load() }, [load])
   useEffect(() => { if (preset) setCreating(true) }, [preset])
 
+  const { refreshing, onRefresh } = useRefresh(load)
   const sorted = useMemo(() => (rows ?? []).slice().sort((a, b) => (a.status === 'pending' ? 0 : 1) - (b.status === 'pending' ? 0 : 1) || new Date(a.expiresOn) - new Date(b.expiresOn)), [rows])
   const respond = (o, status) =>
     Alert.alert(`Mark ${o.candidateName}’s offer as ${status === 'accepted' ? 'accepted' : 'declined'}?`, undefined, [
@@ -103,7 +104,7 @@ export default function OffersScreen({ route }) {
 
   return (
     <Shell>
-      <PageScroll>
+      <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <PageTitle title="Offers" sub="Offers you have made and where each one stands." />
         {can('offers.manage') ? <Btn variant="primary" icon={Plus} onPress={() => setCreating(true)} style={{ alignSelf: 'flex-start' }}>Create offer</Btn> : null}
         {error ? <ErrorBlock message={error} onRetry={load} /> : !rows ? <ListSkeleton h={110} /> : sorted.length === 0 ? (
