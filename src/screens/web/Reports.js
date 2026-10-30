@@ -54,6 +54,7 @@ export default function ReportsScreen() {
                     {PIPELINE.map((s) => (j.counts[s.key] ? <View key={s.key} style={{ flex: j.counts[s.key], backgroundColor: BAR[s.key] }} /> : null))}
                   </View>
                 ) : null}
+                {j.total > 0 ? <T s={12} c={C.muted}>{Math.round((((j.counts.shortlisted ?? 0) + (j.counts.interview ?? 0) + (j.counts.offer ?? 0) + (j.counts.hired ?? 0)) / j.total) * 100)}% shortlisted or further · {j.counts.hired ?? 0} hired</T> : null}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
                   {PIPELINE.map((s) => (
                     <View key={s.key} style={{ alignItems: 'center', minWidth: 56 }}>
