@@ -1,0 +1,117 @@
+import { useCallback, useEffect, useState } from 'react'
+import { Pressable, View } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { ArrowRight, CalendarClock, CheckCircle2 } from 'lucide-react-native'
+import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
+import { ErrorBlock, ListSkeleton, StatTile, ago, fmtDateTime } from '../../components/web/rc'
+import { Btn, C, SectionCard, T } from '../../components/wk'
+import { apiMessage, getOverview } from '../../services/recruiter'
+import { openHref } from '../../lib/navigation'
+
+const SEVERITY = { high: C.bad, medium: C.warn, low: C.muted }
+const HEALTH_LABEL = { low_applications: 'Low applications', expiring: 'Closing soon', deadline_passed: 'Deadline passed', no_shortlist: 'No shortlist', feedback_pending: 'Feedback pending' }
+
+function Dot({ severity, top }) {
+  return <View style={{ width: 8, height: 8, borderRadius: 4, marginTop: top, backgroundColor: SEVERITY[severity] ?? C.muted }} />
+}
+
+export default function OverviewScreen() {
+  const nav = useNavigation()
+  const [data, setData] = useState(null)
+  const [error, setError] = useState('')
+  const load = useCallback(() => {
+    setError('')
+    getOverview().then(setData).catch((e) => setError(apiMessage(e, 'Could not load your overview.')))
+  }, [])
+  useEffect(() => { load() }, [load])
+  // Coming back to the tab after acting on something should show fresh counts.
+  useEffect(() => nav.addListener('focus', () => data && load()), [nav, load, data])
+
+  if (error) return <Shell><PageScroll><PageTitle title="Overview" /><ErrorBlock message={error} onRetry={load} /></PageScroll></Shell>
+  if (!data) return <Shell><PageScroll><PageTitle title="Overview" /><ListSkeleton rows={5} /></PageScroll></Shell>
+
+  const s = data.stats
+  const limited = data.scope === 'limited'
+  return (
+    <Shell>
+      <PageScroll>
+        <PageTitle title="Overview" sub={limited ? 'Your interviews and feedback.' : 'What needs doing today across your hiring.'} />
+        {!limited ? <Btn variant="primary" onPress={() => nav.navigate('JobForm')} style={{ alignSelf: 'flex-start' }}>Post a job</Btn> : null}
+
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' }}>
+          {!limited ? <StatTile label="Active jobs" value={s.activeJobs} onPress={() => nav.navigate('Jobs')} /> : null}
+          {!limited ? <StatTile label="New applicants" value={s.newApplicants} hint="Awaiting review" warn={!!s.newApplicants} onPress={() => nav.navigate('Applicants', { stage: 'new' })} /> : null}
+          <StatTile label="Interviews today" value={s.interviewsToday} hint={`${s.interviewsWeek} this week`} onPress={() => nav.navigate('Interviews')} />
+          {s.feedbackPending != null ? <StatTile label="Feedback pending" value={s.feedbackPending} warn={!!s.feedbackPending} onPress={() => nav.navigate('Interviews', { filter: 'feedback' })} /> : null}
+          {!limited ? <StatTile label="Offers awaiting" value={s.offersAwaiting} onPress={() => nav.navigate('Offers')} /> : null}
+          {s.creditsRemaining != null ? <StatTile label="CV credits left" value={s.creditsRemaining} warn={s.creditsRemaining === 0} onPress={() => nav.navigate('PlanCredits')} /> : null}
+        </View>
+
+        <SectionCard title="Needs your attention" style={{ paddingBottom: 0 }}>
+          {data.attention.length === 0 ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}>
+              <CheckCircle2 size={16} color={C.ok} />
+              <T s={13.5} c={C.muted}>Nothing needs your attention right now.</T>
+            </View>
+          ) : (
+            data.attention.map((a, i) => (
+              <Pressable key={a.id} onPress={() => openHref(nav, a.href)} style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, borderTopWidth: i ? 1 : 0, borderTopColor: C.line2 }}>
+                <Dot severity={a.severity} />
+                <T s={14} w="m" style={{ flex: 1 }}>{a.text}</T>
+                <ArrowRight size={15} color={C.muted} />
+              </Pressable>
+            ))
+          )}
+        </SectionCard>
+
+        {!limited ? (
+          <SectionCard title="Job health">
+            {data.jobHealth.length === 0 ? (
+              <T s={13.5} c={C.muted}>No issues found on your live jobs.</T>
+            ) : (
+              data.jobHealth.map((h, i) => (
+                <Pressable key={`${h.jobId}-${h.type}-${i}`} onPress={() => nav.navigate('Applicants', { jobId: h.jobId })} style={{ flexDirection: 'row', gap: 12, paddingVertical: 10, borderTopWidth: i ? 1 : 0, borderTopColor: C.line2 }}>
+                  <Dot severity={h.severity} top={6} />
+                  <View style={{ flex: 1 }}>
+                    <T s={13.5} w="s" numberOfLines={1}>{h.jobTitle}</T>
+                    <T s={12.5} c={C.muted}>{HEALTH_LABEL[h.type]}: {h.message}</T>
+                  </View>
+                </Pressable>
+              ))
+            )}
+          </SectionCard>
+        ) : null}
+
+        {data.upcoming?.length > 0 ? (
+          <SectionCard title="Upcoming interviews" action={<Pressable onPress={() => nav.navigate('Interviews')} hitSlop={8}><T s={12.5} w="s" c={C.accent}>All</T></Pressable>}>
+            {data.upcoming.map((i, k) => (
+              <View key={i.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9, borderTopWidth: k ? 1 : 0, borderTopColor: C.line2 }}>
+                <CalendarClock size={15} color={C.muted} />
+                <View style={{ flex: 1 }}>
+                  <T s={13.5} w="s" numberOfLines={1}>{i.candidateName}</T>
+                  <T s={12.5} c={C.muted} numberOfLines={1}>{i.role} · {fmtDateTime(i.startsAt)}</T>
+                </View>
+              </View>
+            ))}
+          </SectionCard>
+        ) : null}
+
+        <SectionCard title="Recent activity">
+          {data.activity.length === 0 ? (
+            <T s={13.5} c={C.muted}>Activity appears here as your team moves candidates, schedules interviews and sends offers.</T>
+          ) : (
+            <View style={{ marginLeft: 4, borderLeftWidth: 1, borderLeftColor: C.line }}>
+              {data.activity.map((a) => (
+                <View key={a.id} style={{ paddingVertical: 6, paddingLeft: 14 }}>
+                  <View style={{ position: 'absolute', left: -3.5, top: 14, width: 6, height: 6, borderRadius: 3, backgroundColor: '#9db0bd' }} />
+                  <T s={13}>{a.text}</T>
+                  <T s={11.5} c={C.muted}>{[a.actor, ago(a.at)].filter(Boolean).join(' · ')}</T>
+                </View>
+              ))}
+            </View>
+          )}
+        </SectionCard>
+      </PageScroll>
+    </Shell>
+  )
+}
