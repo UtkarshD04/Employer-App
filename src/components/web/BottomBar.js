@@ -46,6 +46,7 @@ export default function BottomBar() {
   const inMore = !tabNames.has(route.name)
   const item = (key, label, Icon, on, onPress, badge) => (
     <Pressable key={key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={badge ? `${label}, ${badge} new` : label} style={{ flex: 1, minHeight: 54, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+      <View style={{ position: 'absolute', top: 0, width: 28, height: 3, borderBottomLeftRadius: 3, borderBottomRightRadius: 3, backgroundColor: on ? C.accent : 'transparent' }} />
       <View>
         <Icon size={20} color={on ? C.accent : C.muted} strokeWidth={on ? 2.4 : 2} />
         {badge ? <View style={{ position: 'absolute', top: -5, right: -10, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: C.bad, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}><T s={9.5} w="b" c="#fff" style={{ lineHeight: 12 }}>{badge > 99 ? '99+' : badge}</T></View> : null}
