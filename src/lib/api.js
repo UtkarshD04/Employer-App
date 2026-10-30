@@ -2,6 +2,7 @@ import axios from 'axios'
 import * as SecureStore from 'expo-secure-store'
 import { API_BASE } from './config'
 import { queryClient, queryKeys } from './queryClient'
+import { setOnline } from './connection'
 
 const TOKEN_KEY = 'mzobs-employer-token'
 
@@ -27,8 +28,13 @@ export function setUnauthorizedHandler(handler) {
 }
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    setOnline(true)
+    return response
+  },
   async (error) => {
+    // No response at all (timeout, no signal) means we're offline; an HTTP error still reached the server.
+    setOnline(!!error.response || axios.isCancel(error))
     // Only a request that carried a session means "session expired" — otherwise a failed
     // login attempt (401 too) or logout's own cleanup calls would loop.
     if (error.response?.status === 401 && error.config?.headers?.Authorization) {
