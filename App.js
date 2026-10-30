@@ -11,6 +11,7 @@ import { ThemeProvider } from './src/theme'
 import { WorkspaceProvider } from './src/store/workspace'
 import { navigationRef } from './src/lib/navigation'
 import RootNavigator from './src/navigation/RootNavigator'
+import ErrorBoundary from './src/components/ErrorBoundary'
 
 // Show notifications while the app is open, not just when backgrounded.
 Notifications.setNotificationHandler({
@@ -45,7 +46,9 @@ export default function App() {
           <AuthProvider>
             <WorkspaceProvider>
               <StatusBar style="dark" />
-              <RootNavigator />
+              <ErrorBoundary>
+                <RootNavigator />
+              </ErrorBoundary>
             </WorkspaceProvider>
           </AuthProvider>
         </QueryClientProvider>
