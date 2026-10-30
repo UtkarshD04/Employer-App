@@ -8,7 +8,13 @@ import { invalidatePool, fetchAll } from './talent'
  * resume-database profile not yet in this company's pipeline is added to it,
  * optionally under one of its jobs (`jobId`).
  */
-export const unlockCandidate = (c, { jobId, field } = {}) => {
+export const unlockCandidate = async (c, { jobId, field } = {}) => {
+  // 'contact' opens email and phone number together: the first call spends the credit, the second is free.
+  if (field === 'contact') {
+    const first = await unlockCandidate(c, { jobId, field: 'email' })
+    const second = await unlockCandidate(c, { field: 'phone' })
+    return { ...second, alreadyUnlocked: !!first.alreadyUnlocked }
+  }
   const { kind, candidateId, employeeId } = c._live ?? {}
   // `field` (email | phone | resume): the part being opened. The credit is spent
   // on a candidate's first reveal only; the other parts are then free.
