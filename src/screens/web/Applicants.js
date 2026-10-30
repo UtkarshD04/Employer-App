@@ -151,6 +151,7 @@ export default function ApplicantsScreen({ route }) {
           <View>
             <Input value={q} onChangeText={setQ} placeholder="Search name, role or skill" accessibilityLabel="Search applicants" style={{ paddingLeft: 36 }} />
             <View pointerEvents="none" style={{ position: 'absolute', left: 12, top: 12 }}><Search size={15} color={C.muted} /></View>
+            {q ? <Press onPress={() => setQ('')} accessibilityLabel="Clear search" hitSlop={8} style={{ position: 'absolute', right: 10, top: 10 }}><X size={16} color={C.muted} /></Press> : null}
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <Select style={{ flex: 1 }} value={owner} title="Owner" onChange={setOwner} options={[['', 'Any owner'], ['me', 'Assigned to me'], ['unassigned', 'Unassigned'], ...team.map((m) => [m.id, m.name])]} />
