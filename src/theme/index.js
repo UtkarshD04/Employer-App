@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo } from 'react'
-import { useColorScheme } from 'react-native'
+import { useAppearance } from '../lib/appearance'
 import { dark, light } from './colors'
 
 export { light, dark } from './colors'
@@ -16,13 +16,10 @@ export const fontFamily = {
 
 const ThemeContext = createContext(null)
 
-// Light only — the recruiter website has no dark mode and the app mirrors it. The dark palette
-// stays in colors.js; flip FORCE_LIGHT to follow the phone's setting again.
-const FORCE_LIGHT = true
-
+// Follows the in-app appearance setting (Settings → Appearance); light unless the user chose otherwise.
 export function ThemeProvider({ children }) {
-  const scheme = useColorScheme()
-  const isDark = !FORCE_LIGHT && scheme === 'dark'
+  const { effective } = useAppearance()
+  const isDark = effective === 'dark'
   const value = useMemo(() => ({ colors: isDark ? dark : light, radius, spacing, fontFamily, isDark }), [isDark])
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
