@@ -16,7 +16,7 @@ import { splitSkills, tidyText } from '../lib/talent/summary'
 // not even the last four — whatever the server sends.
 const hidePhone = (preview) => (preview ? { ...preview, phone: preview.phone ? '••••••••••' : preview.phone } : preview)
 import { rankPool, similarTo, computeMatch, computeTrust } from '../lib/talent/engine'
-import { setVocabularyFrom } from '../lib/talent/vocab'
+import { setVocabularyFrom, canonState } from '../lib/talent/vocab'
 
 // ---- live mapping ---------------------------------------------------------
 
@@ -127,7 +127,7 @@ export function mapResdexCandidate(e) {
     currentSalaryLPA: toLpa(e.currentCtc),
     expectedSalaryLPA: toLpa(e.expectedSalary),
     location: e.location ?? '',
-    state: e.state ?? '',
+    state: canonState(e.state),
     pincode: e.pincode ?? '',
     preferredLocations: e.preferredLocations?.length ? e.preferredLocations : e.location ? [e.location] : [],
     relocationOk: e.relocationOk,
@@ -139,6 +139,7 @@ export function mapResdexCandidate(e) {
     workModes,
     employmentType: employmentTypes.join(' / '),
     employmentTypes,
+    experienceLevel: e.experience === 'fresher' || e.experience === 'experienced' ? e.experience : null,
     college: e.college || '',
     education: (e.education ?? []).map((x) => ({ degree: tidyText(x.degree), institute: tidyText(x.institute), year: Number(x.year) || null })),
     workHistory: hist,
@@ -223,6 +224,12 @@ export function poolMeta(pool, jobs = []) {
     activity: any((c) => c.lastActiveDaysAgo != null),
     resumeDate: any((c) => c.resumeUpdatedDaysAgo != null),
     contactVerified: any((c) => c.verification.phone !== 'none' || c.verification.email !== 'none'),
+    experienceLevel: any((c) => c.experienceLevel),
+    linkedin: any((c) => c.links?.some((l) => l.label === 'LinkedIn')),
+    github: any((c) => c.links?.some((l) => l.label === 'GitHub')),
+    photo: any((c) => c.photoUrl),
+    premium: any((c) => c.premium),
+    appliedDate: any((c) => c.sharedDaysAgo != null),
     education: any((c) => c.education.length),
     company: any((c) => c.currentCompany),
     prevCompany: any((c) => c.workHistory.length > 1),
