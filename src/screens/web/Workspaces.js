@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Alert, Linking, View } from 'react-native'
 import { useRoute } from '@react-navigation/native'
 import { CalendarClock, CalendarDays, CalendarPlus, Clock, MapPin, Mail, MessageSquare, Sparkles, Users, Video } from 'lucide-react-native'
