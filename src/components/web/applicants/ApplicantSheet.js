@@ -6,6 +6,7 @@ import { Avatar, Btn, C, Field, Input, Select, Sheet, T, Tag } from '../../wk'
 import { PickerField } from '../ActionModals'
 import SendMessageSheet from '../SendMessageSheet'
 import { ErrorBlock, ListSkeleton, Overline, StagePill, ago, fmtDate, fmtDateTime, ymd } from '../rc'
+import { cancelFollowUpReminder, scheduleFollowUpReminder } from '../../../lib/reminders'
 import { addApplicantNote, apiMessage, getApplicant, listTeam, moveApplicant, PIPELINE, STAGE_LABEL, updateApplicant } from '../../../services/recruiter'
 
 const EVENT_LABEL = { stage: 'Stage', note: 'Note', assign: 'Owner', tags: 'Tags', followup: 'Follow-up', interview: 'Interview', offer: 'Offer', comm: 'Message', reject: 'Rejected' }
@@ -115,8 +116,8 @@ export default function ApplicantSheet({ id, onClose, onChanged, onReject, onSch
               <Select value={c.owner?.id ?? ''} title="Owner" onChange={(v) => run(() => updateApplicant(id, { ownerId: v || null }), 'Owner updated')} options={owners} />
             </Field>
             <Field label="Follow-up date">
-              <PickerField mode="date" value={c.followUpOn ? new Date(c.followUpOn) : null} placeholder="Pick a date" onChange={(d) => run(() => updateApplicant(id, { followUpOn: ymd(d) }), 'Follow-up saved')} />
-              {c.followUpOn && manage ? <Pressable onPress={() => run(() => updateApplicant(id, { followUpOn: null }), 'Follow-up cleared')} hitSlop={8} style={{ alignSelf: 'flex-start' }}><T s={12} w="s" c={C.accent}>Clear date</T></Pressable> : null}
+              <PickerField mode="date" value={c.followUpOn ? new Date(c.followUpOn) : null} placeholder="Pick a date" onChange={(d) => run(async () => { await updateApplicant(id, { followUpOn: ymd(d) }); scheduleFollowUpReminder(id, c.name, d) }, 'Follow-up saved — you will get a reminder at 9am')} />
+              {c.followUpOn && manage ? <Pressable onPress={() => run(async () => { await updateApplicant(id, { followUpOn: null }); cancelFollowUpReminder(id) }, 'Follow-up cleared')} hitSlop={8} style={{ alignSelf: 'flex-start' }}><T s={12} w="s" c={C.accent}>Clear date</T></Pressable> : null}
             </Field>
             <View style={{ gap: 6, marginTop: 4 }}>
               <T s={12.5} w="s" c={C.ink2}>Internal tags</T>
