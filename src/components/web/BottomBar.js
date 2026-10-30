@@ -56,7 +56,7 @@ export default function BottomBar() {
   )
   return (
     <>
-      <View style={{ display: typing ? 'none' : 'flex', flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: C.line, paddingBottom: insets.bottom }}>
+      <View style={{ display: typing ? 'none' : 'flex', flexDirection: 'row', backgroundColor: C.surface, borderTopWidth: 1, borderTopColor: C.line, paddingBottom: insets.bottom }}>
         {TABS.filter(allowed).map((t) => item(t.name, t.label, t.icon, route.name === t.name, () => go(t.name), t.name === 'Applicants' ? fresh : 0))}
         {item('more', 'More', MoreHorizontal, inMore || more, () => setMore(true))}
       </View>
