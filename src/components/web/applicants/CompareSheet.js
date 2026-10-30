@@ -4,7 +4,7 @@ import { Avatar, C, Sheet, T } from '../../wk'
 import { ErrorBlock, ListSkeleton, StagePill } from '../rc'
 import { apiMessage, compareApplicants, STAGE_LABEL } from '../../../services/recruiter'
 
-const NA = <T s={12.5} c={C.muted}>Not provided</T>
+const Na = () => <T s={12.5} c={C.muted}>Not provided</T>
 const CRITERIA = [
   ['communication', 'Communication'],
   ['technical', 'Technical / functional'],
@@ -59,7 +59,7 @@ export default function CompareSheet({ ids, onClose }) {
               return <View key={s} style={{ borderRadius: 5, backgroundColor: shared ? '#eceff0' : C.accentSoft, paddingHorizontal: 6, paddingVertical: 1.5 }}><T s={11.5} w={shared ? 'r' : 's'} c={shared ? C.ink2 : C.accent}>{s}</T></View>
             })}
           </View>
-        ) : NA,
+        ) : <Na />,
       },
       { label: 'Experience', diff: differs(it.map((c) => c.experienceYears)), cell: (c) => <Line w="s" s={14}>{c.experienceYears} yrs</Line> },
       {
@@ -76,12 +76,12 @@ export default function CompareSheet({ ids, onClose }) {
       {
         label: 'Salary expectation',
         diff: differs(it.map((c) => c.salaryExpectation.lpa)),
-        cell: (c) => (c.salaryExpectation.lpa != null ? <Line w="s" s={14}>₹{c.salaryExpectation.lpa}{c.salaryExpectation.maxLpa ? `–${c.salaryExpectation.maxLpa}` : ''} LPA</Line> : c.salaryExpectation.raw ? <Line>{c.salaryExpectation.raw}</Line> : NA),
+        cell: (c) => (c.salaryExpectation.lpa != null ? <Line w="s" s={14}>₹{c.salaryExpectation.lpa}{c.salaryExpectation.maxLpa ? `–${c.salaryExpectation.maxLpa}` : ''} LPA</Line> : c.salaryExpectation.raw ? <Line>{c.salaryExpectation.raw}</Line> : <Na />),
       },
       {
         label: 'Notice / availability',
         diff: differs(it.map((c) => c.noticePeriod.days ?? c.noticePeriod.raw)),
-        cell: (c) => c.noticePeriod.raw ? <Line>{c.noticePeriod.raw}{c.noticePeriod.days != null && !/\d|immediate/i.test(c.noticePeriod.raw) ? ` (${c.noticePeriod.days} days)` : ''}</Line> : NA,
+        cell: (c) => c.noticePeriod.raw ? <Line>{c.noticePeriod.raw}{c.noticePeriod.days != null && !/\d|immediate/i.test(c.noticePeriod.raw) ? ` (${c.noticePeriod.days} days)` : ''}</Line> : <Na />,
       },
       {
         label: 'Resume highlights',
@@ -92,7 +92,7 @@ export default function CompareSheet({ ids, onClose }) {
             {c.resume.roles.map((r) => <Line key={r} c={C.ink2}>{r}</Line>)}
             {c.resume.education.map((e) => <Line key={e} c={C.muted}>{e}</Line>)}
             <Line c={C.muted}>{c.resume.projects} project{c.resume.projects === 1 ? '' : 's'} · {c.resume.certificates} certificate{c.resume.certificates === 1 ? '' : 's'}{c.resume.resumeVerified ? ' · resume verified' : ''}{c.resume.identityVerified ? ' · ID verified' : ''}</Line>
-            {!c.resume.headline && c.resume.roles.length === 0 && c.resume.education.length === 0 ? NA : null}
+            {!c.resume.headline && c.resume.roles.length === 0 && c.resume.education.length === 0 ? <Na /> : null}
           </View>
         ),
       },
