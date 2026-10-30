@@ -1,6 +1,6 @@
 // Location lookups for the recruiter filters, all through the backend's /geo proxy
 // (Backend/src/routes/geoRoutes.js) so no geocoder credentials reach the app:
-//   GET /geo/states, /geo/places?q=, /geo/reverse?lat&lng, /geo/pincode/:pin
+//   GET /geo/states, /geo/places?q=, /geo/reverse?lat&lng, /geo/pincode/:pin, /geo/city-pincodes?city=&state=
 //   GET /jobs/location-facets  — the state/city/locality values this company's jobs already carry
 import { apiClient } from '../lib/api'
 
@@ -62,6 +62,8 @@ const takeToken = async () => {
 
 /** Already-fetched info for a PIN (or null) — never triggers a request. */
 export const peekPinInfo = (pin) => pinCache.get(pin)?.info ?? null
+/** True once a PIN lookup has settled (found, or confirmed absent from the directory); failures stay unsettled. */
+export const isPinSettled = (pin) => pinCache.has(pin)
 
 /** @returns {Promise<{district:string,state:string,areas:string[]}|null>} null when the directory has no entry for the PIN. */
 export function getPinInfo(pin) {
@@ -79,6 +81,50 @@ export function getPinInfo(pin) {
     .finally(() => pinPending.delete(pin))
   pinPending.set(pin, p)
   return p
+}
+
+/**
+ * Warms the PIN cache for a list of PINs, a few at a time, through the same paced/deduped getPinInfo.
+ * `ctl.cancelled` stops the run early (e.g. the city changed). Resolves { failed } — PINs whose lookup errored
+ * (those are not cached, so the next call retries them). Already-cached PINs cost nothing.
+ */
+export async function prefetchPinInfo(pins, ctl = {}, onSettled, concurrency = 4) {
+  const todo = [...new Set(pins)].filter((p) => isPin(p) && !pinCache.has(p))
+  let failed = 0
+  const worker = async () => {
+    while (todo.length && !ctl.cancelled) {
+      const pin = todo.shift()
+      try { await getPinInfo(pin) } catch { failed += 1 }
+      if (!ctl.cancelled) onSettled?.()
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, todo.length) }, worker))
+  return { failed }
+}
+
+// City → its PIN codes from the India Post directory (GET /geo/city-pincodes). One request per
+// city lists every PIN with its areas, so it also fills the per-PIN cache and the PIN tiles
+// don't each need their own lookup against the 40-a-minute geo limit.
+const cityPinCache = new Map() // `${city}|${state}` → Promise<rows>
+export function getCityPincodes(city, state = '') {
+  const key = `${city.trim().toLowerCase()}|${state.trim().toLowerCase()}`
+  if (!cityPinCache.has(key)) {
+    const p = apiClient
+      .get('/geo/city-pincodes', { params: { city, state: state || undefined } })
+      .then((r) => {
+        const rows = Array.isArray(r.data) ? r.data : []
+        for (const row of rows) {
+          if (!pinCache.has(row.pincode)) pinCache.set(row.pincode, { info: { district: row.district ?? '', state: row.state ?? '', areas: row.areas ?? [] } })
+        }
+        return rows
+      })
+      .catch((e) => {
+        cityPinCache.delete(key) // not cached: a later look retries
+        throw e
+      })
+    cityPinCache.set(key, p)
+  }
+  return cityPinCache.get(key)
 }
 
 /** "Gomti Nagar, Vikas Nagar +2" — the postal areas a PIN covers, never one area standing in for all. */
