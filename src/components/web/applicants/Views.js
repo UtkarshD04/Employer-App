@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, View } from 'react-native'
 import { BellRing, Briefcase, MapPin, Star } from 'lucide-react-native'
 import { Avatar, C, CheckBox, T, Tag, card } from '../../wk'
-import { FadeIn, StagePill, fmtDate } from '../rc'
+import { FadeIn, STAGE_TONE, StagePill, fmtDate } from '../rc'
 import { PIPELINE, STAGE_LABEL } from '../../../services/recruiter'
 
 const dueNow = (c) => c.followUpOn && new Date(c.followUpOn) <= new Date()
@@ -73,6 +73,7 @@ export function Board({ items, counts, stage, onStage, selected, onSelect, onOpe
           const on = col.key === stage
           return (
             <Pressable key={col.key} onPress={() => onStage(col.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, borderWidth: 1, borderColor: on ? C.ink : C.line, backgroundColor: on ? C.ink : '#fff', paddingHorizontal: 14 }}>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: on ? '#fff' : STAGE_TONE[col.key][1] }} />
               <T s={12.5} w="b" c={on ? '#fff' : C.ink2}>{col.label}</T>
               <View style={{ borderRadius: 999, backgroundColor: on ? 'rgba(255,255,255,0.2)' : C.line2, paddingHorizontal: 6, paddingVertical: 1 }}><T s={11.5} w="s" c={on ? '#fff' : C.ink2}>{counts[col.key] ?? 0}</T></View>
             </Pressable>
