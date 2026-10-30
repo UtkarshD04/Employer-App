@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Alert, Linking, View } from 'react-native'
 import { useRoute } from '@react-navigation/native'
+import { calendarLink } from '../../lib/calendar'
 import { CalendarClock, CalendarDays, CalendarPlus, Clock, MapPin, Mail, MessageSquare, Sparkles, Users, Video } from 'lucide-react-native'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
@@ -130,7 +131,12 @@ function InterviewCard({ i, past, onReschedule, onCancel, onComplete, onScorecar
       {i.email?.status ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Mail size={12} color={sent ? C.okText : C.muted} /><T s={12} c={sent ? C.okText : C.muted}>{sent ? `Email sent to ${i.email.to}` : EMAIL_NOTE[i.email.status]}</T></View>
       ) : null}
-      {i.meetingLink && active ? <Btn variant="primary" size="sm" icon={Video} onPress={() => Linking.openURL(i.meetingLink)} style={{ alignSelf: 'flex-start' }}>Join interview</Btn> : null}
+      {active || (i.meetingLink && active) ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {i.meetingLink ? <Btn variant="primary" size="sm" icon={Video} onPress={() => Linking.openURL(i.meetingLink)}>Join interview</Btn> : null}
+          <Btn size="sm" icon={CalendarPlus} onPress={() => Linking.openURL(calendarLink(i))}>Add to calendar</Btn>
+        </View>
+      ) : null}
       {i.status !== 'Cancelled' && ((onScorecard && started) || manageable) ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {manageable && onReschedule ? <Btn size="sm" onPress={() => onReschedule(i)}>Reschedule</Btn> : null}
