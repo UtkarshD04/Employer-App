@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { success, warn } from '../lib/haptics'
 
 // Recruiter workspace state: shortlists, saved/recent searches, notes, selection, compare tray
 // and toasts — the same shape and mutations as the website's store/workspace.jsx. There is no
@@ -57,6 +58,8 @@ export function WorkspaceProvider({ children }) {
   const toast = useCallback(
     (message, { tone = 'ok', action } = {}) => {
       const id = uid('t')
+      if (tone === 'warn') warn()
+      else success()
       setToasts((t) => [...t.slice(-3), { id, message, tone, action }])
       timers.current.set(id, setTimeout(() => dismissToast(id), 4200))
     },
