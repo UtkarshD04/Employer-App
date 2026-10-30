@@ -320,7 +320,7 @@ export function JobFormScreen({ route }) {
             <Field label="Work mode">
               <View style={{ flexDirection: 'row', gap: 6 }}>
                 {WORK_MODES.map((m) => (
-                  <Pressable key={m} onPress={() => set({ workMode: m })} style={{ flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: f.workMode === m ? C.accent : C.line, backgroundColor: f.workMode === m ? C.accentSoft : '#fff' }}>
+                  <Pressable key={m} onPress={() => set({ workMode: m })} style={{ flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: f.workMode === m ? C.accent : C.line, backgroundColor: f.workMode === m ? C.accentSoft : C.surface }}>
                     <T s={13} w="m" c={f.workMode === m ? C.accentText : C.ink}>{m}</T>
                   </Pressable>
                 ))}
