@@ -21,6 +21,15 @@ const TONE = {
 // Where a notification's category leads inside the recruiter app.
 const ROUTES = { jobs: 'Jobs', candidates: 'Search', batches: 'Search', interviews: 'Interviews', offers: 'Offers', billing: 'PlanCredits' }
 
+// Today / Yesterday / This week / Earlier, by calendar day of the notification.
+function dayGroup(iso) {
+  if (!iso) return 'Earlier'
+  const day = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const diff = Math.round((day(new Date()) - day(new Date(iso))) / 86400000)
+  return diff <= 0 ? 'Today' : diff === 1 ? 'Yesterday' : diff < 7 ? 'This week' : 'Earlier'
+}
+const GROUPS = ['Today', 'Yesterday', 'This week', 'Earlier']
+
 export function NotificationsScreen() {
   const nav = useNavigation()
   const qc = useQueryClient()
@@ -57,7 +66,10 @@ export function NotificationsScreen() {
               {unread > 0 ? <Btn size="sm" icon={CheckCheck} loading={readAll.isPending} onPress={() => readAll.mutate()}>Mark all as read</Btn> : null}
             </View>
             <View style={{ gap: 8 }}>
-              {items.map((n) => {
+              {GROUPS.map((g) => ({ g, rows: items.filter((n) => dayGroup(n.createdAt) === g) })).filter((x) => x.rows.length).map(({ g, rows }) => (
+                <View key={g} style={{ gap: 8 }}>
+                  <T s={12} w="b" c={C.muted} style={{ textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 6 }}>{g}</T>
+                  {rows.map((n) => {
                 const [bg, fg] = TONE[n.category] ?? TONE.system
                 return (
                   <Pressable key={n.id} onPress={() => open(n)} style={[card, { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderColor: n.unread ? '#bfe6df' : C.line, backgroundColor: n.unread ? '#f2fbf9' : '#fff' }]}>
@@ -72,7 +84,9 @@ export function NotificationsScreen() {
                     </View>
                   </Pressable>
                 )
-              })}
+                  })}
+                </View>
+              ))}
             </View>
           </>
         )}
