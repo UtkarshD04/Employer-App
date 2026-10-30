@@ -6,6 +6,7 @@ import { useTheme } from '../theme'
 import { navigationRef } from '../lib/navigation'
 import { AskAIProvider } from '../store/askai'
 import { ToastStack } from '../components/web/Shell'
+import Tour from '../components/web/Tour'
 import LandingScreen from '../screens/auth/LandingScreen'
 import LoginScreen from '../screens/auth/LoginScreen'
 import RegisterScreen from '../screens/auth/RegisterScreen'
@@ -104,6 +105,7 @@ export default function RootNavigator() {
             <Stack.Screen name="Company" component={CompanyScreen} options={{ title: 'Company profile' }} />
           </Stack.Navigator>
           <ToastStack />
+          <Tour />
         </AskAIProvider>
       ) : (
         <Stack.Navigator screenOptions={screenOptions} initialRouteName="Landing">
