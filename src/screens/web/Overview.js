@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Pressable, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
-import { ArrowRight, CalendarClock, CheckCircle2 } from 'lucide-react-native'
+import { ArrowRight, CalendarClock, CalendarPlus, CheckCircle2, Plus, Search, Users } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { ErrorBlock, ListSkeleton, StatTile, ago, fmtDateTime, useRefresh } from '../../components/web/rc'
 import { Btn, C, SectionCard, T } from '../../components/wk'
@@ -38,7 +38,14 @@ export default function OverviewScreen() {
     <Shell>
       <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <PageTitle title="Overview" sub={limited ? 'Your interviews and feedback.' : 'What needs doing today across your hiring.'} />
-        {!limited ? <Btn variant="primary" onPress={() => nav.navigate('JobForm')} style={{ alignSelf: 'flex-start' }}>Post a job</Btn> : null}
+        {!limited ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            <Btn variant="primary" size="sm" icon={Plus} onPress={() => nav.navigate('JobForm')}>Post a job</Btn>
+            <Btn size="sm" icon={Search} onPress={() => nav.navigate('Search')}>Search talent</Btn>
+            <Btn size="sm" icon={Users} onPress={() => nav.navigate('Applicants')}>Applicants</Btn>
+            <Btn size="sm" icon={CalendarPlus} onPress={() => nav.navigate('Interviews')}>Interviews</Btn>
+          </View>
+        ) : null}
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' }}>
           {!limited ? <StatTile label="Active jobs" value={s.activeJobs} onPress={() => nav.navigate('Jobs')} /> : null}
