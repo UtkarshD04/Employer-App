@@ -10,7 +10,7 @@ const URGENCY = [
   { id: 'high', label: 'High', hint: 'Within 1–2 working days' },
   { id: 'urgent', label: 'Urgent', hint: 'As soon as possible' },
 ]
-const BOX = { borderRadius: 12, borderWidth: 1, borderColor: '#cfe3dd', backgroundColor: '#f1f8f6', padding: 14 }
+const box = () => ({ borderRadius: 12, borderWidth: 1, borderColor: C.aiLine, backgroundColor: C.accentTint, padding: 14 })
 
 function StepTrack({ status }) {
   const at = MANAGED_STEPS.findIndex((s) => s.key === status)
@@ -19,7 +19,7 @@ function StepTrack({ status }) {
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {MANAGED_STEPS.map((s, i) => (
           <View key={s.key} style={{ flex: i < MANAGED_STEPS.length - 1 ? 1 : 0, flexDirection: 'row', alignItems: 'center' }}>
-            <View style={{ width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: i < at ? C.accent : '#fff', borderWidth: i < at ? 0 : i === at ? 2 : 1, borderColor: i === at ? C.accent : C.line }}>
+            <View style={{ width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: i < at ? C.accent : C.surface, borderWidth: i < at ? 0 : i === at ? 2 : 1, borderColor: i === at ? C.accent : C.line }}>
               {i < at ? <Check size={11} color="#fff" strokeWidth={3} /> : <T s={10} w="b" c={i === at ? C.accent : C.muted} style={{ lineHeight: 13 }}>{i + 1}</T>}
             </View>
             {i < MANAGED_STEPS.length - 1 ? <View style={{ flex: 1, height: 1, marginHorizontal: 4, backgroundColor: i < at ? C.accent : C.line }} /> : null}
@@ -81,7 +81,7 @@ export default function ManagedShortlist({ job, canRequest, toast, onShortlistSh
   return (
     <>
       {current ? (
-        <View style={[BOX, { gap: 10 }]}>
+        <View style={[box(), { gap: 10 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Handshake size={16} color={C.accent} />
             <T s={13.5} w="b">MZOBS managed shortlisting</T>
@@ -89,7 +89,7 @@ export default function ManagedShortlist({ job, canRequest, toast, onShortlistSh
           <T s={12} c={C.muted}>Requested {fmtDate(current.createdAt)} · {current.urgency} priority{current.assignedTo ? ` · handled by ${current.assignedTo}` : ''}</T>
           <StepTrack status={current.status} />
           {current.status === 'shortlist_shared' ? (
-            <View style={{ borderRadius: 10, backgroundColor: '#fff', padding: 12, gap: 6 }}>
+            <View style={{ borderRadius: 10, backgroundColor: C.surface, padding: 12, gap: 6 }}>
               <T s={13} w="s">Shortlist ready · {current.sharedCandidates.length} candidate{current.sharedCandidates.length === 1 ? '' : 's'}</T>
               {current.shortlistMessage ? <T s={13} c={C.ink2}>{current.shortlistMessage}</T> : null}
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -102,7 +102,7 @@ export default function ManagedShortlist({ job, canRequest, toast, onShortlistSh
           ) : null}
         </View>
       ) : live && canRequest ? (
-        <View style={[BOX, { gap: 10 }]}>
+        <View style={[box(), { gap: 10 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Handshake size={20} color={C.accent} />
             <View style={{ flex: 1 }}>
@@ -126,7 +126,7 @@ export default function ManagedShortlist({ job, canRequest, toast, onShortlistSh
             {URGENCY.map((u) => {
               const on = form.urgency === u.id
               return (
-                <Pressable key={u.id} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => setForm((f) => ({ ...f, urgency: u.id }))} style={{ borderRadius: 10, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? '#f1f9f7' : '#fff', paddingHorizontal: 12, paddingVertical: 8 }}>
+                <Pressable key={u.id} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => setForm((f) => ({ ...f, urgency: u.id }))} style={{ borderRadius: 10, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentTint : C.surface, paddingHorizontal: 12, paddingVertical: 8 }}>
                   <T s={13} w="b">{u.label}</T>
                   <T s={11.5} c={C.muted}>{u.hint}</T>
                 </Pressable>
