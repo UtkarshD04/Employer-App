@@ -80,7 +80,7 @@ function Picker({ title, icon: Icon, value, placeholder, options, selected = [],
           disabled={disabled}
           onPress={() => setOpen(true)}
           accessibilityLabel={title}
-          style={{ flex: 1, minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 8, borderWidth: 1, borderColor: open ? C.accent : C.line, backgroundColor: disabled ? C.line2 : '#fff', paddingHorizontal: 12 }}
+          style={{ flex: 1, minHeight: 42, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 8, borderWidth: 1, borderColor: open ? C.accent : C.line, backgroundColor: disabled ? C.line2 : C.surface, paddingHorizontal: 12 }}
         >
           {status === 'loading' ? <ActivityIndicator size="small" color={C.accent} /> : <Icon size={14} color={C.accent} />}
           <T s={13} w={value ? 's' : 'r'} c={value ? C.ink : C.ph} numberOfLines={1} style={{ flex: 1 }}>{value || placeholder}</T>
@@ -170,7 +170,7 @@ function PinTyped({ current, known, onUse }) {
   return (
     <View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}>
-        <TextInput value={v} onChangeText={(t) => setV(t.replace(/\D/g, '').slice(0, 6))} onSubmitEditing={() => { if (ok) { onUse(v); setV('') } }} keyboardType="number-pad" maxLength={6} placeholder="Or type a 6-digit PIN" placeholderTextColor={C.ph} selectionColor={C.accent} accessibilityLabel="Type a PIN code" style={{ flex: 1, minHeight: 38, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 10, fontFamily: F.r, fontSize: 13, color: C.ink }} />
+        <TextInput value={v} onChangeText={(t) => setV(t.replace(/\D/g, '').slice(0, 6))} onSubmitEditing={() => { if (ok) { onUse(v); setV('') } }} keyboardType="number-pad" maxLength={6} placeholder="Or type a 6-digit PIN" placeholderTextColor={C.ph} selectionColor={C.accent} accessibilityLabel="Type a PIN code" style={{ flex: 1, minHeight: 38, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 10, fontFamily: F.r, fontSize: 13, color: C.ink }} />
         <Pressable disabled={disabled} onPress={() => { onUse(v); setV('') }} style={{ minHeight: 38, justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: C.line, paddingHorizontal: 12, opacity: disabled ? 0.5 : 1 }}>
           <T s={12} w="s" c={disabled ? C.muted : C.accent}>{known?.has(v) ? 'Use' : 'Use PIN'}</T>
         </Pressable>
@@ -338,7 +338,7 @@ export default function LocationRadar({ criteria: c, set, meta, relocationEnable
         ) : null}
         {selCities.length > 0 ? (
           <Pressable onPress={() => set({ alsoPreferred: !c.alsoPreferred })} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 }}>
-            <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 2, borderColor: c.alsoPreferred ? C.accentText : '#b8c7d2', backgroundColor: c.alsoPreferred ? C.accentText : '#fff', alignItems: 'center', justifyContent: 'center' }}>{c.alsoPreferred ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
+            <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 2, borderColor: c.alsoPreferred ? C.accentText : C.boxLine, backgroundColor: c.alsoPreferred ? C.accentText : C.surface, alignItems: 'center', justifyContent: 'center' }}>{c.alsoPreferred ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
             <T s={12.5} style={{ flex: 1 }}>Include people who prefer to relocate here</T>
           </Pressable>
         ) : null}
@@ -377,13 +377,13 @@ export default function LocationRadar({ criteria: c, set, meta, relocationEnable
             {scopes.map((s) => {
               const on = scope === s.id
               return (
-                <Pressable key={s.id} disabled={!!s.need} onPress={s.on} accessibilityRole="radio" accessibilityState={{ checked: on, disabled: !!s.need }} style={{ width: '48.5%', minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : '#fff', paddingHorizontal: 10, opacity: s.need ? 0.45 : 1 }}>
+                <Pressable key={s.id} disabled={!!s.need} onPress={s.on} accessibilityRole="radio" accessibilityState={{ checked: on, disabled: !!s.need }} style={{ width: '48.5%', minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : C.surface, paddingHorizontal: 10, opacity: s.need ? 0.45 : 1 }}>
                   <s.icon size={13} color={on ? C.accentText : C.ink2} />
                   <T s={12.5} w="s" c={on ? C.accentText : C.ink2} numberOfLines={1} style={{ flex: 1 }}>{s.label}</T>
                 </Pressable>
               )
             })}
-            <Pressable onPress={() => setCustomOpen((v) => !v)} accessibilityRole="switch" accessibilityState={{ checked: customOpen }} style={{ width: '100%', minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: customOpen || c.prefLocations.length ? C.accent : C.line, backgroundColor: customOpen || c.prefLocations.length ? C.accentSoft : '#fff', paddingHorizontal: 10 }}>
+            <Pressable onPress={() => setCustomOpen((v) => !v)} accessibilityRole="switch" accessibilityState={{ checked: customOpen }} style={{ width: '100%', minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: customOpen || c.prefLocations.length ? C.accent : C.line, backgroundColor: customOpen || c.prefLocations.length ? C.accentSoft : C.surface, paddingHorizontal: 10 }}>
               <SlidersHorizontal size={13} color={customOpen || c.prefLocations.length ? C.accentText : C.ink2} />
               <T s={12.5} w="s" c={customOpen || c.prefLocations.length ? C.accentText : C.ink2} style={{ flex: 1 }}>Custom preferred locations</T>
               {c.prefLocations.length > 0 ? <T s={11} c={C.accentText}>{c.prefLocations.length}</T> : null}
@@ -401,7 +401,7 @@ export default function LocationRadar({ criteria: c, set, meta, relocationEnable
             <View style={{ marginTop: 4, borderRadius: 8, borderWidth: 1, borderColor: C.line2, backgroundColor: C.panel, padding: 10 }}>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
                 {RADIUS_OPTIONS.filter((o) => [100, 500, 1000, 2000, 5000, 10000].includes(o.value)).map((o) => (
-                  <View key={o.value} style={{ minHeight: 28, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 10, opacity: 0.6 }}>
+                  <View key={o.value} style={{ minHeight: 28, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 10, opacity: 0.6 }}>
                     <T s={11.5} w="s" c={C.muted}>{o.label.replace('Within ', '')}</T>
                   </View>
                 ))}
