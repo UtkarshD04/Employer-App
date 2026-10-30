@@ -3,6 +3,7 @@ import { BellRing, Briefcase, MapPin, Star } from 'lucide-react-native'
 import { Avatar, C, CheckBox, T, Tag, card } from '../../wk'
 import { FadeIn, STAGE_TONE, StagePill, fmtDate } from '../rc'
 import { PIPELINE, STAGE_LABEL } from '../../../services/recruiter'
+import SwipeRow from '../SwipeRow'
 
 // Applied in the last two days and still untouched.
 const isFresh = (c) => c.stage === 'new' && c.appliedAt && Date.now() - new Date(c.appliedAt).getTime() < 2 * 86400000
@@ -68,7 +69,17 @@ export function ApplicantCard({ c, selected, onSelect, onOpen, canManage, showJo
 }
 
 /** Board: the pipeline's stages as a strip of counts — tap a stage to work through its column. */
-export function Board({ items, counts, stage, onStage, selected, onSelect, onOpen, canManage, showJob }) {
+// Swipe right shortlists, swipe left rejects — only for managers, and only while the applicant is still in play.
+function Swipeable({ c, canManage, onShortlist, onReject, children }) {
+  const live = canManage && c.stage !== 'rejected' && c.stage !== 'hired'
+  return (
+    <SwipeRow enabled={live && !!(onShortlist || onReject)} onSwipeRight={c.stage === 'new' || c.stage === 'reviewed' ? () => onShortlist?.(c) : undefined} onSwipeLeft={onReject ? () => onReject(c) : undefined}>
+      {children}
+    </SwipeRow>
+  )
+}
+
+export function Board({ items, counts, stage, onStage, selected, onSelect, onOpen, canManage, showJob, onShortlist, onReject }) {
   const rows = items.filter((c) => c.stage === stage)
   return (
     <View style={{ gap: 10 }}>
@@ -88,7 +99,7 @@ export function Board({ items, counts, stage, onStage, selected, onSelect, onOpe
         <View style={{ paddingVertical: 36, alignItems: 'center' }}><T s={13} c={C.muted}>Nobody in {STAGE_LABEL[stage]} yet</T></View>
       ) : (
         <View style={{ gap: 8 }}>
-          {rows.map((c, k) => <FadeIn key={c.id} index={k}><ApplicantCard c={c} selected={selected.has(c.id)} onSelect={onSelect} onOpen={onOpen} canManage={canManage} showJob={showJob} /></FadeIn>)}
+          {rows.map((c, k) => <FadeIn key={c.id} index={k}><Swipeable c={c} canManage={canManage} onShortlist={onShortlist} onReject={onReject}><ApplicantCard c={c} selected={selected.has(c.id)} onSelect={onSelect} onOpen={onOpen} canManage={canManage} showJob={showJob} /></Swipeable></FadeIn>)}
         </View>
       )}
     </View>
@@ -96,12 +107,12 @@ export function Board({ items, counts, stage, onStage, selected, onSelect, onOpe
 }
 
 /** List: everyone, with their stage shown on each row. */
-export function ApplicantList({ items, selected, onSelect, onSelectAll, onOpen, canManage, showJob }) {
+export function ApplicantList({ items, selected, onSelect, onSelectAll, onOpen, canManage, showJob, onShortlist, onReject }) {
   const all = items.length > 0 && items.every((c) => selected.has(c.id))
   return (
     <View style={{ gap: 8 }}>
       {canManage ? <CheckBox checked={all} onChange={() => onSelectAll(!all)}>Select all {items.length}</CheckBox> : null}
-      {items.map((c) => <ApplicantCard key={c.id} c={c} selected={selected.has(c.id)} onSelect={onSelect} onOpen={onOpen} canManage={canManage} showJob={showJob} showStage />)}
+      {items.map((c) => <Swipeable key={c.id} c={c} canManage={canManage} onShortlist={onShortlist} onReject={onReject}><ApplicantCard c={c} selected={selected.has(c.id)} onSelect={onSelect} onOpen={onOpen} canManage={canManage} showJob={showJob} showStage /></Swipeable>)}
     </View>
   )
 }
