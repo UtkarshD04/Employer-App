@@ -12,12 +12,14 @@ import CompareSheet from '../../components/web/applicants/CompareSheet'
 import JobInsights from '../../components/web/JobInsights'
 import ManagedShortlist from '../../components/web/ManagedShortlist'
 import { Btn, C, CheckBox, EmptyState, Input, Press, Segment, Select, T, card } from '../../components/wk'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { tap } from '../../lib/haptics'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, bulkUpdateApplicants, exportApplicants, getApplicantsSummary, listApplicants, listTeam, PIPELINE, STAGE_LABEL, usePermissions } from '../../services/recruiter'
 
 const COMPARABLE = ['shortlisted', 'interview', 'offer', 'hired']
 const MOVE_TARGETS = PIPELINE.filter((s) => s.key !== 'rejected')
+const VIEW_KEY = 'mzobs-applicants-view'
 // The sheets sit on top of each other on a phone, so the one underneath closes before the next opens.
 const AFTER_SHEET = 320
 
@@ -28,7 +30,10 @@ export default function ApplicantsScreen({ route }) {
   const manage = loaded && can('candidates.manage')
 
   const jobId = route.params?.jobId ?? 'all'
-  const [view, setView] = useState('board')
+  const [view, setViewState] = useState('board')
+  const setView = (v) => { setViewState(v); AsyncStorage.setItem(VIEW_KEY, v).catch(() => {}) }
+  // Remember Board vs List between visits, like the website does.
+  useEffect(() => { AsyncStorage.getItem(VIEW_KEY).then((v) => v === 'list' && setViewState('list')).catch(() => {}) }, [])
   const [stage, setStage] = useState(route.params?.stage ?? 'new')
   const [q, setQ] = useState('')
   const [owner, setOwner] = useState('')
