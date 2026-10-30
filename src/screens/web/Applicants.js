@@ -86,6 +86,12 @@ export default function ApplicantsScreen({ route }) {
   const selectedItems = items.filter((c) => selected.has(c.id))
   const counts = data?.counts ?? {}
 
+  // Land on a stage that has someone in it instead of an empty "New" column.
+  useEffect(() => {
+    if (!data || route.params?.stage || (data.counts[stage] ?? 0) > 0) return
+    const first = PIPELINE.find((s) => (data.counts[s.key] ?? 0) > 0)
+    if (first) setStage(first.key)
+  }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
   const toggle = (id) => setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
   const selectAll = (on) => setSelected(on ? new Set(shown.map((c) => c.id)) : new Set())
   const refresh = () => { load({ silent: true }); getApplicantsSummary().then(setJobs).catch(() => {}) }
