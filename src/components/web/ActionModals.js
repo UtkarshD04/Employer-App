@@ -10,7 +10,7 @@ import { refreshPlan } from '../../services/plan'
 import { getCredits, scheduleInterview, sendOutreach, setCandidateStage, unlockCandidate } from '../../services/talentApi'
 import { getTalentMany, listJobs } from '../../services/talent'
 import { agoDate, telHref } from '../../lib/tfmt'
-import { PARTS, PART_LABEL, creditSpent, isRevealed } from '../../lib/reveal'
+import { PARTS, PART_LABEL, contactOpen, creditSpent, isRevealed } from '../../lib/reveal'
 import { Banner, Btn, C, Field, Input, Select, Sheet, T } from '../wk'
 
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1)
@@ -221,7 +221,7 @@ export function OutreachModal({ candidates, channel: initial = 'email', onClose,
             </T>
             {!many && onReveal ? (
               <Pressable onPress={() => onReveal(first, part)} style={{ alignSelf: 'flex-start', marginTop: 8, borderRadius: 6, borderWidth: 1, borderColor: C.warn, backgroundColor: '#fff', paddingHorizontal: 10, paddingVertical: 6 }}>
-                <T s={12.5} w="s" c={C.warn}>View {PART_LABEL[part]} · {creditSpent(first) ? 'free' : '1 credit'}</T>
+                <T s={12.5} w="s" c={C.warn}>Unlock email & number</T>
               </Pressable>
             ) : null}
           </Banner>
@@ -406,14 +406,14 @@ export function UnlockModal({ candidate, field: part = 'phone', onClose, onCompo
     if (!candidate) return
     getCredits().then((r) => setWallet(r.wallet)).catch(() => setWallet(null))
     // This part is already open → the backend returns it again without charging.
-    if (isRevealed(candidate, part)) unlockCandidate(candidate, { field: part }).then(setResult).catch(() => {})
+    if (part === 'contact' ? contactOpen(candidate) : isRevealed(candidate, part)) unlockCandidate(candidate, { field: part }).then(setResult).catch(() => {})
     else if (candidate._live?.kind === 'resdex' && !candidate._live.candidateId) {
       listJobs().then((list) => { setJobs(list); setJobId(list[0]?.id ?? '') }).catch(() => setJobs([]))
     }
   }, [candidate, part])
 
   const preview = candidate?._live?.contactPreview
-  const previewLine = part === 'email' ? `Email ${preview?.email ?? '—'}` : part === 'phone' ? `Phone ${preview?.phone ?? '—'}` : 'The CV stays hidden until you view it'
+  const previewLine = part === 'contact' ? `Email ${preview?.email ?? '—'} · Phone ${preview?.phone ?? '—'}` : part === 'email' ? `Email ${preview?.email ?? '—'}` : part === 'phone' ? `Phone ${preview?.phone ?? '—'}` : 'The CV stays hidden until you view it'
   const unlock = async () => {
     setBusy(true)
     setErr('')
@@ -444,28 +444,28 @@ export function UnlockModal({ candidate, field: part = 'phone', onClose, onCompo
         c ? (
           <>
             <Btn onPress={onClose}>Done</Btn>
-            {part === 'phone' && c.phone ? <Btn icon={Phone} onPress={() => dial(c.phone)}>Call now</Btn> : null}
-            {part === 'phone' && c.phone && onCompose ? <Btn variant="primary" icon={Smartphone} onPress={() => onCompose(candidate, contactOf(c, candidate), 'sms')}>Send SMS</Btn> : null}
-            {part === 'email' && c.email && onCompose ? <Btn variant="primary" icon={Mail} onPress={() => onCompose(candidate, contactOf(c, candidate), 'email')}>Write to candidate</Btn> : null}
+            {(part === 'phone' || part === 'contact') && c.phone ? <Btn icon={Phone} onPress={() => dial(c.phone)}>Call now</Btn> : null}
+            {(part === 'phone' || part === 'contact') && c.phone && onCompose ? <Btn variant="primary" icon={Smartphone} onPress={() => onCompose(candidate, contactOf(c, candidate), 'sms')}>Send SMS</Btn> : null}
+            {(part === 'email' || part === 'contact') && c.email && onCompose ? <Btn variant="primary" icon={Mail} onPress={() => onCompose(candidate, contactOf(c, candidate), 'email')}>Write to candidate</Btn> : null}
           </>
         ) : (
           <>
             <Btn onPress={onClose}>Cancel</Btn>
-            <Btn variant="primary" loading={busy} disabled={(!paid && credits === 0) || (needsJob && jobs === null)} onPress={unlock}>{paid ? `View ${label} · free` : `View ${label} · uses 1 credit`}</Btn>
+            <Btn variant="primary" loading={busy} disabled={(!paid && credits === 0) || (needsJob && jobs === null)} onPress={unlock}>{part === 'contact' ? 'Unlock email & number' : paid ? `View ${label} · free` : `View ${label} · uses 1 credit`}</Btn>
           </>
         )
       }
     >
       {c ? (
         <View style={{ gap: 12 }}>
-          {part === 'email' ? <View><T s={12} c={C.muted}>Email</T><T s={14} w="m">{c.email || '—'}</T></View> : null}
-          {part === 'phone' ? <View><T s={12} c={C.muted}>Phone</T><T s={14} w="m">{c.phone || '—'}</T></View> : null}
+          {part === 'email' || part === 'contact' ? <View><T s={12} c={C.muted}>Email</T><T s={14} w="m">{c.email || '—'}</T></View> : null}
+          {part === 'phone' || part === 'contact' ? <View><T s={12} c={C.muted}>Phone</T><T s={14} w="m">{c.phone || '—'}</T></View> : null}
           {part === 'resume' ? (c.resumeUrl ? <Btn icon={FileText} onPress={() => onViewResume?.(candidate, { url: c.resumeUrl, fileName: c.resumeFileName })}>Open CV</Btn> : <T s={12.5} c={C.muted}>No verified CV on this profile yet.</T>) : null}
           <T s={12.5} c={C.muted}>{stillHidden.length ? `${cap(stillHidden.join(' and '))} ${stillHidden.length === 1 ? 'stays' : 'stay'} hidden — view ${stillHidden.length === 1 ? 'it' : 'them'} any time, no more credits.` : `Everything for ${first} is open.`}</T>
         </View>
       ) : (
         <View style={{ gap: 12 }}>
-          {paid ? <T s={13.5}>You have already used the credit for {first}. Viewing the {label} is <T s={13.5} w="b">free</T>.</T> : <T s={13.5}>Viewing the {label} uses <T s={13.5} w="b">1 CV credit</T> — once for this candidate. Email, phone number and CV then each open with their own click, and you are never charged again for {first}.</T>}
+          {paid ? <T s={13.5}>{part === 'contact' ? `Opens ${first}'s email and phone number together. Your credit for ${first} is already used, so nothing more is charged.` : <>You have already used the credit for {first}. Viewing the {label} is <T s={13.5} w="b">free</T>.</>}</T> : <T s={13.5}>Viewing the {label} uses <T s={13.5} w="b">1 CV credit</T> — once for this candidate. Email, phone number and CV then each open with their own click, and you are never charged again for {first}.</T>}
           <View style={{ borderRadius: 8, backgroundColor: C.line2, paddingHorizontal: 12, paddingVertical: 8 }}><T s={13.5} c={C.ink2}>{previewLine}</T></View>
           {needsJob && jobs === null ? <T s={13.5} c={C.muted}>Loading your jobs…</T> : null}
           {needsJob && jobs?.length === 0 ? <T s={12.5} c={C.muted}>You have no jobs yet, so this is opened on its own. <T s={12.5} w="m" c={C.accent} onPress={() => go('JobForm')}>Post a job</T> to build a pipeline.</T> : null}
