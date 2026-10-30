@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Share, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { BarChart3, Download } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
-import { ErrorBlock, ListSkeleton, useRefresh } from '../../components/web/rc'
+import { ErrorBlock, FadeIn, ListSkeleton, useRefresh } from '../../components/web/rc'
 import JobInsights from '../../components/web/JobInsights'
 import { Btn, C, EmptyState, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
@@ -40,8 +40,8 @@ export default function ReportsScreen() {
           <EmptyState icon={BarChart3} title="No jobs yet" body="Post a job and its hiring funnel will show up here as candidates move through your pipeline." />
         ) : (
           <View style={{ gap: 12 }}>
-            {jobs.map((j) => (
-              <View key={j.id} style={[card, { padding: 14, gap: 10 }]}>
+            {jobs.map((j, k) => (
+              <FadeIn key={j.id} index={k}><View style={[card, { padding: 14, gap: 10 }]}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
                   <View style={{ flex: 1 }}>
                     <T s={14.5} w="b" numberOfLines={1}>{j.title}</T>
@@ -68,7 +68,7 @@ export default function ReportsScreen() {
                   <Pressable onPress={() => nav.navigate('Applicants', { jobId: j.id })} hitSlop={8}><T s={12.5} w="s" c={C.accent}>Pipeline</T></Pressable>
                 </View>
                 {j.id === jobId ? <JobInsights jobId={jobId} /> : null}
-              </View>
+              </View></FadeIn>
             ))}
           </View>
         )}
