@@ -319,7 +319,7 @@ export function Select({ value, onChange, options, placeholder = 'Select', title
 }
 export function Radio({ checked, onPress, children }) {
   return (
-    <Pressable onPress={onPress} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 2 }}>
+    <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: !!checked }} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 2 }}>
       <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: checked ? C.accentText : '#b8c7d2', alignItems: 'center', justifyContent: 'center' }}>{checked ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.accentText }} /> : null}</View>
       <T s={13.5} style={{ flex: 1 }}>{children}</T>
     </Pressable>
