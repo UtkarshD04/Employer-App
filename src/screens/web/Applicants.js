@@ -16,7 +16,7 @@ import { Btn, C, CheckBox, EmptyState, Input, Press, Segment, Select, T, card } 
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { tap } from '../../lib/haptics'
 import { useWorkspace } from '../../store/workspace'
-import { apiMessage, bulkUpdateApplicants, exportApplicants, getApplicantsSummary, listApplicants, listTeam, PIPELINE, STAGE_LABEL, usePermissions } from '../../services/recruiter'
+import { apiMessage, bulkUpdateApplicants, exportApplicants, getApplicantsSummary, listApplicants, listTeam, moveApplicant, PIPELINE, STAGE_LABEL, usePermissions } from '../../services/recruiter'
 
 const COMPARABLE = ['shortlisted', 'interview', 'offer', 'hired']
 const MOVE_TARGETS = PIPELINE.filter((s) => s.key !== 'rejected')
@@ -109,6 +109,17 @@ export default function ApplicantsScreen({ route }) {
     qc.invalidateQueries({ queryKey: ['applicants', 'summary'] }) // keeps the tab-bar badge in step
   }
   const afterSheet = (fn) => setTimeout(fn, AFTER_SHEET)
+
+  // Swipe right on a card: straight to Shortlisted. Swipe left opens the usual reject sheet so a reason is recorded.
+  const swipeShortlist = async (c) => {
+    try {
+      await moveApplicant(c.id, 'shortlisted')
+      toast(`${c.name} shortlisted`)
+      refresh()
+    } catch (e) {
+      toast(apiMessage(e), { tone: 'warn' })
+    }
+  }
 
   const bulk = async (body, ok) => {
     setBusy(true)
@@ -206,9 +217,9 @@ export default function ApplicantsScreen({ route }) {
         ) : items.length === 0 ? (
           <EmptyState icon={Users} title={filtered ? 'No applicants match these filters' : 'No applicants yet'} body={filtered ? 'Try clearing a filter.' : 'Candidates appear here as they apply to your live jobs or MZOBS shares profiles with you.'} action={filtered ? <Btn size="sm" onPress={clearFilters}>Clear filters</Btn> : <Btn variant="primary" size="sm" onPress={() => nav.navigate('JobForm')}>Post a job</Btn>} />
         ) : view === 'board' ? (
-          <Board items={items} counts={counts} stage={stage} onStage={setStage} selected={selected} onSelect={toggle} onOpen={setOpenId} canManage={manage} showJob={jobId === 'all'} />
+          <Board items={items} counts={counts} stage={stage} onStage={setStage} selected={selected} onSelect={toggle} onOpen={setOpenId} canManage={manage} showJob={jobId === 'all'} onShortlist={can('candidates.manage') ? swipeShortlist : undefined} onReject={can('candidates.reject') ? setRejecting : undefined} />
         ) : (
-          <ApplicantList items={shown} selected={selected} onSelect={toggle} onSelectAll={selectAll} onOpen={setOpenId} canManage={manage} showJob={jobId === 'all'} />
+          <ApplicantList items={shown} selected={selected} onSelect={toggle} onSelectAll={selectAll} onOpen={setOpenId} canManage={manage} showJob={jobId === 'all'} onShortlist={can('candidates.manage') ? swipeShortlist : undefined} onReject={can('candidates.reject') ? setRejecting : undefined} />
         )}
         {data?.truncated ? <T s={12.5} c={C.muted}>Showing the first {items.length} of {data.total}. Use filters to narrow the list.</T> : null}
       </PageScroll>
