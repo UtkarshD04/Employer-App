@@ -15,28 +15,27 @@ import { MATCH_LABELS, computeMatch, computeTrust } from '../../lib/talent/engin
 import { loadLastCriteria, loadLastResults } from '../../lib/lastSearch'
 import { useWorkspace } from '../../store/workspace'
 import { agoDays, lpa, notice, years } from '../../lib/tfmt'
-import { creditSpent, isRevealed } from '../../lib/reveal'
+import { contactOpen, creditSpent, isRevealed } from '../../lib/reveal'
 
 // Email and phone are opened one at a time: each has its own View button. The first one opened
 // costs 1 credit for the candidate; the other is then free.
 function ContactFact({ candidate: c, onView }) {
   const preview = c._live?.contactPreview
-  const paid = creditSpent(c)
-  const line = (part, value, masked) =>
-    isRevealed(c, part) ? (
-      <T s={14} w="m">{value || '—'}</T>
-    ) : (
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
-        <T s={14} c={C.ink2}>{masked ?? '—'}</T>
-        <Press onPress={() => onView(part)} scale={0.95} style={{ minHeight: 30, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 6, borderWidth: 1, borderColor: C.line, paddingHorizontal: 8 }}>
-          <Eye size={12} color={C.accent} />
-          <T s={12} w="s" c={C.accent}>{paid ? 'View · free' : 'View · 1 credit'}</T>
-        </Press>
-      </View>
-    )
-  return <View style={{ gap: 8 }}>{line('email', c.contact?.email, preview?.email)}{line('phone', c.contact?.phone, preview?.phone)}</View>
+  if (contactOpen(c)) {
+    return <View style={{ gap: 8 }}><T s={14} w="m">{c.contact?.email || '—'}</T><T s={14} w="m">{c.contact?.phone || '—'}</T></View>
+  }
+  // One button opens both: the credit is spent once, then email and number are shown together.
+  return (
+    <View style={{ gap: 8 }}>
+      <T s={14} c={C.ink2}>{preview?.email ?? '—'}</T>
+      <T s={14} c={C.ink2}>{preview?.phone ?? '—'}</T>
+      <Press onPress={() => onView('contact')} scale={0.95} style={{ alignSelf: 'flex-start', minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, borderWidth: 1, borderColor: C.accent, paddingHorizontal: 12 }}>
+        <Eye size={14} color={C.accent} />
+        <T s={13} w="s" c={C.accent}>Unlock email & number</T>
+      </Press>
+    </View>
+  )
 }
-
 function Fact({ icon: Icon, label, children, width = '47%' }) {
   return (
     <View style={{ width }}>
