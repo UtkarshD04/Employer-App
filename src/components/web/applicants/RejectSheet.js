@@ -9,7 +9,10 @@ const MAX_REASONS = 3
 
 // Rejecting separates two things on purpose: the internal reason (private to your team and MZOBS reviewers) and, only if
 // you switch it on, a choice of respectful reasons the candidate may see — after an MZOBS reviewer has approved the wording.
-export default function RejectSheet({ candidate, onClose, onDone, toast }) {
+export default function RejectSheet({ candidate, candidates, onClose, onDone, toast }) {
+  // One candidate from their sheet, or several from the bulk bar — all get the same recorded reasons.
+  const list = candidates?.length ? candidates : candidate ? [candidate] : []
+  const many = list.length > 1
   const [options, setOptions] = useState([])
   const [internal, setInternal] = useState('')
   const [share, setShare] = useState(false)
@@ -18,13 +21,13 @@ export default function RejectSheet({ candidate, onClose, onDone, toast }) {
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    if (!candidate) return
+    if (!list.length) return
     setInternal('')
     setShare(false)
     setReasons([])
     setErrors({})
     getRejectionOptions().then(setOptions).catch(() => setOptions([]))
-  }, [candidate])
+  }, [candidate, candidates]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggle = (code) => {
     setErrors((x) => ({ ...x, candidateReasons: undefined }))
@@ -38,8 +41,20 @@ export default function RejectSheet({ candidate, onClose, onDone, toast }) {
     setErrors(e)
     if (Object.keys(e).length) return
     setBusy(true)
+    const body = { internalReason: internal.trim(), shareFeedback: share, candidateReasons: share ? reasons : [] }
+    if (many) {
+      // Each rejection is its own server record, so run them one at a time and report what happened.
+      let failed = 0
+      for (const c of list) {
+        try { await rejectApplicant(c.id, body) } catch { failed += 1 }
+      }
+      setBusy(false)
+      toast(failed ? `${list.length - failed} rejected, ${failed} could not be rejected.` : `${list.length} candidates rejected.`, failed ? { tone: 'warn' } : undefined)
+      onDone()
+      return
+    }
     try {
-      const res = await rejectApplicant(candidate.id, { internalReason: internal.trim(), shareFeedback: share, candidateReasons: share ? reasons : [] })
+      const res = await rejectApplicant(candidate.id, body)
       toast(res.message ?? (res.feedbackShared ? `${candidate.name} rejected. Feedback sent to MZOBS for review.` : `${candidate.name} rejected.`), res.message ? { tone: 'warn' } : undefined)
       onDone()
     } catch (err) {
@@ -51,11 +66,11 @@ export default function RejectSheet({ candidate, onClose, onDone, toast }) {
 
   return (
     <Sheet
-      open={!!candidate}
+      open={list.length > 0}
       onClose={busy ? () => {} : onClose}
-      title="Reject candidate"
-      subtitle={candidate?.name}
-      footer={<><Btn onPress={onClose} disabled={busy}>Cancel</Btn><Btn variant="primary" onPress={submit} loading={busy}>Reject candidate</Btn></>}
+      title={many ? `Reject ${list.length} candidates` : 'Reject candidate'}
+      subtitle={many ? list.map((c) => c.name).join(', ') : candidate?.name}
+      footer={<><Btn onPress={onClose} disabled={busy}>Cancel</Btn><Btn variant="primary" onPress={submit} loading={busy}>{many ? `Reject ${list.length}` : 'Reject candidate'}</Btn></>}
     >
       <View style={{ gap: 20 }}>
         <View style={{ gap: 8 }}>
