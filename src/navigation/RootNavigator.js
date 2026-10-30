@@ -15,13 +15,18 @@ import SearchScreen from '../screens/web/SearchScreen'
 import CandidateProfileScreen from '../screens/web/CandidateProfileScreen'
 import { JobFormScreen, JobsScreen } from '../screens/web/Jobs'
 import { JobTalentScreen, SavedSearchesScreen, ShortlistsScreen, UnlockedCvsScreen } from '../screens/web/Collections'
-import { AITalentScreen, InterviewsScreen, MessagesScreen, ReportsScreen } from '../screens/web/Workspaces'
+import { AITalentScreen, InterviewsScreen } from '../screens/web/Workspaces'
+import MessagesScreen from '../screens/web/Messages'
+import ReportsScreen from '../screens/web/Reports'
+import OverviewScreen from '../screens/web/Overview'
+import ApplicantsScreen from '../screens/web/Applicants'
+import OffersScreen from '../screens/web/Offers'
+import TeamScreen from '../screens/web/Team'
+import FeedbackFollowUpsScreen from '../screens/web/FeedbackFollowUps'
 import { HelpScreen, NotificationsScreen, SettingsScreen } from '../screens/web/Account'
 import PlanCreditsScreen from '../screens/web/PlanCredits'
 // Employer-account screens that aren't part of the recruiter website but stay in the app.
-import OffersScreen from '../screens/offers/OffersScreen'
 import CreateOfferScreen from '../screens/offers/CreateOfferScreen'
-import TeamScreen from '../screens/TeamScreen'
 import CompanyScreen from '../screens/CompanyScreen'
 import GstGateScreen from '../screens/GstGateScreen'
 import { GST_REQUIRED } from '../lib/gstin'
@@ -56,6 +61,11 @@ export default function RootNavigator() {
   const bare = { headerShown: false }
   const web = [
     ['Search', SearchScreen],
+    ['Overview', OverviewScreen],
+    ['Applicants', ApplicantsScreen],
+    ['Offers', OffersScreen],
+    ['Team', TeamScreen],
+    ['FeedbackFollowUps', FeedbackFollowUpsScreen],
     ['CandidateProfile', CandidateProfileScreen],
     ['Jobs', JobsScreen],
     ['JobForm', JobFormScreen],
@@ -90,9 +100,7 @@ export default function RootNavigator() {
         <AskAIProvider>
           <Stack.Navigator screenOptions={screenOptions} initialRouteName="Search">
             {web.map(([name, component]) => <Stack.Screen key={name} name={name} component={component} options={bare} />)}
-            <Stack.Screen name="Offers" component={OffersScreen} />
             <Stack.Screen name="CreateOffer" component={CreateOfferScreen} options={{ title: 'Send offer' }} />
-            <Stack.Screen name="Team" component={TeamScreen} />
             <Stack.Screen name="Company" component={CompanyScreen} options={{ title: 'Company profile' }} />
           </Stack.Navigator>
           <ToastStack />
