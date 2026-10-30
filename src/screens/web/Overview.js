@@ -5,7 +5,7 @@ import { ArrowRight, CalendarClock, CalendarPlus, CheckCircle2, Plus, Search, Us
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { ErrorBlock, ListSkeleton, StatTile, ago, fmtDateTime, useRefresh } from '../../components/web/rc'
 import { Banner, Btn, C, SectionCard, T } from '../../components/wk'
-import { apiMessage, getOverview } from '../../services/recruiter'
+import { apiMessage, getApplicantsSummary, getOverview, PIPELINE } from '../../services/recruiter'
 import { openHref } from '../../lib/navigation'
 
 const SEVERITY = { high: C.bad, medium: C.warn, low: C.muted }
@@ -19,11 +19,18 @@ export default function OverviewScreen() {
   const nav = useNavigation()
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
+  const [funnel, setFunnel] = useState(null)
   const load = useCallback(() => {
     setError('')
     return getOverview().then(setData).catch((e) => setError(apiMessage(e, 'Could not load your overview.')))
   }, [])
   useEffect(() => { load() }, [load])
+  // The pipeline totals across every job, summed from the per-job counts.
+  useEffect(() => {
+    getApplicantsSummary()
+      .then((jobs) => setFunnel(PIPELINE.map((st) => ({ ...st, count: jobs.reduce((n, j) => n + (j.counts?.[st.key] ?? 0), 0) }))))
+      .catch(() => setFunnel(null))
+  }, [data])
   // Coming back to the tab after acting on something should show fresh counts.
   useEffect(() => nav.addListener('focus', () => data && load()), [nav, load, data])
 
@@ -80,6 +87,23 @@ export default function OverviewScreen() {
             ))
           )}
         </SectionCard>
+
+        {!limited && funnel && funnel.some((f) => f.count > 0) ? (
+          <SectionCard title="Hiring funnel">
+            {funnel.map((f) => {
+              const max = Math.max(1, ...funnel.map((x) => x.count))
+              return (
+                <View key={f.key} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 }}>
+                  <T s={12.5} c={C.ink2} style={{ width: 78 }}>{f.label}</T>
+                  <View style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: C.line2 }}>
+                    {f.count > 0 ? <View style={{ height: 8, borderRadius: 4, backgroundColor: f.key === 'rejected' ? '#c98a82' : C.accent, width: `${Math.max(4, (f.count / max) * 100)}%` }} /> : null}
+                  </View>
+                  <T s={12.5} w="s" style={{ width: 34, textAlign: 'right' }}>{f.count}</T>
+                </View>
+              )
+            })}
+          </SectionCard>
+        ) : null}
 
         {!limited ? (
           <SectionCard title="Job health">
