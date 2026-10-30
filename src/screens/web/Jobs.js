@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Linking, Pressable, ScrollView, View } from 'react-native'
-import { AlertTriangle, ArrowLeft, Briefcase, CheckCircle2, Clock, Copy, Eye, EyeOff, ExternalLink, IndianRupee, MapPin, Pencil, Plus, Power, Rocket, Search, Sparkles, Trash2, Users } from 'lucide-react-native'
+import { Linking, Pressable, ScrollView, Share, View } from 'react-native'
+import { AlertTriangle, ArrowLeft, Briefcase, CheckCircle2, Clock, Copy, Eye, EyeOff, ExternalLink, IndianRupee, MapPin, Pencil, Plus, Power, Rocket, Search, Share2, Sparkles, Trash2, Users } from 'lucide-react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Shell, PageTitle, PageScroll } from '../../components/web/Shell'
 import { usePermissions } from '../../services/recruiter'
@@ -90,6 +90,7 @@ function JobRow({ job, onChanged, onAsk, publicIds }) {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {job.status !== 'draft' ? <Btn size="sm" icon={Users} onPress={() => nav.navigate('Applicants', { jobId: job.id })}>Applicants</Btn> : null}
           {PUBLIC.includes(job.status) && can('support.request') ? <Pressable onPress={() => nav.navigate('Applicants', { jobId: job.id })} hitSlop={6} style={{ minHeight: 34, justifyContent: 'center', paddingHorizontal: 4 }}><T s={12.5} w="s" c={C.accent}>Need help shortlisting?</T></Pressable> : null}
+          {PUBLIC.includes(job.status) && publicIds?.has(job.id) ? <Btn size="sm" variant="ghost" icon={Share2} onPress={() => Share.share({ message: `${job.title} — apply on Mzobs: ${publicJobUrl(job.id)}` }).catch(() => {})}>Share</Btn> : null}
           {canFind ? <Btn size="sm" variant="ai" icon={Search} onPress={() => nav.navigate('JobTalent', { jobId: job.id })}>Find talent</Btn> : null}
           {job.status === 'draft' && can('jobs.publish') ? <Btn size="sm" variant="primary" icon={Rocket} disabled={busy} onPress={() => run(() => setJobStatus(job.id, 'pending_review'), `“${job.title}” is live`)}>Publish</Btn> : null}
           {job.status === 'sourcing' && can('jobs.publish') ? <Btn size="sm" icon={Power} disabled={busy} onPress={() => run(() => setJobStatus(job.id, 'closed'), 'Job closed')}>Close</Btn> : null}
