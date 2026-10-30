@@ -90,7 +90,7 @@ function Templates({ canEdit, toast }) {
         {data.templates.map((t) => {
           const on = key === t.key
           return (
-            <Pressable key={t.key} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setKey(t.key)} style={{ minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : '#fff', paddingHorizontal: 14 }}>
+            <Pressable key={t.key} accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setKey(t.key)} style={{ minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : C.surface, paddingHorizontal: 14 }}>
               <T s={13} w="s" c={on ? C.accent : C.ink2}>{t.label}</T>
               {t.custom ? <T s={10} w="b" c={C.muted} style={{ textTransform: 'uppercase' }}>Edited</T> : null}
             </Pressable>
