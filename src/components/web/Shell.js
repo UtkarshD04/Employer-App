@@ -3,12 +3,13 @@ import { Image, Modal, Pressable, RefreshControl, ScrollView, View } from 'react
 import { LinearGradient } from 'expo-linear-gradient'
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AlertTriangle, Bell, Check, CreditCard, HelpCircle, LogOut, Menu, Settings as Cog, X } from 'lucide-react-native'
+import { AlertTriangle, Bell, Check, CreditCard, HelpCircle, LogOut, Menu, Settings as Cog, WifiOff, X } from 'lucide-react-native'
 import { useAuth } from '../../context/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { ROUTES } from '../../lib/routes'
 import { usePermissions } from '../../services/recruiter'
 import BottomBar from './BottomBar'
+import { useOnline } from '../../lib/connection'
 import { getPlanSnapshot, refreshPlan, subscribePlan } from '../../services/plan'
 import { listNotifications } from '../../services/notificationsService'
 import { queryKeys } from '../../lib/queryClient'
@@ -149,9 +150,16 @@ export function TopNav() {
 
 /** Every recruiter screen: the top nav, then the page. */
 export function Shell({ children }) {
+  const online = useOnline()
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <TopNav />
+      {online ? null : (
+        <View accessibilityRole="alert" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.warnSoft, paddingHorizontal: 16, paddingVertical: 8 }}>
+          <WifiOff size={14} color={C.warn} />
+          <T s={12.5} w="m" c={C.warn}>You're offline. Pull down to retry once you're back.</T>
+        </View>
+      )}
       <View style={{ flex: 1 }}>{children}</View>
       <BottomBar />
     </View>
