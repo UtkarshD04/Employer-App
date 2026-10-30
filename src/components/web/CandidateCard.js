@@ -42,7 +42,7 @@ function ProfessionalSummary({ candidate: c, match }) {
   const clamp = open ? undefined : 2
 
   return (
-    <View style={{ marginTop: 12, borderRadius: 12, borderWidth: 1, borderColor: C.line2, borderLeftWidth: 3, borderLeftColor: C.accent, backgroundColor: '#f6fafb', paddingHorizontal: 14, paddingVertical: 10 }}>
+    <View style={{ marginTop: 12, borderRadius: 12, borderWidth: 1, borderColor: C.line2, borderLeftWidth: 3, borderLeftColor: C.accent, backgroundColor: C.accentTint, paddingHorizontal: 14, paddingVertical: 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <T s={11} w="s" c={C.accent} style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Resume-based insights</T>
         {expandable ? (
@@ -80,7 +80,7 @@ function CandidateCard({ row, terms, compact, onAction }) {
   const cvOpen = isRevealed(c, 'resume')
 
   return (
-    <View style={[card, { padding: 16, borderColor: isSel ? C.accent : C.line, backgroundColor: isSel ? '#f3fbf9' : '#fff' }]}>
+    <View style={[card, { padding: 16, borderColor: isSel ? C.accent : C.line, backgroundColor: isSel ? C.accentTint : C.surface }]}>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <CheckBox checked={isSel} onChange={() => toggleSelect(c.id)} style={{ marginTop: 6, minHeight: 32, width: 22 }} />
         <Avatar candidate={c} size={compact ? 38 : 46} />
