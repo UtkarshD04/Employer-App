@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Share, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { BarChart3, Download } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
-import { ErrorBlock, ListSkeleton } from '../../components/web/rc'
+import { ErrorBlock, ListSkeleton, useRefresh } from '../../components/web/rc'
 import JobInsights from '../../components/web/JobInsights'
 import { Btn, C, EmptyState, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
@@ -17,9 +17,10 @@ export default function ReportsScreen() {
   const [jobs, setJobs] = useState(null)
   const [error, setError] = useState('')
   const [jobId, setJobId] = useState('')
-  const load = useCallback(() => { setError(''); getApplicantsSummary().then(setJobs).catch((e) => setError(apiMessage(e, 'Could not load reports.'))) }, [])
+  const load = useCallback(() => { setError(''); return getApplicantsSummary().then(setJobs).catch((e) => setError(apiMessage(e, 'Could not load reports.'))) }, [])
   useEffect(() => { load() }, [load])
 
+  const { refreshing, onRefresh } = useRefresh(load)
   const exp = async () => {
     try {
       const csv = await exportApplicants('all')
@@ -30,7 +31,7 @@ export default function ReportsScreen() {
   }
   return (
     <Shell>
-      <PageScroll>
+      <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <PageTitle title="Reports" sub="Where candidates are in your hiring, job by job." />
         {can('exports.run') ? <Btn size="sm" icon={Download} onPress={exp} style={{ alignSelf: 'flex-start' }}>Export applicants (CSV)</Btn> : null}
         {error ? <ErrorBlock message={error} onRetry={load} /> : !jobs ? <ListSkeleton h={120} /> : jobs.length === 0 ? (
