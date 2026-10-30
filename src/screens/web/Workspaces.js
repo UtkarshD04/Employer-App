@@ -10,7 +10,7 @@ import { useActions } from '../../components/web/useActions'
 import { makeCriteria, STAGE_LABELS } from '../../lib/talent/criteria'
 import { listInterviewable } from '../../services/talent'
 import { AI_PROMPTS } from '../../components/web/AskAI'
-import { Avatar, Btn, C, Chip, EmptyState, Field, Input, Press, Sheet, Skeleton, T, card } from '../../components/wk'
+import { Avatar, Btn, C, Chip, EmptyState, Field, Input, Press, Sheet, Skeleton, T, card, isDarkPalette } from '../../components/wk'
 import { cancelInterview, listInterviews, rescheduleInterview, submitFeedback } from '../../services/interviewsService'
 import ScorecardSheet from '../../components/web/ScorecardSheet'
 import { usePermissions } from '../../services/recruiter'
@@ -103,16 +103,16 @@ function InterviewCard({ i, past, onReschedule, onCancel, onComplete, onScorecar
         </View>
       </View>
       {fb?.pending ? (
-        <View style={{ borderRadius: 8, backgroundColor: fb.overdue ? '#f5e9e7' : C.warnSoft, paddingHorizontal: 12, paddingVertical: 8 }}>
-          <T s={13} w="s" c={fb.overdue ? '#9a3a2c' : C.warn}>
+        <View style={{ borderRadius: 8, backgroundColor: fb.overdue ? C.badTint : C.warnSoft, paddingHorizontal: 12, paddingVertical: 8 }}>
+          <T s={13} w="s" c={fb.overdue ? C.badText : C.warn}>
             {fb.overdue ? 'Feedback overdue' : 'Feedback pending'}
-            {fb.awaiting?.length > 0 ? <T s={13} c={fb.overdue ? '#9a3a2c' : C.warn}> · waiting on {fb.awaiting.map((a) => a.name).join(', ')}</T> : null}
-            {i.feedbackDueOn ? <T s={13} c={fb.overdue ? '#9a3a2c' : C.warn}> · due {new Date(i.feedbackDueOn).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</T> : null}
+            {fb.awaiting?.length > 0 ? <T s={13} c={fb.overdue ? C.badText : C.warn}> · waiting on {fb.awaiting.map((a) => a.name).join(', ')}</T> : null}
+            {i.feedbackDueOn ? <T s={13} c={fb.overdue ? C.badText : C.warn}> · due {new Date(i.feedbackDueOn).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</T> : null}
           </T>
         </View>
       ) : null}
       {scorecards.length > 0 ? (
-        <View style={{ borderRadius: 8, borderWidth: 1, borderColor: C.line2, backgroundColor: '#faf9f6', paddingHorizontal: 12, paddingVertical: 8, gap: 2 }}>
+        <View style={{ borderRadius: 8, borderWidth: 1, borderColor: C.line2, backgroundColor: C.sunken, paddingHorizontal: 12, paddingVertical: 8, gap: 2 }}>
           <T s={11.5} w="b" c={C.ink2} style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Scorecards{i.overallRating != null ? <T s={12} w="r" c={C.ink} style={{ textTransform: 'none' }}> · <T s={12} w="b">{i.overallRating}</T>/5 average</T> : null}</T>
           {scorecards.map((sc) => (
             <View key={sc.interviewer} style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
@@ -149,7 +149,7 @@ function InterviewCard({ i, past, onReschedule, onCancel, onComplete, onScorecar
   )
 }
 
-const tones = () => ({ Confirmed: [C.okSoft, C.okText], 'Awaiting confirmation': [C.warnSoft, C.warn], Rescheduled: ['#f1eefc', '#6d4fc7'], Completed: [C.blueSoft, C.blueText], Cancelled: [C.line2, C.muted] })
+const tones = () => ({ Confirmed: [C.okSoft, C.okText], 'Awaiting confirmation': [C.warnSoft, C.warn], Rescheduled: isDarkPalette() ? ['#271f40', '#b39dff'] : ['#f1eefc', '#6d4fc7'], Completed: [C.blueSoft, C.blueText], Cancelled: [C.line2, C.muted] })
 
 // Pick who to interview, then hand over to the usual scheduling form.
 function SchedulePicker({ open, onClose, onPick }) {
