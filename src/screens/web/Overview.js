@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { ArrowRight, CalendarClock, CalendarPlus, CheckCircle2, Plus, Search, Users } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { ErrorBlock, ListSkeleton, StatTile, ago, fmtDateTime, useRefresh } from '../../components/web/rc'
-import { Btn, C, SectionCard, T } from '../../components/wk'
+import { Banner, Btn, C, SectionCard, T } from '../../components/wk'
 import { apiMessage, getOverview } from '../../services/recruiter'
 import { openHref } from '../../lib/navigation'
 
@@ -45,6 +45,14 @@ export default function OverviewScreen() {
             <Btn size="sm" icon={Users} onPress={() => nav.navigate('Applicants')}>Applicants</Btn>
             <Btn size="sm" icon={CalendarPlus} onPress={() => nav.navigate('Interviews')}>Interviews</Btn>
           </View>
+        ) : null}
+
+        {s.creditsRemaining != null && s.creditsRemaining <= 3 ? (
+          <Pressable onPress={() => nav.navigate('PlanCredits')}>
+            <Banner tone={s.creditsRemaining === 0 ? 'bad' : 'warn'}>
+              {s.creditsRemaining === 0 ? 'You are out of CV credits. Tap to add more.' : `Only ${s.creditsRemaining} CV credit${s.creditsRemaining === 1 ? '' : 's'} left. Tap to top up.`}
+            </Banner>
+          </Pressable>
         ) : null}
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between' }}>
