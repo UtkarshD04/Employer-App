@@ -164,7 +164,7 @@ export default function OverviewScreen() {
               <View style={{ marginLeft: 4, borderLeftWidth: 1, borderLeftColor: C.line }}>
                 {data.activity.map((a) => (
                   <View key={a.id} style={{ paddingVertical: 6, paddingLeft: 14 }}>
-                    <View style={{ position: 'absolute', left: -3.5, top: 14, width: 6, height: 6, borderRadius: 3, backgroundColor: '#9db0bd' }} />
+                    <View style={{ position: 'absolute', left: -3.5, top: 14, width: 6, height: 6, borderRadius: 3, backgroundColor: C.dot }} />
                     <T s={13}>{a.text}</T>
                     <T s={11.5} c={C.muted}>{[a.actor, ago(a.at)].filter(Boolean).join(' · ')}</T>
                   </View>
