@@ -9,7 +9,7 @@ import { Avatar, Btn, C, EmptyState, Field, Input, Select, Sheet, T, card } from
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, createOffer, listApplicants, listOffers, setOfferStatus, usePermissions } from '../../services/recruiter'
 
-const STATUS = { pending: ['Awaiting response', C.warnSoft, C.warn], draft: ['Draft', C.line2, C.ink2], accepted: ['Accepted', C.okSoft, C.ok], rejected: ['Declined', '#f5e9e7', '#9a3a2c'] }
+const statusMeta = () => ({ pending: ['Awaiting response', C.warnSoft, C.warn], draft: ['Draft', C.line2, C.ink2], accepted: ['Accepted', C.okSoft, C.ok], rejected: ['Declined', C.badTint, C.badText] })
 // "Expires in 2 days" / "Expires today" for offers still waiting on an answer.
 const expiresIn = (iso) => {
   const d = Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)
@@ -120,7 +120,8 @@ export default function OffersScreen({ route }) {
         ) : (
           <View style={{ gap: 10 }}>
             {sorted.map((o, k) => {
-              const [label, bg, fg] = STATUS[o.status] ?? STATUS.draft
+              const meta = statusMeta()
+              const [label, bg, fg] = meta[o.status] ?? meta.draft
               const soon = o.status === 'pending' && new Date(o.expiresOn) - Date.now() < 3 * 86400000
               return (
                 <FadeIn key={o.id} index={k}><View style={[card, { padding: 14, gap: 8 }]}>
