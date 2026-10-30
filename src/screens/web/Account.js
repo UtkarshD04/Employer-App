@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Linking, Pressable, View } from 'react-native'
-import { Bell, CheckCheck, CreditCard, FileText, HelpCircle, LifeBuoy, Building2, LogOut, Mail, Settings as Cog, Trash2, Users } from 'lucide-react-native'
+import { Bell, CheckCheck, CreditCard, FileText, HelpCircle, LifeBuoy, Building2, LogOut, Mail, Pencil, Settings as Cog, Trash2, Users } from 'lucide-react-native'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigation } from '@react-navigation/native'
 import { PageScroll, PageTitle, Shell, useSignOut } from '../../components/web/Shell'
@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useWorkspace } from '../../store/workspace'
 import { listNotifications, markAllRead, markRead } from '../../services/notificationsService'
 import { TICKET_CATEGORIES, submitTicket } from '../../services/supportService'
-import { deleteAccount } from '../../services/authService'
+import { deleteAccount, updateMe } from '../../services/authService'
 import { queryKeys } from '../../lib/queryClient'
 import { formatRelative } from '../../lib/format'
 
@@ -119,6 +119,44 @@ export function HelpScreen() {
   )
 }
 
+// Lets the signed-in recruiter set the name shown across the app (sign-in can leave it as the email).
+function EditName({ open, onClose }) {
+  const { user, updateUser } = useAuth()
+  const { toast } = useWorkspace()
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  useEffect(() => { if (open) { setName(user?.name ?? ''); setError('') } }, [open, user?.name])
+  const save = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      updateUser(await updateMe({ name: name.trim() }))
+      toast('Name updated')
+      onClose()
+    } catch (e) {
+      setError(e.response?.data?.message ?? 'Couldn’t update your name. Please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <Sheet
+      open={open}
+      onClose={() => { if (!busy) onClose() }}
+      title="Edit your name"
+      footer={<><Btn onPress={onClose} disabled={busy}>Cancel</Btn><Btn variant="primary" loading={busy} disabled={!name.trim() || name.trim() === user?.name} onPress={save}>Save</Btn></>}
+    >
+      <View style={{ gap: 12 }}>
+        <Field label="Full name">
+          <Input value={name} onChangeText={setName} autoCapitalize="words" autoComplete="name" placeholder="Your full name" />
+        </Field>
+        {error ? <T s={12.5} c={C.bad}>{error}</T> : null}
+      </View>
+    </Sheet>
+  )
+}
+
 // Permanent, in-app account deletion (required by Google Play). The backend refuses when this
 // person is the only admin and the team still has members, and the message says what to do.
 function DeleteAccount() {
@@ -172,10 +210,16 @@ export function SettingsScreen() {
   const nav = useNavigation()
   const { user, company } = useAuth()
   const signOut = useSignOut()
-  const row = (label, value) => (
+  const [editingName, setEditingName] = useState(false)
+  const row = (label, value, onEdit) => (
     <View key={label} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.line2 }}>
       <T s={13} c={C.muted}>{label}</T>
-      <T s={14} w="m" style={{ flexShrink: 1, textAlign: 'right' }}>{value || '—'}</T>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
+        <T s={14} w="m" style={{ flexShrink: 1, textAlign: 'right' }}>{value || '—'}</T>
+        {onEdit ? (
+          <Pressable onPress={onEdit} accessibilityRole="button" accessibilityLabel={`Edit ${label.toLowerCase()}`} hitSlop={8}><Pencil size={15} color={C.accent} /></Pressable>
+        ) : null}
+      </View>
     </View>
   )
   return (
@@ -184,7 +228,7 @@ export function SettingsScreen() {
         <PageTitle title="Recruiter settings" sub="Your account and workspace." />
         <View style={[card, { padding: 20 }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}><Cog size={15} color={C.muted} /><T s={15} w="s">Account</T></View>
-          {row('Name', user?.name)}
+          {row('Name', user?.name, () => setEditingName(true))}
           {row('Email', user?.email)}
           {row('Role', user?.role)}
           {row('Company', company?.name)}
@@ -207,6 +251,7 @@ export function SettingsScreen() {
         </View>
         <Btn icon={LogOut} onPress={signOut} style={{ alignSelf: 'flex-start' }}>Sign out</Btn>
         <DeleteAccount />
+        <EditName open={editingName} onClose={() => setEditingName(false)} />
         <T s={12} c={C.muted}>Password and profile changes are managed from your Mzobs employer account. <T s={12} c={C.accent} onPress={() => nav.navigate('Help')}>Need help?</T></T>
       </PageScroll>
     </Shell>
