@@ -79,7 +79,7 @@ function ProfileMenu() {
       </Press>
       <Modal transparent visible={open} animationType="fade" onRequestClose={() => setOpen(false)} statusBarTranslucent>
         <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)}>
-          <View style={[{ position: 'absolute', right: 12, top: insets.top + 60, width: 232, borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', padding: 4 }, shadowPop]}>
+          <View style={[{ position: 'absolute', right: 12, top: insets.top + 60, width: 232, borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, padding: 4 }, shadowPop]}>
             <View style={{ borderBottomWidth: 1, borderBottomColor: C.line2, paddingHorizontal: 12, paddingTop: 6, paddingBottom: 8 }}>
               <T s={13} w="s" numberOfLines={1}>{user?.name ?? 'Recruiter'}</T>
               <T s={12} c={C.muted} numberOfLines={1}>{user?.email ?? company?.name}</T>
@@ -111,7 +111,7 @@ export function TopNav() {
     if (name !== route.name) section(name)
   }
   return (
-    <View style={{ backgroundColor: 'rgba(247,245,240,0.96)', borderBottomWidth: 1, borderBottomColor: 'rgba(14,34,55,0.1)', paddingTop: insets.top, zIndex: 40 }}>
+    <View style={{ backgroundColor: C.topBar, borderBottomWidth: 1, borderBottomColor: C.line, paddingTop: insets.top, zIndex: 40 }}>
       <View style={{ height: 64, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16 }}>
         <Press onPress={() => setMenu((v) => !v)} accessibilityLabel="Menu" scale={0.92} style={{ width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
           {menu ? <X size={18} color={C.ink} /> : <Menu size={18} color={C.ink} />}
@@ -122,18 +122,18 @@ export function TopNav() {
         <View style={{ flex: 1 }} />
         <BellLink active={route.name === 'Notifications'} />
         <ProfileMenu />
-        <Press onPress={signOut} accessibilityLabel="Log out" scale={0.92} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(14,34,55,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+        <Press onPress={signOut} accessibilityLabel="Log out" scale={0.92} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: C.line, alignItems: 'center', justifyContent: 'center' }}>
           <LogOut size={15} color={C.ink} />
         </Press>
       </View>
       {menu ? (
-        <View style={{ borderTopWidth: 1, borderTopColor: C.line, backgroundColor: '#fff', padding: 12 }}>
+        <View style={{ borderTopWidth: 1, borderTopColor: C.line, backgroundColor: C.surface, padding: 12 }}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
             {links.map((r) => {
               const on = r.name === route.name
               return (
                 <Pressable key={r.name} onPress={() => goTo(r.name)} style={{ width: '49%', minHeight: 44, justifyContent: 'center', borderRadius: 8, paddingHorizontal: 10, backgroundColor: on ? C.accentSoft : 'transparent' }}>
-                  <T s={13.5} w="b" c={on ? C.accent : 'rgba(14,34,55,0.75)'}>{r.label}</T>
+                  <T s={13.5} w="b" c={on ? C.accent : C.ink2}>{r.label}</T>
                 </Pressable>
               )
             })}
