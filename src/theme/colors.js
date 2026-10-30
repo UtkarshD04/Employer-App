@@ -2,8 +2,8 @@
 // Key names are historical: `navy` is the deep-teal accent (links, active tint) and `primary` is
 // the dark-navy button fill; neutrals are the site's cool blue-greys.
 export const light = {
-  bg: '#F6F8FB',
-  bgSecondary: '#EEF3F6',
+  bg: '#F7F5F0',
+  bgSecondary: '#ECEFF0',
   surface: '#FFFFFF',
   primary: '#0E2237',
   accentFill: '#08685E',
@@ -14,12 +14,12 @@ export const light = {
   overlay: 'rgba(14, 34, 55, 0.45)',
   shadow: '#0E2237',
   surfaceHover: '#F3F7FA',
-  surfaceSunken: '#EEF3F6',
+  surfaceSunken: '#ECEFF0',
   ink: '#0E2237',
   inkSecondary: '#5A7488',
   inkTertiary: '#8AA0B2',
 
-  border: '#DFE7EE',
+  border: '#DDE3E8',
   borderStrong: '#CBD6DE',
 
   navy950: '#0A1826',
