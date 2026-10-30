@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Share, View } from 'react-native'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigation } from '@react-navigation/native'
 import { BarChart3, Download, GitCompareArrows, Search, Users, X } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
@@ -25,6 +26,7 @@ const AFTER_SHEET = 320
 
 export default function ApplicantsScreen({ route }) {
   const nav = useNavigation()
+  const qc = useQueryClient()
   const { toast } = useWorkspace()
   const { can, loaded } = usePermissions()
   const manage = loaded && can('candidates.manage')
@@ -100,7 +102,11 @@ export default function ApplicantsScreen({ route }) {
   }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
   const toggle = (id) => { tap(); setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n }) }
   const selectAll = (on) => setSelected(on ? new Set(shown.map((c) => c.id)) : new Set())
-  const refresh = () => { load({ silent: true }); getApplicantsSummary().then(setJobs).catch(() => {}) }
+  const refresh = () => {
+    load({ silent: true })
+    getApplicantsSummary().then(setJobs).catch(() => {})
+    qc.invalidateQueries({ queryKey: ['applicants', 'summary'] }) // keeps the tab-bar badge in step
+  }
   const afterSheet = (fn) => setTimeout(fn, AFTER_SHEET)
 
   const bulk = async (body, ok) => {
