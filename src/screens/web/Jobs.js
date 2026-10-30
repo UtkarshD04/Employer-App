@@ -121,7 +121,14 @@ export function JobsScreen({ route }) {
   useEffect(() => { load() }, [load])
   const { refreshing, onRefresh } = useRefresh(load)
 
-  const shown = useMemo(() => (jobs ?? []).filter(TABS.find((t) => t.id === tab).match), [jobs, tab])
+  const [text, setText] = useState('')
+  const [sort, setSort] = useState('newest')
+  const shown = useMemo(() => {
+    const t = text.trim().toLowerCase()
+    const list = (jobs ?? []).filter(TABS.find((x) => x.id === tab).match).filter((j) => !t || [j.title, j.department, j.location].some((v) => v?.toLowerCase().includes(t)))
+    const when = (j) => new Date(j.postedOn ?? j.updatedOn ?? j.updatedAt ?? 0).getTime()
+    return list.sort(sort === 'applicants' ? (a, b) => (b.candidatesShared ?? 0) - (a.candidatesShared ?? 0) : sort === 'title' ? (a, b) => a.title.localeCompare(b.title) : (a, b) => when(b) - when(a))
+  }, [jobs, tab, text, sort])
   const posted = jobs?.find((j) => j.id === justPosted)
 
   const confirmDelete = async () => {
@@ -164,12 +171,19 @@ export function JobsScreen({ route }) {
           })}
         </View>
 
+        {jobs && jobs.length > 1 ? (
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Input value={text} onChangeText={setText} placeholder="Search title, team or city" style={{ flex: 1 }} />
+            <Select value={sort} onChange={setSort} title="Sort jobs" style={{ width: 130 }} options={[['newest', 'Newest'], ['applicants', 'Most shared'], ['title', 'Title A–Z']]} />
+          </View>
+        ) : null}
+
         {error ? (
           <EmptyState icon={Briefcase} title="Couldn't load your jobs" action={<Btn onPress={load}>Retry</Btn>} />
         ) : !jobs ? (
           <View style={{ gap: 12 }}>{[0, 1, 2].map((i) => <CardSkeleton key={i} />)}</View>
         ) : shown.length === 0 ? (
-          <EmptyState icon={Briefcase} title={tab === 'all' ? 'No jobs yet' : 'Nothing here'} body={tab === 'all' ? 'Post your first requirement and Mzobs will start sourcing verified candidates.' : undefined} action={tab === 'all' ? <Btn variant="primary" icon={Plus} onPress={() => nav.navigate('JobForm')}>Post a job</Btn> : null} />
+          <EmptyState icon={Briefcase} title={text ? 'No jobs match' : tab === 'all' ? 'No jobs yet' : 'Nothing here'} body={text ? 'Try a different word.' : tab === 'all' ? 'Post your first requirement and Mzobs will start sourcing verified candidates.' : undefined} action={tab === 'all' ? <Btn variant="primary" icon={Plus} onPress={() => nav.navigate('JobForm')}>Post a job</Btn> : null} />
         ) : (
           <View style={{ gap: 12 }}>{shown.map((j) => <JobRow key={j.id} job={j} onChanged={load} onAsk={setToDelete} publicIds={publicIds} />)}</View>
         )}
