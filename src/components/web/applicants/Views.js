@@ -95,6 +95,7 @@ export function Board({ items, counts, stage, onStage, selected, onSelect, onOpe
           )
         })}
       </ScrollView>
+      {canManage && rows.length > 0 && stage !== 'rejected' && stage !== 'hired' ? <T s={11.5} c={C.muted}>Tip: swipe a card right to shortlist, left to reject.</T> : null}
       {rows.length === 0 ? (
         <View style={{ paddingVertical: 36, alignItems: 'center' }}><T s={13} c={C.muted}>Nobody in {STAGE_LABEL[stage]} yet</T></View>
       ) : (
