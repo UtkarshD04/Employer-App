@@ -13,6 +13,7 @@ import { Avatar, Btn, C, Chip, EmptyState, Field, Input, Press, Sheet, Skeleton,
 import { cancelInterview, listInterviews, rescheduleInterview, submitFeedback } from '../../services/interviewsService'
 import ScorecardSheet from '../../components/web/ScorecardSheet'
 import { usePermissions } from '../../services/recruiter'
+import { useRefresh } from '../../components/web/rc'
 import { queryKeys } from '../../lib/queryClient'
 import { errorMessage } from '../../lib/api'
 import { useWorkspace } from '../../store/workspace'
@@ -196,6 +197,7 @@ export function InterviewsScreen() {
   const [busy, setBusy] = useState(false)
   const [resEmail, setResEmail] = useState(true)
   const interviews = q.data ?? []
+  const { refreshing, onRefresh } = useRefresh(q.refetch)
 
   const openResched = (i) => {
     const d = new Date(i.startsAt)
@@ -266,7 +268,7 @@ export function InterviewsScreen() {
 
   return (
     <Shell>
-      <PageScroll>
+      <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <PageTitle title="Interviews" sub="Interviews you've scheduled with candidates." />
         {can('interviews.manage') ? <Btn variant="primary" icon={CalendarPlus} onPress={() => setPicking(true)} style={{ alignSelf: 'flex-start' }}>Schedule interview</Btn> : null}
         {q.isLoading ? (
