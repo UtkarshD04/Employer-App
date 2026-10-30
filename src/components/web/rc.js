@@ -27,7 +27,7 @@ export function StatTile({ label, value, hint, onPress, warn }) {
   const body = (
     <View style={[card, { padding: 14, borderRadius: 12, minHeight: 92 }]}>
       <T s={12} w="s" c={C.muted}>{label}</T>
-      <T s={26} w="x" c={warn ? C.warn : C.ink} style={{ marginTop: 4, letterSpacing: -0.5, lineHeight: 30 }}>{value ?? '—'}</T>
+      <CountUp value={value} s={26} w="x" c={warn ? C.warn : C.ink} style={{ marginTop: 4, letterSpacing: -0.5, lineHeight: 30 }} />
       {hint ? <T s={12} c={C.muted} style={{ marginTop: 2 }}>{hint}</T> : null}
     </View>
   )
@@ -105,4 +105,18 @@ export function FadeIn({ children, index = 0, style }) {
     Animated.timing(v, { toValue: 1, duration: 320, delay: Math.min(index, 8) * 50, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start()
   }, [v, index])
   return <Animated.View style={[{ opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }] }, style]}>{children}</Animated.View>
+}
+
+/** A whole number that counts up to `value` when it first appears or changes. Non-numbers render as they are. */
+export function CountUp({ value, ...textProps }) {
+  const numeric = typeof value === 'number' && Number.isFinite(value)
+  const [shown, setShown] = useState(numeric ? 0 : value)
+  useEffect(() => {
+    if (!numeric) return setShown(value)
+    const v = new Animated.Value(0)
+    const id = v.addListener(({ value: n }) => setShown(Math.round(n)))
+    Animated.timing(v, { toValue: value, duration: 600, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start()
+    return () => v.removeListener(id)
+  }, [value, numeric])
+  return <T {...textProps}>{shown ?? '—'}</T>
 }
