@@ -8,6 +8,7 @@ import * as Notifications from 'expo-notifications'
 import { queryClient } from './src/lib/queryClient'
 import { AuthProvider } from './src/context/AuthContext'
 import { ThemeProvider } from './src/theme'
+import { AppearanceProvider, RemountOnTheme, useAppearance } from './src/lib/appearance'
 import { WorkspaceProvider } from './src/store/workspace'
 import { navigationRef } from './src/lib/navigation'
 import RootNavigator from './src/navigation/RootNavigator'
@@ -28,6 +29,11 @@ function useNotificationTap() {
   }, [])
 }
 
+function ThemedStatusBar() {
+  const { effective } = useAppearance()
+  return <StatusBar style={effective === 'dark' ? 'light' : 'dark'} />
+}
+
 export default function App() {
   const [fontsLoaded] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_600SemiBold_Italic, Inter_700Bold, Inter_800ExtraBold })
   useNotificationTap()
@@ -41,18 +47,22 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <WorkspaceProvider>
-              <StatusBar style="dark" />
-              <ErrorBoundary>
-                <RootNavigator />
-              </ErrorBoundary>
-            </WorkspaceProvider>
-          </AuthProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
+      <AppearanceProvider>
+        <ThemeProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthProvider>
+              <RemountOnTheme>
+                <WorkspaceProvider>
+                  <ThemedStatusBar />
+                  <ErrorBoundary>
+                    <RootNavigator />
+                  </ErrorBoundary>
+                </WorkspaceProvider>
+              </RemountOnTheme>
+            </AuthProvider>
+          </QueryClientProvider>
+        </ThemeProvider>
+      </AppearanceProvider>
     </SafeAreaProvider>
   )
 }
