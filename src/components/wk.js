@@ -63,19 +63,21 @@ export function Press({ onPress, style, children, scale = 0.97, disabled, ...res
 }
 
 // ─── buttons ────────────────────────────────────────────────────────────────────────────
-const BTN = {
-  primary: { fg: '#e8f8f5', grad: ['#123a4f', '#0e2237'] },
+// A function, not a constant: the colours follow the current palette. Primary stays dark navy in light mode and
+// turns teal in dark mode, where navy would vanish into the background.
+const btn = () => ({
+  primary: { fg: '#e8f8f5', grad: isDarkPalette() ? ['#1a8f80', '#127a6d'] : ['#123a4f', '#0e2237'] },
   ai: { fg: '#ffffff', grad: ['#0a8a7a', '#08685e'] },
   blue: { fg: '#ffffff', bg: C.blue },
-  outline: { fg: C.ink, bg: '#fff', border: C.line },
+  outline: { fg: C.ink, bg: C.surface, border: C.line },
   ghost: { fg: C.ink2, bg: 'transparent' },
   danger: { fg: '#fff', bg: C.bad },
   success: { fg: C.okText, bg: C.okSoft, border: C.okLine },
-}
+})
 const SIZE = { sm: { h: 34, px: 14, fs: 12.5, ic: 14 }, md: { h: 40, px: 17, fs: 13, ic: 15 }, lg: { h: 46, px: 24, fs: 14.5, ic: 16 } }
 
 export function Btn({ variant = 'outline', size = 'md', icon: Icon, children, onPress, disabled, loading, style, textStyle, iconRight: IconR }) {
-  const v = BTN[variant]
+  const v = btn()[variant]
   const z = SIZE[size]
   const off = disabled || loading
   const inner = (
@@ -106,16 +108,16 @@ export function IconBtn({ icon: Icon, onPress, label, active, size = 40, color =
 }
 
 // ─── chips / badges ─────────────────────────────────────────────────────────────────────
-const CHIP = {
-  neutral: { bg: '#fff', fg: C.ink2, border: C.line },
+const chip = () => ({
+  neutral: { bg: C.surface, fg: C.ink2, border: C.line },
   accent: { bg: C.accentSoft, fg: C.accentText },
   ai: { bg: C.aiSoft, fg: C.accentText },
   ok: { bg: C.okSoft, fg: C.okText },
-  hit: { bg: '#eaf2ff', fg: C.blueText },
+  hit: { bg: C.blueTint, fg: C.blueText },
   warn: { bg: C.warnSoft, fg: C.warn },
-}
+})
 export function Chip({ children, tone = 'neutral', onRemove, style }) {
-  const t = CHIP[tone]
+  const t = chip()[tone]
   return (
     <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 999, borderWidth: t.border ? 1 : 0, borderColor: t.border, backgroundColor: t.bg, paddingHorizontal: 10, paddingVertical: 3.5, alignSelf: 'flex-start', maxWidth: '100%' }, style]}>
       <RNText numberOfLines={1} style={{ fontFamily: F.s, fontSize: 12, color: t.fg, flexShrink: 1 }}>{children}</RNText>
@@ -139,6 +141,7 @@ export function Tag({ icon: Icon, children, bg = C.line2, fg = C.muted, style })
 }
 
 const TINTS = [['#e8f8f5', '#0a6f64'], ['#eaf3fc', '#1f6fb2'], ['#e6f6ee', '#1a8f5a'], ['#f1ede5', '#7a5b2e'], ['#fbeee3', '#b45309']]
+const TINTS_DARK = [['#12342f', '#4fd6c4'], ['#13304a', '#7bb9ee'], ['#10321f', '#4fd89a'], ['#33291a', '#d9b27a'], ['#3a2412', '#f0a35a']]
 export function Avatar({ candidate, size = 44 }) {
   const [failed, setFailed] = useState(false)
   if (candidate?.photoUrl && !failed) {
@@ -146,7 +149,7 @@ export function Avatar({ candidate, size = 44 }) {
   }
   let h = 0
   for (const ch of String(candidate?.id ?? '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0
-  const [bg, fg] = TINTS[h % TINTS.length]
+  const [bg, fg] = (isDarkPalette() ? TINTS_DARK : TINTS)[h % TINTS.length]
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
       <RNText style={{ fontFamily: F.s, fontSize: size * 0.36, color: fg }}>{candidate?.initials}</RNText>
@@ -154,10 +157,10 @@ export function Avatar({ candidate, size = 44 }) {
   )
 }
 
-const MATCH = { strong: { bg: C.aiSoft, fg: C.accentText, border: C.aiLine }, good: { bg: C.blueSoft, fg: C.blueText, border: '#bfdbfe' }, fair: { bg: C.line2, fg: C.ink2, border: C.line } }
+const match = () => ({ strong: { bg: C.aiSoft, fg: C.accentText, border: C.aiLine }, good: { bg: C.blueSoft, fg: C.blueText, border: C.blueLine }, fair: { bg: C.line2, fg: C.ink2, border: C.line } })
 export function MatchBadge({ score, onPress }) {
   if (score == null) return null
-  const t = MATCH[matchTone(score)]
+  const t = match()[matchTone(score)]
   const r = 8
   const len = 2 * Math.PI * r
   return (
@@ -171,9 +174,10 @@ export function MatchBadge({ score, onPress }) {
   )
 }
 
-const STATUS = { verified: { icon: Check, bg: C.okSoft, fg: C.ok, label: 'Verified' }, pending: { icon: Clock, bg: C.warnSoft, fg: C.warn, label: 'Pending' }, none: { icon: Minus, bg: C.line2, fg: C.muted, label: 'Not verified' } }
+const statusMeta = () => ({ verified: { icon: Check, bg: C.okSoft, fg: C.ok, label: 'Verified' }, pending: { icon: Clock, bg: C.warnSoft, fg: C.warn, label: 'Pending' }, none: { icon: Minus, bg: C.line2, fg: C.muted, label: 'Not verified' } })
 export function StatusPill({ status, label }) {
-  const s = STATUS[status] ?? STATUS.none
+  const m = statusMeta()
+  const s = m[status] ?? m.none
   return <Tag icon={s.icon} bg={s.bg} fg={s.fg}>{label ?? s.label}</Tag>
 }
 export function VerifiedBadge({ candidate }) {
@@ -197,7 +201,7 @@ export function Highlight({ text, terms, style }) {
   const re = new RegExp(`(${list.map(escapeRegex).join('|')})`, 'ig')
   return (
     <RNText style={style}>
-      {String(text).split(re).map((part, i) => (list.some((t) => t.toLowerCase() === part.toLowerCase()) ? <RNText key={i} style={{ backgroundColor: '#d9f3ee' }}>{part}</RNText> : part))}
+      {String(text).split(re).map((part, i) => (list.some((t) => t.toLowerCase() === part.toLowerCase()) ? <RNText key={i} style={{ backgroundColor: C.accentSoft }}>{part}</RNText> : part))}
     </RNText>
   )
 }
@@ -210,7 +214,7 @@ export function Skeleton({ w = '100%', h = 14, r = 8, style }) {
     l.start()
     return () => l.stop()
   }, [v])
-  return <Animated.View style={[{ width: w, height: h, borderRadius: r, backgroundColor: '#e9eff3', opacity: v }, style]} />
+  return <Animated.View style={[{ width: w, height: h, borderRadius: r, backgroundColor: C.line2, opacity: v }, style]} />
 }
 export function CardSkeleton() {
   return (
@@ -269,10 +273,10 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, footer
   return (
     <RNModal transparent visible animationType="none" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <Animated.View style={[abs, { backgroundColor: 'rgba(14,34,55,0.45)', opacity: v }]}>
+        <Animated.View style={[abs, { backgroundColor: C.overlay, opacity: v }]}>
           <Pressable style={{ flex: 1 }} onPress={onClose} />
         </Animated.View>
-        <Animated.View style={[{ maxHeight: '90%', backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [500, 0] }) }] }, shadowPop]}>
+        <Animated.View style={[{ maxHeight: '90%', backgroundColor: C.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [500, 0] }) }] }, shadowPop]}>
           <View style={{ alignItems: 'center', paddingTop: 8 }}><View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: C.line }} /></View>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: C.line }}>
             <View style={{ flex: 1 }}>
@@ -305,7 +309,7 @@ export function Input({ error, style, multiline, ...p }) {
       {...p}
       onFocus={(e) => { setFocus(true); p.onFocus?.(e) }}
       onBlur={(e) => { setFocus(false); p.onBlur?.(e) }}
-      style={[{ minHeight: 40, borderWidth: 1, borderColor: error ? C.bad : focus ? C.accent : C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: multiline ? 10 : 0, fontFamily: F.r, fontSize: 14, color: C.ink }, multiline && { minHeight: 110, textAlignVertical: 'top', lineHeight: 22 }, style]}
+      style={[{ minHeight: 40, borderWidth: 1, borderColor: error ? C.bad : focus ? C.accent : C.line, borderRadius: 8, backgroundColor: C.surface, paddingHorizontal: 12, paddingVertical: multiline ? 10 : 0, fontFamily: F.r, fontSize: 14, color: C.ink }, multiline && { minHeight: 110, textAlignVertical: 'top', lineHeight: 22 }, style]}
     />
   )
 }
@@ -329,7 +333,7 @@ export function Select({ value, onChange, options, placeholder = 'Select', title
   const shown = searchable && q.trim() ? opts.filter((o) => String(o.label).toLowerCase().includes(q.trim().toLowerCase())) : opts
   return (
     <>
-      <Pressable disabled={disabled} onPress={() => { setQ(''); setOpen(true) }} accessibilityRole="button" accessibilityLabel={`${title ?? placeholder}: ${cur?.label ?? 'none selected'}`} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: error ? C.bad : C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12, opacity: disabled ? 0.55 : 1 }, style]}>
+      <Pressable disabled={disabled} onPress={() => { setQ(''); setOpen(true) }} accessibilityRole="button" accessibilityLabel={`${title ?? placeholder}: ${cur?.label ?? 'none selected'}`} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: error ? C.bad : C.line, borderRadius: 8, backgroundColor: C.surface, paddingHorizontal: 12, opacity: disabled ? 0.55 : 1 }, style]}>
         <T s={14} c={cur ? C.ink : C.ph} numberOfLines={1} style={{ flex: 1 }}>{cur?.label ?? placeholder}</T>
         <ChevronDown size={15} color={C.muted} />
       </Pressable>
@@ -349,7 +353,7 @@ export function Select({ value, onChange, options, placeholder = 'Select', title
 export function Radio({ checked, onPress, children }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: !!checked }} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 2 }}>
-      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: checked ? C.accentText : '#b8c7d2', alignItems: 'center', justifyContent: 'center' }}>{checked ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.accentText }} /> : null}</View>
+      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: checked ? C.accentText : C.boxLine, alignItems: 'center', justifyContent: 'center' }}>{checked ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.accentText }} /> : null}</View>
       <T s={13.5} style={{ flex: 1 }}>{children}</T>
     </Pressable>
   )
@@ -357,7 +361,7 @@ export function Radio({ checked, onPress, children }) {
 export function CheckBox({ checked, onChange, children, style }) {
   return (
     <Pressable onPress={() => onChange(!checked)} accessibilityRole="checkbox" accessibilityState={{ checked: !!checked }} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 2 }, style]}>
-      <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 2, borderColor: checked ? C.accentText : '#b8c7d2', backgroundColor: checked ? C.accentText : '#fff', alignItems: 'center', justifyContent: 'center' }}>{checked ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
+      <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 2, borderColor: checked ? C.accentText : C.boxLine, backgroundColor: checked ? C.accentText : C.surface, alignItems: 'center', justifyContent: 'center' }}>{checked ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
       {children != null ? <T s={13.5} style={{ flex: 1 }}>{children}</T> : null}
     </Pressable>
   )
@@ -374,7 +378,7 @@ export function Segment({ options, value, onChange }) {
   )
 }
 export function Banner({ tone = 'warn', icon: Icon = AlertTriangle, children, style }) {
-  const t = { warn: [C.warnSoft, C.warn, C.warnLine], bad: [C.badSoft, C.bad, '#f5c6c6'], ok: [C.okSoft, C.okText, C.okLine], info: [C.blueSoft, C.blueText, '#bfdbfe'] }[tone]
+  const t = { warn: [C.warnSoft, C.warn, C.warnLine], bad: [C.badSoft, C.bad, `${C.bad}55`], ok: [C.okSoft, C.okText, C.okLine], info: [C.blueSoft, C.blueText, C.blueLine] }[tone]
   return (
     <View style={[{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, borderRadius: 12, borderWidth: 1, borderColor: t[2], backgroundColor: t[0], paddingHorizontal: 14, paddingVertical: 10 }, style]}>
       <Icon size={15} color={t[1]} style={{ marginTop: 2 }} />
