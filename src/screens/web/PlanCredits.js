@@ -7,6 +7,8 @@ import { useWorkspace } from '../../store/workspace'
 import { useAuth } from '../../context/AuthContext'
 import { getStorePrices, iapEnabled } from '../../lib/iap'
 import { agoDate } from '../../lib/tfmt'
+import PhoneInput from '../../components/web/PhoneInput'
+import { isValidPhone } from '../../lib/phone'
 import { getSubscription, getWallet, isCancel, listPlanPayments, listPurchases, listUnlockHistory, paymentError, previewSubscriptionCoupon, purchaseSubscription, refreshPlan, submitPlanEnquiry } from '../../services/plan'
 
 const rupees = (paise) => `₹${(paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
@@ -71,8 +73,8 @@ function CustomPlanCard() {
   const [status, setStatus] = useState('form') // form | sending | done
   const [error, setError] = useState('')
   const busy = status === 'sending'
-  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: k === 'phone' ? v.replace(/\D/g, '').slice(0, 10) : k === 'employeesNeeded' ? v.replace(/\D/g, '').slice(0, 6) : v }))
-  const valid = form.name.trim() && form.companyName.trim() && form.phone.length === 10 && Number(form.employeesNeeded) >= 1 && EMAIL_RE.test(form.email.trim())
+  const set = (k) => (v) => setForm((f) => ({ ...f, [k]: k === 'employeesNeeded' ? v.replace(/\D/g, '').slice(0, 6) : v }))
+  const valid = form.name.trim() && form.companyName.trim() && isValidPhone(form.phone) && Number(form.employeesNeeded) >= 1 && EMAIL_RE.test(form.email.trim())
   const close = () => {
     if (busy) return
     setOpen(false)
@@ -116,7 +118,7 @@ function CustomPlanCard() {
             {error ? <T s={12.5} c={C.bad}>{error}</T> : null}
             <Field label="Your name"><Input value={form.name} onChangeText={set('name')} maxLength={120} autoComplete="name" /></Field>
             <Field label="Company name"><Input value={form.companyName} onChangeText={set('companyName')} maxLength={200} autoComplete="organization" /></Field>
-            <Field label="Phone number"><Input value={form.phone} onChangeText={set('phone')} keyboardType="number-pad" placeholder="98765 43210" autoComplete="tel-national" /></Field>
+            <Field label="Phone number"><PhoneInput value={form.phone} onChange={set('phone')} placeholder="98765 43210" /></Field>
             <Field label="Number of employees you need"><Input value={form.employeesNeeded} onChangeText={set('employeesNeeded')} keyboardType="number-pad" placeholder="e.g. 10" /></Field>
             <Field label="Email"><Input value={form.email} onChangeText={set('email')} keyboardType="email-address" autoCapitalize="none" autoComplete="email" maxLength={200} /></Field>
           </View>
