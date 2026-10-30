@@ -247,6 +247,14 @@ function passes(c, crit, trust, exclude) {
   if (crit.hasVideo && !c.hasVideo) return false
   if (crit.verifiedOnly && c.verification.identity !== 'verified') return false
   if (crit.contactVerified && !(c.verification.phone === 'verified' && c.verification.email === 'verified')) return false
+  if (crit.phoneVerified && c.verification.phone !== 'verified') return false
+  if (crit.emailVerified && c.verification.email !== 'verified') return false
+  if (crit.experienceLevel && c.experienceLevel !== crit.experienceLevel) return false
+  if (crit.hasLinkedin && !c.links?.some((l) => l.label === 'LinkedIn')) return false
+  if (crit.hasGithub && !c.links?.some((l) => l.label === 'GitHub')) return false
+  if (crit.hasPhoto && !c.photoUrl) return false
+  if (crit.premiumOnly && !c.premium) return false
+  if (crit.appliedDays != null && (c.sharedDaysAgo == null || c.sharedDaysAgo > crit.appliedDays)) return false
   if (crit.resumeFreshDays != null && (c.resumeUpdatedDaysAgo == null || c.resumeUpdatedDaysAgo > crit.resumeFreshDays)) return false
   if (crit.activeDays != null && (c.lastActiveDaysAgo == null || c.lastActiveDaysAgo > crit.activeDays)) return false
   return true
