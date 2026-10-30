@@ -66,7 +66,7 @@ function ProfessionalSummary({ candidate: c, match }) {
   )
 }
 
-function CandidateCard({ row, terms, onAction }) {
+function CandidateCard({ row, terms, compact, onAction }) {
   const { candidate: c, match, trust, fit } = row
   const { selected, toggleSelect, compare, toggleCompare, savedIds, toggleSaved, viewed, shortlists } = useWorkspace()
   const [menu, setMenu] = useState(false)
@@ -75,7 +75,7 @@ function CandidateCard({ row, terms, onAction }) {
   const inList = shortlists.some((l) => l.candidateIds.includes(c.id))
   const strong = new Set(match.strong.map((s) => s.toLowerCase()))
   const skills = [...c.skills].sort((a, b) => Number(strong.has(b.toLowerCase())) - Number(strong.has(a.toLowerCase())))
-  const shown = skills.slice(0, 8)
+  const shown = compact ? skills.slice(0, 5) : skills.slice(0, 8)
   const bookmarked = savedIds.includes(c.id)
   const cvOpen = isRevealed(c, 'resume')
 
@@ -83,7 +83,7 @@ function CandidateCard({ row, terms, onAction }) {
     <View style={[card, { padding: 16, borderColor: isSel ? C.accent : C.line, backgroundColor: isSel ? '#f3fbf9' : '#fff' }]}>
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <CheckBox checked={isSel} onChange={() => toggleSelect(c.id)} style={{ marginTop: 6, minHeight: 32, width: 22 }} />
-        <Avatar candidate={c} size={46} />
+        <Avatar candidate={c} size={compact ? 38 : 46} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
             <Pressable onPress={() => onAction('open', c)} style={{ flexShrink: 1 }}>
@@ -120,17 +120,17 @@ function CandidateCard({ row, terms, onAction }) {
         {c.contact?.phone ? (
           <Meta icon={Phone}>{c.contact.phone}</Meta>
         ) : c._live?.contactPreview?.phone ? (
-          <Pressable onPress={() => onAction('unlock', c, 'phone')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 24 }}>
+          <Pressable onPress={() => onAction('unlock', c, 'contact')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 24 }}>
             <Phone size={13} color={C.icon} />
             <T s={13} c={C.ink2}>{c._live.contactPreview.phone}</T>
             <Eye size={12} color={C.accent} />
-            <T s={13} w="s" c={C.accent}>View</T>
+            <T s={13} w="s" c={C.accent}>Unlock email & number</T>
           </Pressable>
         ) : null}
-        {c.education[0] ? <Meta icon={GraduationCap}>{c.education[0].degree}{c.education[0].institute ? `, ${c.education[0].institute}` : ''}</Meta> : null}
+        {!compact && c.education[0] ? <Meta icon={GraduationCap}>{c.education[0].degree}{c.education[0].institute ? `, ${c.education[0].institute}` : ''}</Meta> : null}
       </View>
 
-      {c.preferredLocations.length > 0 ? (
+      {!compact && c.preferredLocations.length > 0 ? (
         <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Building2 size={12} color={C.muted} />
           <T s={12.5} c={C.muted} style={{ flex: 1 }}>Prefers: {c.preferredLocations.join(' · ')}</T>
@@ -151,12 +151,12 @@ function CandidateCard({ row, terms, onAction }) {
           {c.lastActiveDaysAgo != null ? <T s={12} c={C.muted}>Active {agoDays(c.lastActiveDaysAgo)}</T> : c.sharedDaysAgo != null ? <T s={12} c={C.muted}>Shared {agoDays(c.sharedDaysAgo)}</T> : null}
           {c.stage ? <Tag fg={C.ink2}>{STAGE_LABELS[c.stage] ?? c.stage}</Tag> : null}
           {c.jobTitle ? <T s={12} c={C.muted} numberOfLines={1} style={{ maxWidth: 200 }}>for {c.jobTitle}</T> : null}
-          <T s={12} c={C.muted}>{c.profileCompleteness}% complete</T>
+          {!compact ? <T s={12} c={C.muted}>{c.profileCompleteness}% complete</T> : null}
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
           <Btn size="sm" onPress={() => onAction('open', c)}>View profile</Btn>
           <Btn size="sm" icon={cvOpen ? FileText : Lock} onPress={() => onAction('resume', c)}>View CV</Btn>
-          <Btn size="sm" icon={inList ? Check : Bookmark} onPress={() => onAction('shortlist', c)} style={inList ? undefined : undefined} textStyle={inList ? { color: '#1a8f5a' } : undefined}>{inList ? 'Shortlisted' : 'Shortlist'}</Btn>
+          <Btn size="sm" variant={inList ? 'success' : 'outline'} icon={inList ? Check : Bookmark} onPress={() => onAction('shortlist', c)}>{inList ? 'Shortlisted' : 'Shortlist'}</Btn>
           <Btn size="sm" variant="primary" onPress={() => onAction('contact', c)}>Contact</Btn>
           <Pressable onPress={() => setMenu(true)} accessibilityLabel="More actions" style={{ width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: menu ? C.accentSoft : 'transparent' }}>
             <MoreHorizontal size={16} color={C.ink2} />
