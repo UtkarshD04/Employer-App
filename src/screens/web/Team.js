@@ -3,7 +3,7 @@ import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { Check, Minus, UserPlus, Users } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { ErrorBlock, ListSkeleton, Tabs, ago, fmtDateTime } from '../../components/web/rc'
-import { Btn, C, EmptyState, Field, Input, Select, Sheet, T, card } from '../../components/wk'
+import { Avatar, Btn, C, EmptyState, Field, Input, Select, Sheet, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, getRoleMatrix, inviteMember, listAudit, listTeam, removeMember, setMemberRole, usePermissions } from '../../services/recruiter'
 
@@ -15,7 +15,9 @@ const ROLE_BLURB = {
   Finance: 'Credits, invoices and billing.',
 }
 
-function Members({ can, role: myRole, toast }) {
+const initials = (name = '') => name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase()
+
+function Members({ can, role: myRole, myId, toast }) {
   const [members, setMembers] = useState(null)
   const [roles, setRoles] = useState([])
   const [error, setError] = useState('')
@@ -67,9 +69,10 @@ function Members({ can, role: myRole, toast }) {
       {manage ? <Btn variant="primary" size="sm" icon={UserPlus} onPress={() => setInviting(true)} style={{ alignSelf: 'flex-end' }}>Add team member</Btn> : null}
       {members.map((m) => (
         <View key={m.id} style={[card, { padding: 14, gap: 8 }]}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Avatar candidate={{ id: m.id, initials: initials(m.name) }} size={36} />
             <View style={{ flex: 1 }}>
-              <T s={14.5} w="b" numberOfLines={1}>{m.name}</T>
+              <T s={14.5} w="b" numberOfLines={1}>{m.name}{m.id === myId ? <T s={12} w="m" c={C.muted}>  (you)</T> : null}</T>
               {m.email ? <T s={12.5} c={C.muted} numberOfLines={1}>{m.email}</T> : null}
             </View>
             <T s={12.5} c={C.ink2} style={{ textTransform: 'capitalize' }}>{m.status}</T>
@@ -161,7 +164,7 @@ function Audit() {
 
 export default function TeamScreen() {
   const { toast } = useWorkspace()
-  const { can, role, loaded } = usePermissions()
+  const { can, role, loaded, me } = usePermissions()
   const [tab, setTab] = useState('members')
   const tabs = [['members', 'Members'], ['permissions', 'Role permissions'], ...(can('audit.view') ? [['audit', 'Audit trail']] : [])]
   return (
@@ -169,7 +172,7 @@ export default function TeamScreen() {
       <PageScroll>
         <PageTitle title="Team & Permissions" sub="Who can do what in your hiring workspace." />
         <Tabs tabs={tabs} value={tab} onChange={setTab} />
-        {!loaded ? <ListSkeleton rows={3} /> : tab === 'members' ? <Members can={can} role={role} toast={toast} /> : tab === 'permissions' ? <Matrix /> : <Audit />}
+        {!loaded ? <ListSkeleton rows={3} /> : tab === 'members' ? <Members can={can} role={role} myId={me?.id} toast={toast} /> : tab === 'permissions' ? <Matrix /> : <Audit />}
       </PageScroll>
     </Shell>
   )
