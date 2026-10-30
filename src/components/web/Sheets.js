@@ -21,7 +21,7 @@ export function MatchSheet({ row, onClose }) {
       {m ? (
         <View style={{ gap: 22 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 16, backgroundColor: C.aiSoft, padding: 16 }}>
-            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: C.surface, alignItems: 'center', justifyContent: 'center' }}>
               <T s={18} w="b" c={C.accentText}>{m.overall}%</T>
             </View>
             <View style={{ flex: 1 }}>
