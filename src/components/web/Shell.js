@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Image, Modal, Pressable, ScrollView, View } from 'react-native'
+import { Image, Modal, Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -170,7 +170,12 @@ export function PageTitle({ title, sub, accent, size = 30 }) {
 
 export function PageScroll({ children, contentStyle, onRefresh, refreshing }) {
   return (
-    <ScrollView contentContainerStyle={[{ padding: 16, paddingTop: 24, paddingBottom: 120, gap: 20 }, contentStyle]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={[{ padding: 16, paddingTop: 24, paddingBottom: 120, gap: 20 }, contentStyle]}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={C.accent} colors={[C.accent]} /> : undefined}
+    >
       {children}
     </ScrollView>
   )
