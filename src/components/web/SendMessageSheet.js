@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View } from 'react-native'
-import { Btn, Banner, Field, Input, Select, Sheet, T } from '../wk'
+import { Btn, Banner, C, Field, Input, Select, Sheet, T } from '../wk'
 import { apiMessage, listTemplates, previewMessage, sendMessage } from '../../services/recruiter'
 
 // Sends one of the company's message templates to one candidate. Email goes through the compliant outreach path (the
@@ -81,13 +81,13 @@ export default function SendMessageSheet({ candidate, onClose, onSent, toast, de
         {ch?.available === false ? <Banner tone="warn">{ch.reason}</Banner> : null}
         {missing.length > 0 ? (
           <View style={{ gap: 10 }}>
-            <T s={12.5} w="s" c="#33506a">Fill in the missing details before sending</T>
+            <T s={12.5} w="s" c={C.ink2}>Fill in the missing details before sending</T>
             {missing.map((m) => <Field key={m} label={m.replace(/_/g, ' ')}><Input value={vars[m] ?? ''} onChangeText={(v) => setVars((x) => ({ ...x, [m]: v }))} /></Field>)}
           </View>
         ) : null}
-        <Field label="Subject"><Input value={subject} editable={false} style={{ backgroundColor: '#faf9f6' }} /></Field>
-        <Field label="Message" hint="Edit the wording of a template under Messages → Templates."><Input value={body} editable={false} multiline style={{ backgroundColor: '#faf9f6', minHeight: 180 }} /></Field>
-        {error ? <T s={13} w="m" c="#d33a2c">{error}</T> : null}
+        <Field label="Subject"><Input value={subject} editable={false} style={{ backgroundColor: C.sunken }} /></Field>
+        <Field label="Message" hint="Edit the wording of a template under Messages → Templates."><Input value={body} editable={false} multiline style={{ backgroundColor: C.sunken, minHeight: 180 }} /></Field>
+        {error ? <T s={13} w="m" c={C.bad}>{error}</T> : null}
       </View>
     </Sheet>
   )
