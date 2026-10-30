@@ -327,7 +327,7 @@ export function Radio({ checked, onPress, children }) {
 }
 export function CheckBox({ checked, onChange, children, style }) {
   return (
-    <Pressable onPress={() => onChange(!checked)} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 2 }, style]}>
+    <Pressable onPress={() => onChange(!checked)} accessibilityRole="checkbox" accessibilityState={{ checked: !!checked }} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 2 }, style]}>
       <View style={{ width: 18, height: 18, borderRadius: 5, borderWidth: 2, borderColor: checked ? C.accentText : '#b8c7d2', backgroundColor: checked ? C.accentText : '#fff', alignItems: 'center', justifyContent: 'center' }}>{checked ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
       {children != null ? <T s={13.5} style={{ flex: 1 }}>{children}</T> : null}
     </Pressable>
