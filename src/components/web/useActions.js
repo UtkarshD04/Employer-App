@@ -3,7 +3,6 @@ import { Pressable, ScrollView, Share, View } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import { useNavigation } from '@react-navigation/native'
 import { Bookmark, Download, FolderPlus, GitCompareArrows, Mail, MessageSquare, X } from 'lucide-react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useWorkspace } from '../../store/workspace'
 import { getTalentMany } from '../../services/talent'
 import { getResumeLink } from '../../services/talentApi'
@@ -134,10 +133,9 @@ export function useActions(criteria, { onUnlocked, onInterviewScheduled } = {}) 
 
 function CompareTray({ count, onOpen }) {
   const { clearCompare, selected } = useWorkspace()
-  const insets = useSafeAreaInsets()
   if (count === 0 || selected.length > 0) return null
   return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(insets.bottom, 12) + 4, alignItems: 'center' }}>
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 12, alignItems: 'center' }}>
       <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, backgroundColor: C.ink, paddingHorizontal: 12, paddingVertical: 8 }, shadowPop]}>
         <GitCompareArrows size={15} color="#fff" />
         <T s={13} c="#fff">{count} to compare</T>
@@ -150,7 +148,6 @@ function CompareTray({ count, onOpen }) {
 
 function SelectionBar({ onBulk }) {
   const { selected, clearSelection } = useWorkspace()
-  const insets = useSafeAreaInsets()
   if (!selected.length) return null
   const item = (Icon, label, k) => (
     <Pressable key={k} onPress={() => onBulk(k)} style={{ height: 40, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 8, paddingHorizontal: 12 }}>
@@ -159,7 +156,7 @@ function SelectionBar({ onBulk }) {
     </Pressable>
   )
   return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(insets.bottom, 12), paddingHorizontal: 12 }}>
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: 12, paddingHorizontal: 12 }}>
       <View style={[{ flexDirection: 'row', alignItems: 'center', borderRadius: 16, backgroundColor: C.ink, padding: 6, paddingLeft: 16 }, shadowPop]}>
         <T s={13} w="s" c="#fff" style={{ marginRight: 8 }}>{selected.length} selected</T>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center' }}>
