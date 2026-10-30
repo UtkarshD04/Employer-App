@@ -72,6 +72,11 @@ export function AuthProvider({ children }) {
     syncPushToken()
   }, [])
 
+  // Merges a fresh /auth/me response (e.g. after a name edit) into the signed-in user.
+  const updateUser = useCallback((user) => {
+    setSession((s) => (s ? { ...s, user: { ...s.user, ...user } } : s))
+  }, [])
+
   const value = {
     token,
     user: session?.user ?? null,
@@ -80,6 +85,7 @@ export function AuthProvider({ children }) {
     isBootstrapping,
     signIn,
     startSession,
+    updateUser,
     logout,
   }
 
