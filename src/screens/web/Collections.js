@@ -267,7 +267,7 @@ export function UnlockedCvsScreen() {
           </View>
           {rows?.length > 0 ? (
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <View style={{ flex: 1, minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 10 }}>
+              <View style={{ flex: 1, minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 10 }}>
                 <Search size={14} color={C.muted} />
                 <Input value={q} onChangeText={setQ} placeholder="Name, job, skill…" style={{ flex: 1, borderWidth: 0, minHeight: 38, paddingHorizontal: 0 }} />
               </View>
