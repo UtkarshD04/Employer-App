@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Linking, ScrollView, View } from 'react-native'
+import { Linking, Pressable, ScrollView, View } from 'react-native'
 import { Activity, ArrowLeft, Award, Bookmark, Briefcase, Building2, CalendarPlus, ChevronLeft, ChevronRight, Clock, Database, ExternalLink, Eye, FileText, FolderPlus, GitCompareArrows, GraduationCap, IndianRupee, Languages, Lightbulb, Lock, Mail, MapPin, MessageSquare, Phone, Pin, Share2, Sparkles, StickyNote } from 'lucide-react-native'
+import * as Clipboard from 'expo-clipboard'
 import * as WebBrowser from 'expo-web-browser'
 import { useNavigation } from '@react-navigation/native'
 import { Shell } from '../../components/web/Shell'
@@ -26,14 +27,20 @@ const waHref = (phone) => {
 }
 
 function ContactFact({ candidate: c, onView }) {
+  const { toast } = useWorkspace()
+  const copy = async (value, label) => {
+    if (!value) return
+    await Clipboard.setStringAsync(value)
+    toast(`${label} copied`)
+  }
   const preview = c._live?.contactPreview
   if (contactOpen(c)) {
     const phone = c.contact?.phone
     return (
       <View style={{ gap: 8 }}>
-        <T s={14} w="m">{c.contact?.email || '—'}</T>
+        <Pressable onLongPress={() => copy(c.contact?.email, 'Email')} accessibilityHint="Long press to copy"><T s={14} w="m">{c.contact?.email || '—'}</T></Pressable>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <T s={14} w="m">{phone || '—'}</T>
+          <Pressable onLongPress={() => copy(phone, 'Number')} accessibilityHint="Long press to copy"><T s={14} w="m">{phone || '—'}</T></Pressable>
           {phone ? (
             <Press onPress={() => Linking.openURL(telHref(phone))} accessibilityLabel={`Call ${phone}`} scale={0.95} style={{ minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, backgroundColor: C.okSoft, borderWidth: 1, borderColor: C.okLine, paddingHorizontal: 12 }}>
               <Phone size={14} color={C.okText} />
