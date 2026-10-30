@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { ArrowRight, CalendarClock, CheckCircle2 } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
-import { ErrorBlock, ListSkeleton, StatTile, ago, fmtDateTime } from '../../components/web/rc'
+import { ErrorBlock, ListSkeleton, StatTile, ago, fmtDateTime, useRefresh } from '../../components/web/rc'
 import { Btn, C, SectionCard, T } from '../../components/wk'
 import { apiMessage, getOverview } from '../../services/recruiter'
 import { openHref } from '../../lib/navigation'
@@ -21,11 +21,13 @@ export default function OverviewScreen() {
   const [error, setError] = useState('')
   const load = useCallback(() => {
     setError('')
-    getOverview().then(setData).catch((e) => setError(apiMessage(e, 'Could not load your overview.')))
+    return getOverview().then(setData).catch((e) => setError(apiMessage(e, 'Could not load your overview.')))
   }, [])
   useEffect(() => { load() }, [load])
   // Coming back to the tab after acting on something should show fresh counts.
   useEffect(() => nav.addListener('focus', () => data && load()), [nav, load, data])
+
+  const { refreshing, onRefresh } = useRefresh(load)
 
   if (error) return <Shell><PageScroll><PageTitle title="Overview" /><ErrorBlock message={error} onRetry={load} /></PageScroll></Shell>
   if (!data) return <Shell><PageScroll><PageTitle title="Overview" /><ListSkeleton rows={5} /></PageScroll></Shell>
@@ -34,7 +36,7 @@ export default function OverviewScreen() {
   const limited = data.scope === 'limited'
   return (
     <Shell>
-      <PageScroll>
+      <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <PageTitle title="Overview" sub={limited ? 'Your interviews and feedback.' : 'What needs doing today across your hiring.'} />
         {!limited ? <Btn variant="primary" onPress={() => nav.navigate('JobForm')} style={{ alignSelf: 'flex-start' }}>Post a job</Btn> : null}
 
