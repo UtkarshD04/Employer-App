@@ -73,7 +73,7 @@ export function NotificationsScreen() {
                 const tone = tones()
                 const [bg, fg] = tone[n.category] ?? tone.system
                 return (
-                  <Pressable key={n.id} onPress={() => open(n)} style={[card, { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderColor: n.unread ? '#bfe6df' : C.line, backgroundColor: n.unread ? '#f2fbf9' : '#fff' }]}>
+                  <Pressable key={n.id} onPress={() => open(n)} style={[card, { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderColor: n.unread ? C.aiLine : C.line, backgroundColor: n.unread ? C.accentTint : C.surface }]}>
                     <View style={{ borderRadius: 6, backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 2, marginTop: 2 }}><T s={11} w="s" c={fg} style={{ textTransform: 'capitalize' }}>{n.category}</T></View>
                     <View style={{ flex: 1 }}>
                       <T s={14} w="s">{n.title}</T>
