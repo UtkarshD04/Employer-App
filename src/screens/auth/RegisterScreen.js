@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { BackHandler, Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, View } from 'react-native'
-import { Feather } from '@expo/vector-icons'
 import { useTheme } from '../../theme'
 import { useAuth } from '../../context/AuthContext'
 import { errorMessage } from '../../lib/api'
 import * as authService from '../../services/authService'
 import { Button, ChipRow, FadeIn, Stepper, Text, TextField } from '../../components/ui'
 import OtpField from './OtpField'
+import BackButton from './BackButton'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_RE = /^[6-9]\d{9}$/
@@ -117,9 +117,7 @@ export default function RegisterScreen({ navigation, route }) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Pressable onPress={back} hitSlop={12} style={{ marginTop: spacing.xl, marginLeft: spacing.xl, alignSelf: 'flex-start' }}>
-        <Feather name="arrow-left" size={20} color={colors.ink} />
-      </Pressable>
+      <BackButton onPress={back} />
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.xl, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
         <FadeIn style={{ alignItems: 'center', gap: 6, marginBottom: spacing.sm }}>
           <Image source={isDark ? require('../../../assets/logo-dark.png') : require('../../../assets/logo.png')} style={{ height: 56, width: 56 * (5000 / 2725), marginVertical: -10 }} resizeMode="contain" />
