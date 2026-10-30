@@ -240,6 +240,7 @@ export function SettingsScreen() {
             <Btn icon={CreditCard} onPress={() => nav.navigate('PlanCredits')}>Plan & credits</Btn>
             <Btn icon={Bell} onPress={() => nav.navigate('Notifications')}>Notifications</Btn>
             <Btn icon={HelpCircle} onPress={() => nav.navigate('Help')}>Help & support</Btn>
+            <Btn icon={FileText} onPress={() => nav.navigate('FeedbackFollowUps')}>Feedback follow-ups</Btn>
           </View>
         </View>
         <View style={[card, { padding: 20, gap: 12 }]}>
