@@ -187,7 +187,7 @@ export default function ApplicantsScreen({ route }) {
         ) : !data ? (
           <ListSkeleton rows={5} h={96} />
         ) : items.length === 0 ? (
-          <EmptyState icon={Users} title={filtered ? 'No applicants match these filters' : 'No applicants yet'} body={filtered ? 'Try clearing a filter.' : 'Candidates appear here as they apply to your live jobs or MZOBS shares profiles with you.'} />
+          <EmptyState icon={Users} title={filtered ? 'No applicants match these filters' : 'No applicants yet'} body={filtered ? 'Try clearing a filter.' : 'Candidates appear here as they apply to your live jobs or MZOBS shares profiles with you.'} action={filtered ? <Btn size="sm" onPress={clearFilters}>Clear filters</Btn> : <Btn variant="primary" size="sm" onPress={() => nav.navigate('JobForm')}>Post a job</Btn>} />
         ) : view === 'board' ? (
           <Board items={items} counts={counts} stage={stage} onStage={setStage} selected={selected} onSelect={toggle} onOpen={setOpenId} canManage={manage} showJob={jobId === 'all'} />
         ) : (
