@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert, Linking, View } from 'react-native'
-import { BarChart3, CalendarClock, CalendarDays, CalendarPlus, Clock, MapPin, Mail, MessageSquare, Sparkles, Users, Video } from 'lucide-react-native'
+import { useRoute } from '@react-navigation/native'
+import { CalendarClock, CalendarDays, CalendarPlus, Clock, MapPin, Mail, MessageSquare, Sparkles, Users, Video } from 'lucide-react-native'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { EmailOption, emailOutcome, PickerField } from '../../components/web/ActionModals'
@@ -9,41 +10,41 @@ import { makeCriteria, STAGE_LABELS } from '../../lib/talent/criteria'
 import { listInterviewable } from '../../services/talent'
 import { AI_PROMPTS } from '../../components/web/AskAI'
 import { Avatar, Btn, C, Chip, EmptyState, Field, Input, Press, Sheet, Skeleton, T, card } from '../../components/wk'
-import { cancelInterview, listInterviews, rescheduleInterview } from '../../services/interviewsService'
+import { cancelInterview, listInterviews, rescheduleInterview, submitFeedback } from '../../services/interviewsService'
+import ScorecardSheet from '../../components/web/ScorecardSheet'
+import { usePermissions } from '../../services/recruiter'
 import { queryKeys } from '../../lib/queryClient'
 import { errorMessage } from '../../lib/api'
 import { useWorkspace } from '../../store/workspace'
 import { useAskAI } from '../../store/askai'
 import { agoDate } from '../../lib/tfmt'
 
-export function MessagesScreen() {
+/** Messages composed on this device (sent from a candidate's Contact window, or saved as drafts). */
+export function LocalMessages() {
   const { messages } = useWorkspace()
   return (
-    <Shell>
-      <PageScroll>
-        <PageTitle title="Messages" sub="Emails and texts you sent from candidate profiles, and drafts you saved." />
-        {messages.length === 0 ? (
-          <EmptyState icon={MessageSquare} title="No messages yet" body="Use Contact on a candidate to email or text them — once you have viewed their email or phone number." />
-        ) : (
-          <View style={{ gap: 8 }}>
-            {messages.map((m) => (
-              <View key={m.id} style={[card, { padding: 16 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-                    <T s={14} w="s" numberOfLines={1} style={{ flexShrink: 1 }}>{m.candidateName}</T>
-                    <View style={{ borderRadius: 4, backgroundColor: C.line2, paddingHorizontal: 6, paddingVertical: 2 }}><T s={11} w="m" c={C.muted}>{String(m.channel).toUpperCase()}</T></View>
-                  </View>
-                  <T s={12} w={m.state === 'sent' ? 'm' : 'r'} c={m.state === 'sent' ? C.okText : C.muted}>{m.state === 'sent' ? 'Sent' : 'Draft'} · {agoDate(m.at)}</T>
+    <View style={{ gap: 20 }}>
+      {messages.length === 0 ? (
+        <EmptyState icon={MessageSquare} title="No messages yet" body="Use Contact on a candidate to email or text them — once you have viewed their email or phone number." />
+      ) : (
+        <View style={{ gap: 8 }}>
+          {messages.map((m) => (
+            <View key={m.id} style={[card, { padding: 16 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                  <T s={14} w="s" numberOfLines={1} style={{ flexShrink: 1 }}>{m.candidateName}</T>
+                  <View style={{ borderRadius: 4, backgroundColor: C.line2, paddingHorizontal: 6, paddingVertical: 2 }}><T s={11} w="m" c={C.muted}>{String(m.channel).toUpperCase()}</T></View>
                 </View>
-                {m.subject ? <T s={13} w="m" style={{ marginTop: 4 }}>{m.subject}</T> : null}
-                <T s={13} c={C.ink2} numberOfLines={3} style={{ marginTop: 4 }}>{m.body}</T>
+                <T s={12} w={m.state === 'sent' ? 'm' : 'r'} c={m.state === 'sent' ? C.okText : C.muted}>{m.state === 'sent' ? 'Sent' : 'Draft'} · {agoDate(m.at)}</T>
               </View>
-            ))}
-          </View>
-        )}
-        <T s={12} c={C.muted}>This list is stored on this device. Drafts are not delivered until you send them from the candidate's Contact window.</T>
-      </PageScroll>
-    </Shell>
+              {m.subject ? <T s={13} w="m" style={{ marginTop: 4 }}>{m.subject}</T> : null}
+              <T s={13} c={C.ink2} numberOfLines={3} style={{ marginTop: 4 }}>{m.body}</T>
+            </View>
+          ))}
+        </View>
+      )}
+      <T s={12} c={C.muted}>This list is stored on this device. Drafts are not delivered until you send them from the candidate's Contact window.</T>
+    </View>
   )
 }
 
@@ -63,13 +64,17 @@ function relativeDay(date) {
 
 const EMAIL_NOTE = { failed: 'Email could not be sent', not_configured: 'Email not sent (mail isn\u2019t set up)', no_email: 'Email not sent (no address on file)', not_allowed: 'Email not sent (address not unlocked)' }
 
-function InterviewCard({ i, past, onReschedule, onCancel }) {
+function InterviewCard({ i, past, onReschedule, onCancel, onComplete, onScorecard }) {
   const d = new Date(i.startsAt)
+  const fb = i.feedbackState
+  const scorecards = i.scorecards ?? []
   const end = i.durationMins ? new Date(d.getTime() + i.durationMins * 60000) : null
   const cancelled = i.status === 'Cancelled'
   const video = i.mode !== 'On-site'
   const [bg, fg] = tone[i.status] ?? [C.blueSoft, '#1f6fb2']
   const active = !past && !['Cancelled', 'Completed'].includes(i.status)
+  const started = d <= new Date()
+  const manageable = !['Cancelled', 'Completed'].includes(i.status) && (onReschedule || onCancel || onComplete)
   const sent = i.email?.status === 'sent'
   return (
     <View style={[card, { padding: 14, gap: 12, opacity: past || cancelled ? 0.8 : 1 }]}>
@@ -92,6 +97,26 @@ function InterviewCard({ i, past, onReschedule, onCancel }) {
           {active ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><CalendarClock size={14} color={C.accentText} /><T s={13} w="m" c={C.accentText}>{relativeDay(d)}</T></View> : null}
         </View>
       </View>
+      {fb?.pending ? (
+        <View style={{ borderRadius: 8, backgroundColor: fb.overdue ? '#f5e9e7' : C.warnSoft, paddingHorizontal: 12, paddingVertical: 8 }}>
+          <T s={13} w="s" c={fb.overdue ? '#9a3a2c' : C.warn}>
+            {fb.overdue ? 'Feedback overdue' : 'Feedback pending'}
+            {fb.awaiting?.length > 0 ? <T s={13} c={fb.overdue ? '#9a3a2c' : C.warn}> · waiting on {fb.awaiting.map((a) => a.name).join(', ')}</T> : null}
+            {i.feedbackDueOn ? <T s={13} c={fb.overdue ? '#9a3a2c' : C.warn}> · due {new Date(i.feedbackDueOn).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</T> : null}
+          </T>
+        </View>
+      ) : null}
+      {scorecards.length > 0 ? (
+        <View style={{ borderRadius: 8, borderWidth: 1, borderColor: C.line2, backgroundColor: '#faf9f6', paddingHorizontal: 12, paddingVertical: 8, gap: 2 }}>
+          <T s={11.5} w="b" c={C.ink2} style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>Scorecards{i.overallRating != null ? <T s={12} w="r" c={C.ink} style={{ textTransform: 'none' }}> · <T s={12} w="b">{i.overallRating}</T>/5 average</T> : null}</T>
+          {scorecards.map((sc) => (
+            <View key={sc.interviewer} style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
+              <T s={12.5}>{sc.interviewerName}</T>
+              <T s={12.5} w="s">{sc.recommendation}</T>
+            </View>
+          ))}
+        </View>
+      ) : null}
       {(i.panel ?? []).length > 0 ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
           <Users size={13} color={C.muted} />
@@ -102,10 +127,12 @@ function InterviewCard({ i, past, onReschedule, onCancel }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Mail size={12} color={sent ? C.okText : C.muted} /><T s={12} c={sent ? C.okText : C.muted}>{sent ? `Email sent to ${i.email.to}` : EMAIL_NOTE[i.email.status]}</T></View>
       ) : null}
       {i.meetingLink && active ? <Btn variant="primary" size="sm" icon={Video} onPress={() => Linking.openURL(i.meetingLink)} style={{ alignSelf: 'flex-start' }}>Join interview</Btn> : null}
-      {active ? (
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <Btn size="sm" onPress={() => onReschedule(i)}>Reschedule</Btn>
-          <Btn size="sm" variant="ghost" onPress={() => onCancel(i)} textStyle={{ color: C.bad }}>Cancel</Btn>
+      {i.status !== 'Cancelled' && ((onScorecard && started) || manageable) ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+          {manageable && onReschedule ? <Btn size="sm" onPress={() => onReschedule(i)}>Reschedule</Btn> : null}
+          {onScorecard && started ? <Btn size="sm" variant="success" onPress={() => onScorecard(i)}>Scorecard</Btn> : null}
+          {manageable && onComplete && (past || !active) ? <Btn size="sm" onPress={() => onComplete(i)}>Mark completed</Btn> : null}
+          {manageable && onCancel ? <Btn size="sm" variant="ghost" onPress={() => onCancel(i)} textStyle={{ color: C.bad }}>Cancel</Btn> : null}
         </View>
       ) : null}
     </View>
@@ -153,7 +180,13 @@ function SchedulePicker({ open, onClose, onPick }) {
 
 export function InterviewsScreen() {
   const qc = useQueryClient()
+  const route = useRoute()
   const { toast } = useWorkspace()
+  const { me, can } = usePermissions()
+  const feedbackOnly = route.params?.filter === 'feedback'
+  const [scoring, setScoring] = useState(null)
+  const [completing, setCompleting] = useState(null)
+  const [note, setNote] = useState('')
   const q = useQuery({ queryKey: queryKeys.interviews, queryFn: listInterviews })
   const [picking, setPicking] = useState(false)
   const { onAction, host } = useActions(makeCriteria(), { onInterviewScheduled: () => qc.invalidateQueries({ queryKey: queryKeys.interviews }) })
@@ -202,17 +235,40 @@ export function InterviewsScreen() {
       { text: 'Cancel and email', style: 'destructive', onPress: () => doCancel(i, true) },
     ])
 
-  const upcoming = interviews.filter(isUpcoming).sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
+  const confirmComplete = async () => {
+    setBusy(true)
+    try {
+      await submitFeedback(completing.id, { feedback: { notes: note.trim() } })
+      toast('Interview marked completed')
+      setCompleting(null)
+      qc.invalidateQueries({ queryKey: queryKeys.interviews })
+    } catch (e) {
+      toast(errorMessage(e), { tone: 'warn' })
+    } finally {
+      setBusy(false)
+    }
+  }
+  const refreshInterviews = () => qc.invalidateQueries({ queryKey: queryKeys.interviews })
+  const actions = {
+    ...(can('interviews.manage') && { onReschedule: openResched, onCancel: cancel, onComplete: (i) => { setNote(''); setCompleting(i) } }),
+    ...(can('interviews.feedback') && { onScorecard: setScoring }),
+  }
+
+  // Interviews still owed feedback come first and are not repeated under "Needs update".
+  const pending = interviews.filter((i) => i.feedbackState?.pending).sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
+  const owed = new Set(pending.map((i) => i.id))
+  const upcoming = interviews.filter((i) => isUpcoming(i) && !owed.has(i.id)).sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
   // Time has passed but still not completed or cancelled: keep these visible and actionable.
   const isOverdue = (i) => !['Cancelled', 'Completed'].includes(i.status) && !isUpcoming(i)
-  const overdue = interviews.filter(isOverdue).sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt))
-  const past = interviews.filter((i) => !isUpcoming(i) && !isOverdue(i)).sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt))
+  const overdue = interviews.filter((i) => isOverdue(i) && !owed.has(i.id)).sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt))
+  const past = interviews.filter((i) => !isUpcoming(i) && !isOverdue(i) && !owed.has(i.id)).sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt))
+  const heading = { textTransform: 'uppercase', letterSpacing: 0.8 }
 
   return (
     <Shell>
       <PageScroll>
         <PageTitle title="Interviews" sub="Interviews you've scheduled with candidates." />
-        <Btn variant="primary" icon={CalendarPlus} onPress={() => setPicking(true)} style={{ alignSelf: 'flex-start' }}>Schedule interview</Btn>
+        {can('interviews.manage') ? <Btn variant="primary" icon={CalendarPlus} onPress={() => setPicking(true)} style={{ alignSelf: 'flex-start' }}>Schedule interview</Btn> : null}
         {q.isLoading ? (
           <View style={{ gap: 8 }}>{[0, 1, 2].map((i) => <Skeleton key={i} h={72} r={16} />)}</View>
         ) : q.isError ? (
@@ -221,27 +277,41 @@ export function InterviewsScreen() {
           <EmptyState icon={CalendarDays} title="No interviews scheduled" body="Choose Schedule interview to pick a candidate from your pipeline, or open a candidate and schedule from their profile." />
         ) : (
           <View style={{ gap: 22 }}>
-            <View style={{ gap: 10 }}>
-              <T s={12.5} w="b" c={C.muted} style={{ textTransform: 'uppercase', letterSpacing: 0.8 }}>Upcoming · {upcoming.length}</T>
-              {upcoming.length === 0 ? <T s={13.5} c={C.muted}>Nothing coming up. Schedule one with the button above.</T> : upcoming.map((i) => <InterviewCard key={i.id} i={i} onReschedule={openResched} onCancel={cancel} />)}
-            </View>
-            {overdue.length > 0 ? (
+            {pending.length > 0 ? (
               <View style={{ gap: 10 }}>
-                <T s={12.5} w="b" c={C.muted} style={{ textTransform: 'uppercase', letterSpacing: 0.8 }}>Needs update · {overdue.length}</T>
-                <T s={12.5} c={C.muted}>The time has passed and these aren&apos;t marked completed or cancelled yet.</T>
-                {overdue.map((i) => <InterviewCard key={i.id} i={i} onReschedule={openResched} onCancel={cancel} />)}
+                <T s={12.5} w="b" c={C.muted} style={heading}>Feedback pending · {pending.length}</T>
+                <T s={12.5} c={C.muted}>Each interviewer submits a scorecard; the interview is marked completed once everyone on the panel has.</T>
+                {pending.map((i) => <InterviewCard key={i.id} i={i} past {...actions} />)}
               </View>
             ) : null}
-            {past.length > 0 ? (
+            {feedbackOnly && pending.length === 0 ? <T s={13.5} c={C.muted} style={{ textAlign: 'center', paddingVertical: 20 }}>No interviews are waiting for feedback.</T> : null}
+            {!feedbackOnly ? (
               <View style={{ gap: 10 }}>
-                <T s={12.5} w="b" c={C.muted} style={{ textTransform: 'uppercase', letterSpacing: 0.8 }}>Past and cancelled · {past.length}</T>
-                {past.map((i) => <InterviewCard key={i.id} i={i} past onReschedule={openResched} onCancel={cancel} />)}
+                <T s={12.5} w="b" c={C.muted} style={heading}>Upcoming · {upcoming.length}</T>
+                {upcoming.length === 0 ? <T s={13.5} c={C.muted}>Nothing coming up. Schedule one with the button above.</T> : upcoming.map((i) => <InterviewCard key={i.id} i={i} {...actions} />)}
+              </View>
+            ) : null}
+            {!feedbackOnly && overdue.length > 0 ? (
+              <View style={{ gap: 10 }}>
+                <T s={12.5} w="b" c={C.muted} style={heading}>Needs update · {overdue.length}</T>
+                <T s={12.5} c={C.muted}>The time has passed and these aren&apos;t marked completed or cancelled yet.</T>
+                {overdue.map((i) => <InterviewCard key={i.id} i={i} past {...actions} />)}
+              </View>
+            ) : null}
+            {!feedbackOnly && past.length > 0 ? (
+              <View style={{ gap: 10 }}>
+                <T s={12.5} w="b" c={C.muted} style={heading}>Past and cancelled · {past.length}</T>
+                {past.map((i) => <InterviewCard key={i.id} i={i} past onScorecard={actions.onScorecard} />)}
               </View>
             ) : null}
           </View>
         )}
       </PageScroll>
 
+      <ScorecardSheet interview={scoring} myId={me?.id} onClose={() => setScoring(null)} onSaved={refreshInterviews} toast={toast} />
+      <Sheet open={!!completing} onClose={() => setCompleting(null)} title="Mark interview completed" subtitle={completing?.candidateName} footer={<><Btn onPress={() => setCompleting(null)}>Close</Btn><Btn variant="primary" loading={busy} disabled={!note.trim()} onPress={confirmComplete}>Mark completed</Btn></>}>
+        <Field label="How did it go? (private note)"><Input value={note} onChangeText={setNote} multiline /></Field>
+      </Sheet>
       <SchedulePicker open={picking} onClose={() => setPicking(false)} onPick={(c) => { setPicking(false); onAction('interview', c) }} />
       {host}
 
@@ -278,17 +348,6 @@ export function AITalentScreen() {
             </View>
           ))}
         </View>
-      </PageScroll>
-    </Shell>
-  )
-}
-
-export function ReportsScreen() {
-  return (
-    <Shell>
-      <PageScroll>
-        <PageTitle title="Reports" sub="Hiring funnel, sources, search and outreach performance." />
-        <EmptyState icon={BarChart3} title="Reports aren't connected yet" body="Analytics live here, deliberately away from the search screen. They'll populate from real hiring activity once the reporting endpoints are wired — no placeholder numbers are shown." />
       </PageScroll>
     </Shell>
   )
