@@ -157,7 +157,7 @@ export default function SearchScreen({ route }) {
         <T s={32} w="x" style={{ letterSpacing: -1, lineHeight: 37 }}>Search <T s={32} w="s" c={C.accent} style={{ fontFamily: F.i, fontStyle: 'italic' }}>candidates</T></T>
         <T s={14} c={C.muted}>Discover verified talent matched to your hiring requirements.</T>
       </View>
-      <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 10, minHeight: 34 }}>
+      <View style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 10, minHeight: 34 }}>
         <Radio size={13} color={C.ok} />
         <T s={12} w="m" c={C.ink2}>Live · {meta ? `${meta.total} candidates` : 'connecting…'}</T>
         <Pressable onPress={resync} disabled={syncing} accessibilityLabel="Refresh candidates" hitSlop={8} style={{ opacity: syncing ? 0.5 : 1 }}>
@@ -172,7 +172,7 @@ export default function SearchScreen({ route }) {
       <SearchComposer criteria={criteria} onSearch={runQuery} onClear={clearAll} canClear={active} loading={loading} />
 
       {chips.length > 0 ? (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, borderRadius: 16, borderWidth: 1, borderColor: aiUnderstood ? C.aiLine : C.line, backgroundColor: aiUnderstood ? '#f2fbf9' : '#fff', paddingHorizontal: 14, paddingVertical: 10 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, borderRadius: 16, borderWidth: 1, borderColor: aiUnderstood ? C.aiLine : C.line, backgroundColor: aiUnderstood ? C.accentTint : C.surface, paddingHorizontal: 14, paddingVertical: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             {aiUnderstood ? <Sparkles size={13} color={C.accentText} /> : <SlidersHorizontal size={13} color={C.ink2} />}
             <T s={12.5} w="s" c={aiUnderstood ? C.accentText : C.ink2}>{aiUnderstood ? 'Mzobs understood your search' : 'Active filters'}</T>
@@ -226,7 +226,7 @@ export default function SearchScreen({ route }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <Btn icon={SlidersHorizontal} onPress={() => setFiltersOpen(true)}>{`Filters${chips.length > 0 ? ` (${chips.length})` : ''}`}</Btn>
           <Select value={sort} onChange={setSort} options={SORTS.map((s) => [s.id, s.label])} title="Sort by" style={{ flex: 1, minHeight: 40 }} />
-          <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', padding: 2 }}>
+          <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, padding: 2 }}>
             {[['list', LayoutList, 'List view'], ['compact', Rows3, 'Compact view']].map(([id, Icon, label]) => (
               <Pressable key={id} onPress={() => setView(id)} accessibilityRole="radio" accessibilityLabel={label} accessibilityState={{ checked: view === id }} style={{ width: 36, height: 36, borderRadius: 6, alignItems: 'center', justifyContent: 'center', backgroundColor: view === id ? C.accentSoft : 'transparent' }}>
                 <Icon size={15} color={view === id ? C.accent : C.muted} />
