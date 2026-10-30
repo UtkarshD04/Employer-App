@@ -37,6 +37,9 @@ import { getCompany } from '../services/companyService'
 
 const Stack = createNativeStackNavigator()
 
+// The navigator is remounted when the theme changes; handing it its last state back keeps the user on the same screen.
+let lastNavState
+
 export default function RootNavigator() {
   const { isAuthenticated, isBootstrapping, company: sessionCompany } = useAuth()
   const { colors, fontFamily } = useTheme()
@@ -92,7 +95,7 @@ export default function RootNavigator() {
     )
 
   return (
-    <NavigationContainer ref={navigationRef} theme={navTheme}>
+    <NavigationContainer ref={navigationRef} theme={navTheme} initialState={lastNavState} onStateChange={(st) => { lastNavState = st }}>
       {isAuthenticated && !gstVerified ? (
         <Stack.Navigator screenOptions={screenOptions}>
           <Stack.Screen name="GstGate" component={GstGateScreen} options={{ title: 'Verify your company' }} />
