@@ -1,5 +1,6 @@
 // Small building blocks shared by the recruiter-console screens (Overview, Applicants, Offers, Team, ...) —
 // the website's components/rc.jsx for React Native.
+import { useCallback, useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { AlertCircle } from 'lucide-react-native'
 import { Btn, C, Press, Skeleton, T, card } from '../wk'
@@ -82,3 +83,17 @@ export const ago = (d) => {
 }
 
 export const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
+/** Pull-to-refresh state for a screen: `reload` may return a promise; the spinner stays until it settles. */
+export function useRefresh(reload) {
+  const [refreshing, setRefreshing] = useState(false)
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      await reload()
+    } finally {
+      setRefreshing(false)
+    }
+  }, [reload])
+  return { refreshing, onRefresh }
+}
