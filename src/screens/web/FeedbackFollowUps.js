@@ -5,7 +5,7 @@ import { MessageSquareWarning } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import RejectionFeedbackSheet, { feedbackSubmitError } from '../../components/web/RejectionFeedbackSheet'
 import { Btn, C, Chip, EmptyState, Skeleton, T, card } from '../../components/wk'
-import { useRefresh } from '../../components/web/rc'
+import { FadeIn, useRefresh } from '../../components/web/rc'
 import { useWorkspace } from '../../store/workspace'
 import { getCandidateFeedback, listFeedbackFollowUps, resubmitFeedback } from '../../services/recruiter'
 import { agoDate } from '../../lib/tfmt'
@@ -65,8 +65,8 @@ export default function FeedbackFollowUpsScreen() {
             </View>
           ) : null}
           {rows?.length === 0 ? <EmptyState icon={MessageSquareWarning} title="Nothing needs your attention" body="You'll see a request here if Mzobs needs more detail on a rejection." /> : null}
-          {rows?.map((row) => (
-            <View key={row.id} style={[card, { padding: 16, gap: 10 }]}>
+          {rows?.map((row, k) => (
+            <FadeIn key={row.id} index={k}><View style={[card, { padding: 16, gap: 10 }]}>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                 <View style={{ flex: 1 }}>
                   <Pressable onPress={() => nav.navigate('CandidateProfile', { id: row.candidateId })}><T s={15} w="s">{row.candidateName || 'Candidate'}</T></Pressable>
@@ -80,7 +80,7 @@ export default function FeedbackFollowUpsScreen() {
                 </View>
               ) : null}
               <Btn variant="primary" size="sm" loading={opening === row.id} onPress={() => startEditing(row)} style={{ alignSelf: 'flex-start' }}>Update feedback</Btn>
-            </View>
+            </View></FadeIn>
           ))}
         </View>
       </PageScroll>
