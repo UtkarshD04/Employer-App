@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { BarChart3, Download, GitCompareArrows, Search, Users, X } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { InterviewModal } from '../../components/web/ActionModals'
-import { ErrorBlock, ListSkeleton } from '../../components/web/rc'
+import { ErrorBlock, ListSkeleton, useRefresh } from '../../components/web/rc'
 import { ApplicantList, Board } from '../../components/web/applicants/Views'
 import ApplicantSheet from '../../components/web/applicants/ApplicantSheet'
 import RejectSheet from '../../components/web/applicants/RejectSheet'
@@ -117,13 +117,14 @@ export default function ApplicantsScreen({ route }) {
     }
   }
 
+  const { refreshing, onRefresh } = useRefresh(() => Promise.all([load({ silent: true }), getApplicantsSummary().then(setJobs).catch(() => {})]))
   const filtered = !!(q || owner || tag || followUp || stageFilter)
   const clearFilters = () => { setQ(''); setOwner(''); setTag(''); setFollowUp(false); setStageFilter('') }
   const jobOptions = [['all', 'All jobs'], ...jobs.map((j) => [j.id, `${j.title} (${j.total})`])]
 
   return (
     <Shell>
-      <PageScroll>
+      <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <PageTitle title={job ? job.title : 'Applicants'} sub={job ? `${job.location ?? ''}${job.department ? ` · ${job.department}` : ''}` : 'Every candidate across your jobs, by stage.'} />
 
         <View style={{ gap: 10 }}>
