@@ -34,17 +34,19 @@ export function StatTile({ label, value, hint, onPress, warn }) {
   return onPress ? <Press onPress={onPress} style={{ width: '48.5%' }}>{body}</Press> : <View style={{ width: '48.5%' }}>{body}</View>
 }
 
-export const STAGE_TONE = {
-  new: ['#eef1f3', C.ink2],
-  reviewed: ['#e8eef3', C.ink2],
+// [background, text] per stage — a function so it follows the current palette.
+export const stageTone = () => ({
+  new: [C.chipBg, C.ink2],
+  reviewed: [C.chipBg, C.ink2],
   shortlisted: [C.accentSoft, C.accent],
-  interview: ['#e6eef6', '#24557f'],
-  offer: ['#f6efdc', '#7a5a14'],
+  interview: [C.blueSoft, C.blueText],
+  offer: [C.warnTint, C.warnText],
   hired: [C.okSoft, C.ok],
-  rejected: ['#f5e9e7', '#9a3a2c'],
-}
+  rejected: [C.badTint, C.badText],
+})
 export function StagePill({ stage, label }) {
-  const [bg, fg] = STAGE_TONE[stage] ?? STAGE_TONE.new
+  const tone = stageTone()
+  const [bg, fg] = tone[stage] ?? tone.new
   return <View style={{ alignSelf: 'flex-start', borderRadius: 5, backgroundColor: bg, paddingHorizontal: 6, paddingVertical: 2 }}><T s={11.5} w="s" c={fg}>{label}</T></View>
 }
 
