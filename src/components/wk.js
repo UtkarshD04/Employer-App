@@ -251,7 +251,8 @@ export function Sheet({ open, onClose, title, subtitle, children, footer, footer
           <Pressable style={{ flex: 1 }} onPress={onClose} />
         </Animated.View>
         <Animated.View style={[{ maxHeight: '90%', backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [500, 0] }) }] }, shadowPop]}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.line }}>
+          <View style={{ alignItems: 'center', paddingTop: 8 }}><View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: C.line }} /></View>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: C.line }}>
             <View style={{ flex: 1 }}>
               <T s={17} w="s">{title}</T>
               {subtitle ? <T s={13} c={C.muted} style={{ marginTop: 2 }}>{subtitle}</T> : null}
