@@ -4,6 +4,9 @@ import { Avatar, C, CheckBox, T, Tag, card } from '../../wk'
 import { FadeIn, STAGE_TONE, StagePill, fmtDate } from '../rc'
 import { PIPELINE, STAGE_LABEL } from '../../../services/recruiter'
 
+// Applied in the last two days and still untouched.
+const isFresh = (c) => c.stage === 'new' && c.appliedAt && Date.now() - new Date(c.appliedAt).getTime() < 2 * 86400000
+
 const dueNow = (c) => c.followUpOn && new Date(c.followUpOn) <= new Date()
 
 function OwnerChip({ owner }) {
@@ -41,6 +44,7 @@ export function ApplicantCard({ c, selected, onSelect, onOpen, canManage, showJo
           <T s={14} w="s" numberOfLines={1}>{c.name}</T>
           <T s={12.5} c={C.muted} numberOfLines={1}>{c.currentRole || 'Role not stated'}</T>
         </View>
+        {isFresh(c) ? <Tag bg={C.accentSoft} fg={C.accentText}>New</Tag> : null}
         {c.premium ? <Star size={13} color="#b8860b" fill="#b8860b" /> : null}
         {showStage ? <StagePill stage={c.stage} label={STAGE_LABEL[c.stage]} /> : null}
       </View>
