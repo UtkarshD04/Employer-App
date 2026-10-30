@@ -4,7 +4,8 @@ import { CommonActions, useNavigation, useRoute } from '@react-navigation/native
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CalendarDays, LayoutDashboard, MoreHorizontal, Search, Users } from 'lucide-react-native'
 import { ROUTES } from '../../lib/routes'
-import { usePermissions } from '../../services/recruiter'
+import { useQuery } from '@tanstack/react-query'
+import { getApplicantsSummary, usePermissions } from '../../services/recruiter'
 import { tap } from '../../lib/haptics'
 import { C, Sheet, T } from '../wk'
 
@@ -22,6 +23,9 @@ export default function BottomBar() {
   const route = useRoute()
   const { loaded, can } = usePermissions()
   const [more, setMore] = useState(false)
+  // Applicants still waiting for a first look, summed across jobs; refreshes at most once a minute.
+  const summary = useQuery({ queryKey: ['applicants', 'summary'], queryFn: getApplicantsSummary, staleTime: 60_000, enabled: !loaded || can('candidates.view') })
+  const fresh = (summary.data ?? []).reduce((n, j) => n + (j.counts?.new ?? 0), 0)
   const [typing, setTyping] = useState(false)
   // The bar would ride up above the keyboard and cover the field being typed in.
   useEffect(() => {
@@ -40,16 +44,19 @@ export default function BottomBar() {
     nav.dispatch(CommonActions.reset({ index: 0, routes: [{ name }] }))
   }
   const inMore = !tabNames.has(route.name)
-  const item = (key, label, Icon, on, onPress) => (
-    <Pressable key={key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ flex: 1, minHeight: 54, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-      <Icon size={20} color={on ? C.accent : C.muted} strokeWidth={on ? 2.4 : 2} />
+  const item = (key, label, Icon, on, onPress, badge) => (
+    <Pressable key={key} onPress={onPress} accessibilityRole="tab" accessibilityState={{ selected: on }} accessibilityLabel={badge ? `${label}, ${badge} new` : label} style={{ flex: 1, minHeight: 54, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+      <View>
+        <Icon size={20} color={on ? C.accent : C.muted} strokeWidth={on ? 2.4 : 2} />
+        {badge ? <View style={{ position: 'absolute', top: -5, right: -10, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: C.bad, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}><T s={9.5} w="b" c="#fff" style={{ lineHeight: 12 }}>{badge > 99 ? '99+' : badge}</T></View> : null}
+      </View>
       <T s={10.5} w={on ? 'b' : 'm'} c={on ? C.accent : C.muted}>{label}</T>
     </Pressable>
   )
   return (
     <>
       <View style={{ display: typing ? 'none' : 'flex', flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: C.line, paddingBottom: insets.bottom }}>
-        {TABS.filter(allowed).map((t) => item(t.name, t.label, t.icon, route.name === t.name, () => go(t.name)))}
+        {TABS.filter(allowed).map((t) => item(t.name, t.label, t.icon, route.name === t.name, () => go(t.name), t.name === 'Applicants' ? fresh : 0))}
         {item('more', 'More', MoreHorizontal, inMore || more, () => setMore(true))}
       </View>
       <Sheet open={more} onClose={() => setMore(false)} title="More">
