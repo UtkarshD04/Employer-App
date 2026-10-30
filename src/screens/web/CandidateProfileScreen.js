@@ -87,7 +87,7 @@ function Timeline({ history }) {
     <View style={{ marginLeft: 8, borderLeftWidth: 2, borderLeftColor: C.line2, paddingLeft: 22, gap: 24 }}>
       {history.map((w, i) => (
         <View key={`${w.company}-${i}`}>
-          <View style={{ position: 'absolute', left: -31, top: 4, width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: '#fff', backgroundColor: i === 0 ? C.accent : '#c5c9d8' }} />
+          <View style={{ position: 'absolute', left: -31, top: 4, width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: '#fff', backgroundColor: i === 0 ? C.accent : C.dot }} />
           <T s={12} w="m" c={C.muted}>{w.startYear ?? '—'} — {w.endYear ?? 'Present'}</T>
           <T s={15} w="s">{w.role}</T>
           <T s={13.5} c={C.ink2}>{w.company}{w.location ? ` · ${w.location}` : ''}</T>
@@ -126,7 +126,7 @@ function CvSection({ candidate: c, onUnlock }) {
             {[70, 45, 90, 80, 60, 85, 40].map((w, i) => <View key={i} style={{ height: 10, borderRadius: 4, backgroundColor: C.line2, width: `${w}%` }} />)}
           </View>
           <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.55)', padding: 12 }}>
-            <View style={{ maxWidth: 300, borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 16, alignItems: 'center' }}>
+            <View style={{ maxWidth: 300, borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 20, paddingVertical: 16, alignItems: 'center' }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Lock size={14} color={C.ink} /><T s={14} w="s">CV is locked</T></View>
               <T s={13} c={C.muted} style={{ textAlign: 'center', marginTop: 4 }}>{creditSpent(c) ? `You have already used the credit for ${c.name.split(' ')[0]} — viewing the CV is free.` : `Viewing ${c.name.split(' ')[0]}'s CV uses 1 credit — once. Email and phone open separately, and are then free.`}</T>
               <Btn variant="primary" size="sm" icon={Eye} onPress={onUnlock} style={{ marginTop: 12 }}>{creditSpent(c) ? 'View CV · free' : 'View CV · 1 credit'}</Btn>
@@ -237,7 +237,7 @@ export default function CandidateProfileScreen({ route }) {
             ) : null}
           </View>
 
-          <View style={{ borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', padding: 20 }}>
+          <View style={{ borderRadius: 16, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, padding: 20 }}>
             <View style={{ flexDirection: 'row', gap: 14 }}>
               <Avatar candidate={c} size={68} />
               <View style={{ flex: 1 }}>
@@ -261,7 +261,7 @@ export default function CandidateProfileScreen({ route }) {
               <TrustScore score={trust.score} onPress={() => onAction('trust', row)} />
             </View>
             <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 8, borderTopWidth: 1, borderTopColor: C.line2, paddingTop: 16 }}>
-              {actions.map((a) => <Btn key={a.label} variant={a.primary ? 'primary' : 'outline'} icon={a.icon} onPress={a.run} style={undefined} textStyle={a.on ? { color: '#1a8f5a' } : undefined}>{a.label}</Btn>)}
+              {actions.map((a) => <Btn key={a.label} variant={a.primary ? 'primary' : 'outline'} icon={a.icon} onPress={a.run} style={undefined} textStyle={a.on ? { color: C.okText } : undefined}>{a.label}</Btn>)}
               <Btn icon={GitCompareArrows} onPress={() => toggleCompare(c.id)}>{compare.includes(c.id) ? 'In compare' : 'Compare'}</Btn>
               <Btn icon={isRevealed(c, 'resume') ? FileText : Lock} onPress={() => onAction('resume', c)}>View CV</Btn>
               <Btn variant="ghost" icon={Share2} onPress={() => onAction('share', c)}>Share</Btn>
@@ -271,7 +271,7 @@ export default function CandidateProfileScreen({ route }) {
               <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, borderTopWidth: 1, borderTopColor: C.line2, paddingTop: 16 }}>
                 <T s={12} w="m" c={C.muted} style={{ letterSpacing: 0.6 }}>PIPELINE</T>
                 {STAGES.map((st) => (
-                  <Press key={st} disabled={stageBusy || c.stage === st} scale={0.95} onPress={() => (st === 'rejected' ? (setRejectPreset(''), setReject('')) : moveStage(st))} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: c.stage === st ? C.accent : C.line, backgroundColor: c.stage === st ? C.accentSoft : '#fff', paddingHorizontal: 12, opacity: stageBusy && c.stage !== st ? 0.5 : 1 }}>
+                  <Press key={st} disabled={stageBusy || c.stage === st} scale={0.95} onPress={() => (st === 'rejected' ? (setRejectPreset(''), setReject('')) : moveStage(st))} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: c.stage === st ? C.accent : C.line, backgroundColor: c.stage === st ? C.accentSoft : C.surface, paddingHorizontal: 12, opacity: stageBusy && c.stage !== st ? 0.5 : 1 }}>
                     <T s={12.5} w="m" c={c.stage === st ? C.accentText : C.ink2}>{STAGE_LABELS[st]}</T>
                   </Press>
                 ))}
@@ -458,7 +458,7 @@ export default function CandidateProfileScreen({ route }) {
         <T s={13} w="m" c={C.ink2}>Pick a reason</T>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8, marginBottom: 12 }}>
           {REJECTION_REASONS.map((r) => (
-            <Press key={r} scale={0.96} onPress={() => setRejectPreset((cur) => (cur === r ? '' : r))} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: rejectPreset === r ? C.accent : C.line, backgroundColor: rejectPreset === r ? C.accentSoft : '#fff', paddingHorizontal: 12 }}>
+            <Press key={r} scale={0.96} onPress={() => setRejectPreset((cur) => (cur === r ? '' : r))} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: rejectPreset === r ? C.accent : C.line, backgroundColor: rejectPreset === r ? C.accentSoft : C.surface, paddingHorizontal: 12 }}>
               <T s={12.5} w="m" c={rejectPreset === r ? C.accentText : C.ink2}>{r}</T>
             </Press>
           ))}
