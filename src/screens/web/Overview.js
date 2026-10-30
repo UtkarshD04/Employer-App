@@ -7,6 +7,15 @@ import { ErrorBlock, ListSkeleton, StatTile, ago, fmtDateTime, useRefresh } from
 import { Banner, Btn, C, SectionCard, T } from '../../components/wk'
 import { apiMessage, getApplicantsSummary, getOverview, PIPELINE } from '../../services/recruiter'
 import { openHref } from '../../lib/navigation'
+import { useAuth } from '../../context/AuthContext'
+
+// "Good morning, Asha" — first name only, by the phone's local time.
+function greeting(name) {
+  const h = new Date().getHours()
+  const part = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
+  const first = String(name ?? '').trim().split(/\s+/)[0]
+  return first ? `${part}, ${first}` : 'Overview'
+}
 
 const SEVERITY = { high: C.bad, medium: C.warn, low: C.muted }
 const HEALTH_LABEL = { low_applications: 'Low applications', expiring: 'Closing soon', deadline_passed: 'Deadline passed', no_shortlist: 'No shortlist', feedback_pending: 'Feedback pending' }
@@ -17,6 +26,7 @@ function Dot({ severity, top }) {
 
 export default function OverviewScreen() {
   const nav = useNavigation()
+  const { user } = useAuth()
   const [data, setData] = useState(null)
   const [error, setError] = useState('')
   const [funnel, setFunnel] = useState(null)
@@ -44,7 +54,7 @@ export default function OverviewScreen() {
   return (
     <Shell>
       <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
-        <PageTitle title="Overview" sub={limited ? 'Your interviews and feedback.' : 'What needs doing today across your hiring.'} />
+        <PageTitle title={greeting(user?.name)} sub={limited ? 'Your interviews and feedback.' : 'What needs doing today across your hiring.'} />
         {!limited ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
             <Btn variant="primary" size="sm" icon={Plus} onPress={() => nav.navigate('JobForm')}>Post a job</Btn>
