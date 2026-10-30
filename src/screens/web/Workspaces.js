@@ -13,7 +13,7 @@ import { Avatar, Btn, C, Chip, EmptyState, Field, Input, Press, Sheet, Skeleton,
 import { cancelInterview, listInterviews, rescheduleInterview, submitFeedback } from '../../services/interviewsService'
 import ScorecardSheet from '../../components/web/ScorecardSheet'
 import { usePermissions } from '../../services/recruiter'
-import { useRefresh } from '../../components/web/rc'
+import { FadeIn, useRefresh } from '../../components/web/rc'
 import { queryKeys } from '../../lib/queryClient'
 import { errorMessage } from '../../lib/api'
 import { useWorkspace } from '../../store/workspace'
@@ -290,7 +290,7 @@ export function InterviewsScreen() {
             {!feedbackOnly ? (
               <View style={{ gap: 10 }}>
                 <T s={12.5} w="b" c={C.muted} style={heading}>Upcoming · {upcoming.length}</T>
-                {upcoming.length === 0 ? <T s={13.5} c={C.muted}>Nothing coming up. Schedule one with the button above.</T> : upcoming.map((i) => <InterviewCard key={i.id} i={i} {...actions} />)}
+                {upcoming.length === 0 ? <T s={13.5} c={C.muted}>Nothing coming up. Schedule one with the button above.</T> : upcoming.map((i, k) => <FadeIn key={i.id} index={k}><InterviewCard i={i} {...actions} /></FadeIn>)}
               </View>
             ) : null}
             {!feedbackOnly && overdue.length > 0 ? (
