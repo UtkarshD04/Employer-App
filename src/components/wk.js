@@ -11,7 +11,7 @@ import { matchTone } from '../lib/talent/engine'
 import { escapeRegex } from '../lib/tfmt'
 
 export const C = {
-  bg: '#f6f8fb', surface: '#ffffff', ink: '#0e2237', ink2: '#33506a', muted: '#5a7488', line: '#dfe7ee', line2: '#eef3f6', panel: '#f5f9fb',
+  bg: '#f7f5f0', surface: '#ffffff', ink: '#0e2237', ink2: '#33506a', muted: '#5a7488', line: '#dde3e8', line2: '#eceff0', panel: '#f5f9fb',
   accent: '#08685e', accent2: '#0a8a7a', accentSoft: '#e6f7f3', accentText: '#0a6f64', blue: '#1c68ab', blueText: '#1f6fb2', blueSoft: '#e9f2fc',
   ai: '#0f9e8e', aiSoft: '#e1f5f0', aiLine: '#bfe6df', ok: '#187a4d', okText: '#1a8f5a', okSoft: '#e3f5ea', okLine: '#bfe8cf',
   warn: '#a8500c', warnSoft: '#fdf0dd', warnLine: '#f3dfb8', bad: '#d33a2c', badSoft: '#fdecec', icon: '#7d93a6', ph: '#8aa0b2', amber: '#f59e0b',
@@ -48,6 +48,7 @@ const BTN = {
   outline: { fg: C.ink, bg: '#fff', border: C.line },
   ghost: { fg: C.ink2, bg: 'transparent' },
   danger: { fg: '#fff', bg: C.bad },
+  success: { fg: C.okText, bg: C.okSoft, border: C.okLine },
 }
 const SIZE = { sm: { h: 34, px: 14, fs: 12.5, ic: 14 }, md: { h: 40, px: 17, fs: 13, ic: 15 }, lg: { h: 46, px: 24, fs: 14.5, ic: 16 } }
 
