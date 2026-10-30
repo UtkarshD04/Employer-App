@@ -65,7 +65,7 @@ export default function ScorecardSheet({ interview, myId, onClose, onSaved, toas
                 {[1, 2, 3, 4, 5].map((n) => {
                   const on = ratings[k] === n
                   return (
-                    <Pressable key={n} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => setRatings((r) => ({ ...r, [k]: n }))} style={{ flex: 1, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accent : '#fff' }}>
+                    <Pressable key={n} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => setRatings((r) => ({ ...r, [k]: n }))} style={{ flex: 1, minHeight: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accent : C.surface }}>
                       <T s={14} w="b" c={on ? '#fff' : C.ink2}>{n}</T>
                     </Pressable>
                   )
@@ -83,7 +83,7 @@ export default function ScorecardSheet({ interview, myId, onClose, onSaved, toas
             {RECOMMENDATIONS.map((r) => {
               const on = rec === r
               return (
-                <Pressable key={r} accessibilityState={{ selected: on }} onPress={() => setRec(r)} style={{ minHeight: 40, minWidth: '22%', flexGrow: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : '#fff' }}>
+                <Pressable key={r} accessibilityState={{ selected: on }} onPress={() => setRec(r)} style={{ minHeight: 40, minWidth: '22%', flexGrow: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 8, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : C.surface }}>
                   <T s={13} w="b" c={on ? C.accent : C.ink}>{r}</T>
                 </Pressable>
               )
