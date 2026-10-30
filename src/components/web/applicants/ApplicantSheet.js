@@ -146,8 +146,8 @@ export default function ApplicantSheet({ id, onClose, onChanged, onReject, onSch
               </View>
             ) : null}
             {c.notes.length === 0 ? <T s={12.5} c={C.muted}>No notes yet.</T> : c.notes.map((n) => (
-              <View key={n.id} style={{ borderRadius: 10, backgroundColor: '#faf9f6', paddingHorizontal: 12, paddingVertical: 8 }}>
-                <T s={13}>{n.kind === 'rejection' ? <T s={13} w="b" c="#9a3a2c">Internal rejection reason: </T> : null}{n.text}</T>
+              <View key={n.id} style={{ borderRadius: 10, backgroundColor: C.sunken, paddingHorizontal: 12, paddingVertical: 8 }}>
+                <T s={13}>{n.kind === 'rejection' ? <T s={13} w="b" c={C.badText}>Internal rejection reason: </T> : null}{n.text}</T>
                 <T s={11.5} c={C.muted} style={{ marginTop: 2 }}>{n.byName} · {fmtDateTime(n.at)}</T>
               </View>
             ))}
@@ -168,7 +168,7 @@ export default function ApplicantSheet({ id, onClose, onChanged, onReject, onSch
             <View style={{ marginLeft: 6, borderLeftWidth: 1, borderLeftColor: C.line }}>
               {c.events.length === 0 ? <T s={12.5} c={C.muted} style={{ paddingLeft: 14 }}>Nothing recorded yet.</T> : c.events.map((e) => (
                 <View key={e.id} style={{ paddingLeft: 14, paddingBottom: 12 }}>
-                  <View style={{ position: 'absolute', left: -3.5, top: 7, width: 6, height: 6, borderRadius: 3, backgroundColor: '#9db0bd' }} />
+                  <View style={{ position: 'absolute', left: -3.5, top: 7, width: 6, height: 6, borderRadius: 3, backgroundColor: C.dot }} />
                   <T s={13}><T s={11} w="b" c={C.muted} style={{ textTransform: 'uppercase' }}>{EVENT_LABEL[e.type] ?? e.type}  </T>{e.text}</T>
                   <T s={11.5} c={C.muted}>{[e.actorName, ago(e.at)].filter(Boolean).join(' · ')}</T>
                 </View>
