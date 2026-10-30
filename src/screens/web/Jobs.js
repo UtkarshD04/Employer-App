@@ -3,6 +3,7 @@ import { Linking, Pressable, ScrollView, View } from 'react-native'
 import { AlertTriangle, ArrowLeft, Briefcase, CheckCircle2, Clock, Copy, Eye, EyeOff, ExternalLink, IndianRupee, MapPin, Pencil, Plus, Power, Rocket, Search, Sparkles, Trash2, Users } from 'lucide-react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Shell, PageTitle, PageScroll } from '../../components/web/Shell'
+import { usePermissions } from '../../services/recruiter'
 import { TagInput } from '../../components/web/FilterPanel'
 import { PickerField } from '../../components/web/ActionModals'
 import { Banner, Btn, C, CardSkeleton, Chip, EmptyState, Field, Input, Sheet, Select, Skeleton, T, card } from '../../components/wk'
@@ -47,6 +48,8 @@ function Meta({ icon: Icon, children }) {
 function JobRow({ job, onChanged, onAsk, publicIds }) {
   const nav = useNavigation()
   const { toast } = useWorkspace()
+  const { can: allowed, loaded } = usePermissions()
+  const can = (p) => !loaded || allowed(p)
   const [busy, setBusy] = useState(false)
   const run = async (fn, ok) => {
     setBusy(true)
@@ -84,13 +87,15 @@ function JobRow({ job, onChanged, onAsk, publicIds }) {
       <View style={{ borderTopWidth: 1, borderTopColor: C.line2, paddingTop: 12, gap: 10 }}>
         <T s={12} c={C.muted}>{job.postedOn ? `Posted ${agoDate(job.postedOn)}` : `Updated ${agoDate(job.updatedOn ?? job.updatedAt ?? new Date().toISOString())}`}{job.feeTotal ? ` · Fee ₹${job.feeTotal.toLocaleString('en-IN')} (${job.feeStatus})` : ''}</T>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {job.status !== 'draft' ? <Btn size="sm" icon={Users} onPress={() => nav.navigate('Applicants', { jobId: job.id })}>Applicants</Btn> : null}
+          {PUBLIC.includes(job.status) && can('support.request') ? <Pressable onPress={() => nav.navigate('Applicants', { jobId: job.id })} hitSlop={6} style={{ minHeight: 34, justifyContent: 'center', paddingHorizontal: 4 }}><T s={12.5} w="s" c={C.accent}>Need help shortlisting?</T></Pressable> : null}
           {canFind ? <Btn size="sm" variant="ai" icon={Search} onPress={() => nav.navigate('JobTalent', { jobId: job.id })}>Find talent</Btn> : null}
-          {job.status === 'draft' ? <Btn size="sm" variant="primary" icon={Rocket} disabled={busy} onPress={() => run(() => setJobStatus(job.id, 'pending_review'), `“${job.title}” is live`)}>Publish</Btn> : null}
-          {job.status === 'sourcing' ? <Btn size="sm" icon={Power} disabled={busy} onPress={() => run(() => setJobStatus(job.id, 'closed'), 'Job closed')}>Close</Btn> : null}
-          {job.status === 'closed' ? <Btn size="sm" icon={Rocket} disabled={busy} onPress={() => run(() => setJobStatus(job.id, 'pending_review'), 'Job reopened')}>Reopen</Btn> : null}
-          <Btn size="sm" icon={Pencil} onPress={() => nav.navigate('JobForm', { id: job.id })}>Edit</Btn>
-          <Btn size="sm" variant="ghost" icon={Copy} disabled={busy} onPress={() => run(() => duplicateJob(job.id), 'Job duplicated as a draft')} />
-          <Btn size="sm" variant="ghost" icon={Trash2} disabled={busy} onPress={() => onAsk(job)} />
+          {job.status === 'draft' && can('jobs.publish') ? <Btn size="sm" variant="primary" icon={Rocket} disabled={busy} onPress={() => run(() => setJobStatus(job.id, 'pending_review'), `“${job.title}” is live`)}>Publish</Btn> : null}
+          {job.status === 'sourcing' && can('jobs.publish') ? <Btn size="sm" icon={Power} disabled={busy} onPress={() => run(() => setJobStatus(job.id, 'closed'), 'Job closed')}>Close</Btn> : null}
+          {job.status === 'closed' && can('jobs.publish') ? <Btn size="sm" icon={Rocket} disabled={busy} onPress={() => run(() => setJobStatus(job.id, 'pending_review'), 'Job reopened')}>Reopen</Btn> : null}
+          {can('jobs.manage') ? <Btn size="sm" icon={Pencil} onPress={() => nav.navigate('JobForm', { id: job.id })}>Edit</Btn> : null}
+          {can('jobs.manage') ? <Btn size="sm" variant="ghost" icon={Copy} disabled={busy} onPress={() => run(() => duplicateJob(job.id), 'Job duplicated as a draft')} /> : null}
+          {can('jobs.manage') ? <Btn size="sm" variant="ghost" icon={Trash2} disabled={busy} onPress={() => onAsk(job)} /> : null}
         </View>
       </View>
     </View>
