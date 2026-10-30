@@ -10,6 +10,11 @@ import { useWorkspace } from '../../store/workspace'
 import { apiMessage, createOffer, listApplicants, listOffers, setOfferStatus, usePermissions } from '../../services/recruiter'
 
 const STATUS = { pending: ['Awaiting response', C.warnSoft, C.warn], draft: ['Draft', C.line2, C.ink2], accepted: ['Accepted', C.okSoft, C.ok], rejected: ['Declined', '#f5e9e7', '#9a3a2c'] }
+// "Expires in 2 days" / "Expires today" for offers still waiting on an answer.
+const expiresIn = (iso) => {
+  const d = Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000)
+  return d < 0 ? 'Expired' : d === 0 ? 'Expires today' : `Expires in ${d} day${d === 1 ? '' : 's'}`
+}
 const inr = (n) => `₹${Number(n).toLocaleString('en-IN')}`
 
 function NewOffer({ open, presetId, onClose, onCreated }) {
@@ -130,7 +135,7 @@ export default function OffersScreen({ route }) {
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 2 }}>
                     <T s={13} w="s">{inr(o.ctc)}</T>
                     <T s={12.5} c={C.ink2}>Joining {fmtDate(o.joiningDate)}</T>
-                    <T s={12.5} w={soon ? 's' : 'r'} c={soon ? C.warn : C.ink2}>Expires {fmtDate(o.expiresOn)}{soon && new Date(o.expiresOn) < new Date() ? ' (expired)' : ''}</T>
+                    <T s={12.5} w={soon ? 's' : 'r'} c={soon ? C.warn : C.ink2}>{o.status === 'pending' ? `${expiresIn(o.expiresOn)} · ${fmtDate(o.expiresOn)}` : `Expires ${fmtDate(o.expiresOn)}`}</T>
                   </View>
                   {o.status === 'pending' && can('offers.manage') ? (
                     <View style={{ flexDirection: 'row', gap: 8 }}>
