@@ -12,6 +12,7 @@ import CompareSheet from '../../components/web/applicants/CompareSheet'
 import JobInsights from '../../components/web/JobInsights'
 import ManagedShortlist from '../../components/web/ManagedShortlist'
 import { Btn, C, CheckBox, EmptyState, Input, Press, Segment, Select, T, card } from '../../components/wk'
+import { tap } from '../../lib/haptics'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, bulkUpdateApplicants, exportApplicants, getApplicantsSummary, listApplicants, listTeam, PIPELINE, STAGE_LABEL, usePermissions } from '../../services/recruiter'
 
@@ -92,7 +93,7 @@ export default function ApplicantsScreen({ route }) {
     const first = PIPELINE.find((s) => (data.counts[s.key] ?? 0) > 0)
     if (first) setStage(first.key)
   }, [data]) // eslint-disable-line react-hooks/exhaustive-deps
-  const toggle = (id) => setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n })
+  const toggle = (id) => { tap(); setSelected((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n }) }
   const selectAll = (on) => setSelected(on ? new Set(shown.map((c) => c.id)) : new Set())
   const refresh = () => { load({ silent: true }); getApplicantsSummary().then(setJobs).catch(() => {}) }
   const afterSheet = (fn) => setTimeout(fn, AFTER_SHEET)
