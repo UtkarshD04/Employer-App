@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { ArrowRight, CalendarClock, CalendarPlus, CheckCircle2, Plus, Search, Users } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
-import { ErrorBlock, ListSkeleton, StatTile, ago, fmtDateTime, useRefresh } from '../../components/web/rc'
+import { ErrorBlock, FadeIn, ListSkeleton, StatTile, ago, fmtDateTime, useRefresh } from '../../components/web/rc'
 import { Banner, Btn, C, SectionCard, T } from '../../components/wk'
 import { apiMessage, getApplicantsSummary, getOverview, PIPELINE } from '../../services/recruiter'
 import { openHref } from '../../lib/navigation'
@@ -81,22 +81,24 @@ export default function OverviewScreen() {
           {s.creditsRemaining != null ? <StatTile label="CV credits left" value={s.creditsRemaining} warn={s.creditsRemaining === 0} onPress={() => nav.navigate('PlanCredits')} /> : null}
         </View>
 
-        <SectionCard title="Needs your attention" style={{ paddingBottom: 0 }}>
-          {data.attention.length === 0 ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}>
-              <CheckCircle2 size={16} color={C.ok} />
-              <T s={13.5} c={C.muted}>Nothing needs your attention right now.</T>
-            </View>
-          ) : (
-            data.attention.map((a, i) => (
-              <Pressable key={a.id} onPress={() => openHref(nav, a.href)} style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, borderTopWidth: i ? 1 : 0, borderTopColor: C.line2 }}>
-                <Dot severity={a.severity} />
-                <T s={14} w="m" style={{ flex: 1 }}>{a.text}</T>
-                <ArrowRight size={15} color={C.muted} />
-              </Pressable>
-            ))
-          )}
-        </SectionCard>
+        <FadeIn index={0}>
+          <SectionCard title="Needs your attention" style={{ paddingBottom: 0 }}>
+            {data.attention.length === 0 ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}>
+                <CheckCircle2 size={16} color={C.ok} />
+                <T s={13.5} c={C.muted}>Nothing needs your attention right now.</T>
+              </View>
+            ) : (
+              data.attention.map((a, i) => (
+                <Pressable key={a.id} onPress={() => openHref(nav, a.href)} style={{ minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12, borderTopWidth: i ? 1 : 0, borderTopColor: C.line2 }}>
+                  <Dot severity={a.severity} />
+                  <T s={14} w="m" style={{ flex: 1 }}>{a.text}</T>
+                  <ArrowRight size={15} color={C.muted} />
+                </Pressable>
+              ))
+            )}
+          </SectionCard>
+        </FadeIn>
 
         {!limited && funnel && funnel.some((f) => f.count > 0) ? (
           <SectionCard title="Hiring funnel">
@@ -147,21 +149,23 @@ export default function OverviewScreen() {
           </SectionCard>
         ) : null}
 
-        <SectionCard title="Recent activity">
-          {data.activity.length === 0 ? (
-            <T s={13.5} c={C.muted}>Activity appears here as your team moves candidates, schedules interviews and sends offers.</T>
-          ) : (
-            <View style={{ marginLeft: 4, borderLeftWidth: 1, borderLeftColor: C.line }}>
-              {data.activity.map((a) => (
-                <View key={a.id} style={{ paddingVertical: 6, paddingLeft: 14 }}>
-                  <View style={{ position: 'absolute', left: -3.5, top: 14, width: 6, height: 6, borderRadius: 3, backgroundColor: '#9db0bd' }} />
-                  <T s={13}>{a.text}</T>
-                  <T s={11.5} c={C.muted}>{[a.actor, ago(a.at)].filter(Boolean).join(' · ')}</T>
-                </View>
-              ))}
-            </View>
-          )}
-        </SectionCard>
+        <FadeIn index={1}>
+          <SectionCard title="Recent activity">
+            {data.activity.length === 0 ? (
+              <T s={13.5} c={C.muted}>Activity appears here as your team moves candidates, schedules interviews and sends offers.</T>
+            ) : (
+              <View style={{ marginLeft: 4, borderLeftWidth: 1, borderLeftColor: C.line }}>
+                {data.activity.map((a) => (
+                  <View key={a.id} style={{ paddingVertical: 6, paddingLeft: 14 }}>
+                    <View style={{ position: 'absolute', left: -3.5, top: 14, width: 6, height: 6, borderRadius: 3, backgroundColor: '#9db0bd' }} />
+                    <T s={13}>{a.text}</T>
+                    <T s={11.5} c={C.muted}>{[a.actor, ago(a.at)].filter(Boolean).join(' · ')}</T>
+                  </View>
+                ))}
+              </View>
+            )}
+          </SectionCard>
+        </FadeIn>
       </PageScroll>
     </Shell>
   )
