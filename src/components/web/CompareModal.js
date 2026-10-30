@@ -66,7 +66,7 @@ export default function CompareModal({ open, onClose, criteria, onOpenProfile })
                   const v = vals[i]
                   const isBest = target != null && v === target
                   return (
-                    <View key={x.c.id} style={{ width: COL, paddingHorizontal: 10, paddingVertical: 10, backgroundColor: isBest ? 'rgba(227,245,234,0.6)' : 'transparent' }}>
+                    <View key={x.c.id} style={{ width: COL, paddingHorizontal: 10, paddingVertical: 10, backgroundColor: isBest ? C.okSoft : 'transparent' }}>
                       {row.status ? (
                         <StatusPill status={v} />
                       ) : row.skills ? (
