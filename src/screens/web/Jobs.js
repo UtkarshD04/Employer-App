@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft, Briefcase, CheckCircle2, Clock, Copy, Eye, Ey
 import { useNavigation } from '@react-navigation/native'
 import { Shell, PageTitle, PageScroll } from '../../components/web/Shell'
 import { usePermissions } from '../../services/recruiter'
+import { useRefresh } from '../../components/web/rc'
 import { TagInput } from '../../components/web/FilterPanel'
 import { PickerField } from '../../components/web/ActionModals'
 import { Banner, Btn, C, CardSkeleton, Chip, EmptyState, Field, Input, Sheet, Select, Skeleton, T, card } from '../../components/wk'
@@ -117,6 +118,7 @@ export function JobsScreen({ route }) {
     return listMyJobs().then((j) => { setJobs(j); setError(false) }).catch(() => setError(true))
   }, [])
   useEffect(() => { load() }, [load])
+  const { refreshing, onRefresh } = useRefresh(load)
 
   const shown = useMemo(() => (jobs ?? []).filter(TABS.find((t) => t.id === tab).match), [jobs, tab])
   const posted = jobs?.find((j) => j.id === justPosted)
@@ -134,7 +136,7 @@ export function JobsScreen({ route }) {
 
   return (
     <Shell>
-      <PageScroll>
+      <PageScroll onRefresh={onRefresh} refreshing={refreshing}>
         <View style={{ gap: 12 }}>
           <PageTitle title="Jobs" sub="Post requirements, then search talent for each one." />
           <Btn variant="primary" size="lg" icon={Plus} onPress={() => nav.navigate('JobForm')} style={{ alignSelf: 'flex-start' }}>Post a job</Btn>
