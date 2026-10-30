@@ -17,6 +17,13 @@ function greeting(name) {
   return first ? `${part}, ${first}` : 'Overview'
 }
 
+// "Today", "Tomorrow" or the date — by calendar day.
+function dayLabel(iso) {
+  const day = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const diff = Math.round((day(new Date(iso)) - day(new Date())) / 86400000)
+  return diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : null
+}
+
 const SEVERITY = { high: C.bad, medium: C.warn, low: C.muted }
 const HEALTH_LABEL = { low_applications: 'Low applications', expiring: 'Closing soon', deadline_passed: 'Deadline passed', no_shortlist: 'No shortlist', feedback_pending: 'Feedback pending' }
 
@@ -142,7 +149,7 @@ export default function OverviewScreen() {
                 <CalendarClock size={15} color={C.muted} />
                 <View style={{ flex: 1 }}>
                   <T s={13.5} w="s" numberOfLines={1}>{i.candidateName}</T>
-                  <T s={12.5} c={C.muted} numberOfLines={1}>{i.role} · {fmtDateTime(i.startsAt)}</T>
+                  <T s={12.5} c={C.muted} numberOfLines={1}>{i.role} · {dayLabel(i.startsAt) ? `${dayLabel(i.startsAt)}, ${new Date(i.startsAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }).toLowerCase()}` : fmtDateTime(i.startsAt)}</T>
                 </View>
               </View>
             ))}
