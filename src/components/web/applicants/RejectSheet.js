@@ -92,7 +92,7 @@ export default function RejectSheet({ candidate, candidates, onClose, onDone, to
               {options.map((o) => {
                 const on = reasons.includes(o.code)
                 return (
-                  <View key={o.code} style={{ borderRadius: 10, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? '#f1f9f7' : '#fff', paddingHorizontal: 10, opacity: !on && reasons.length >= MAX_REASONS ? 0.5 : 1 }}>
+                  <View key={o.code} style={{ borderRadius: 10, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentTint : C.surface, paddingHorizontal: 10, opacity: !on && reasons.length >= MAX_REASONS ? 0.5 : 1 }}>
                     <CheckBox checked={on} onChange={() => toggle(o.code)}>{o.label}</CheckBox>
                   </View>
                 )
