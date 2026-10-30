@@ -5,7 +5,8 @@ import { applyPalette } from '../components/wk'
 
 // Light, dark, or follow the phone. Light stays the default so nothing changes until someone picks otherwise.
 // The screens read colours from the shared `C` object, so switching applies the new palette and then remounts
-// the tree (the `key` below) — navigation state is restored by RootNavigator so the user stays where they were.
+// the part of the tree under <RemountOnTheme> — navigation state is restored by RootNavigator so the user stays
+// where they were, while the session (AuthProvider) above it is untouched.
 const KEY = 'mzobs-appearance'
 export const MODES = [['light', 'Light'], ['dark', 'Dark'], ['system', 'System']]
 
@@ -32,9 +33,11 @@ export function AppearanceProvider({ children }) {
   applyPalette(effective === 'dark')
   const value = useMemo(() => ({ mode, effective, setMode }), [mode, effective, setMode])
   if (!ready) return null
-  return (
-    <Ctx.Provider value={value}>
-      <Fragment key={effective}>{children}</Fragment>
-    </Ctx.Provider>
-  )
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>
+}
+
+/** Remounts its children when the effective theme changes, so every screen re-reads the palette. */
+export function RemountOnTheme({ children }) {
+  const { effective } = useAppearance()
+  return <Fragment key={effective}>{children}</Fragment>
 }
