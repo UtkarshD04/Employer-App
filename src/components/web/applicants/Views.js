@@ -15,7 +15,7 @@ function OwnerChip({ owner }) {
   const initials = owner.name.split(/\s+/).map((p) => p[0]).slice(0, 2).join('').toUpperCase()
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-      <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#dfe7ee', alignItems: 'center', justifyContent: 'center' }}><T s={8.5} w="b" c={C.ink2} style={{ lineHeight: 11 }}>{initials}</T></View>
+      <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: C.chipBg, alignItems: 'center', justifyContent: 'center' }}><T s={8.5} w="b" c={C.ink2} style={{ lineHeight: 11 }}>{initials}</T></View>
       <T s={11.5} c={C.ink2}>{owner.name.split(' ')[0]}</T>
     </View>
   )
@@ -26,8 +26,8 @@ function Highlights({ list, max = 2 }) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
       {list.slice(0, max).map((h) => (
-        <View key={h.label} style={{ borderRadius: 5, backgroundColor: h.ok ? C.accentSoft : '#f3efe6', paddingHorizontal: 6, paddingVertical: 1.5 }}>
-          <T s={11} w="s" c={h.ok ? C.accent : '#7a5a14'}>{h.label}</T>
+        <View key={h.label} style={{ borderRadius: 5, backgroundColor: h.ok ? C.accentSoft : C.warnTint, paddingHorizontal: 6, paddingVertical: 1.5 }}>
+          <T s={11} w="s" c={h.ok ? C.accent : C.warnText}>{h.label}</T>
         </View>
       ))}
     </View>
@@ -37,7 +37,7 @@ function Highlights({ list, max = 2 }) {
 /** One applicant. Tapping opens them; the checkbox (managers only) selects for bulk actions. */
 export function ApplicantCard({ c, selected, onSelect, onOpen, canManage, showJob, showStage }) {
   return (
-    <Pressable onPress={() => onOpen(c.id)} accessibilityRole="button" accessibilityLabel={`${c.name}, ${c.currentRole || 'role not stated'}, ${STAGE_LABEL[c.stage]}`} style={[card, { padding: 12, borderRadius: 12, gap: 6 }, selected && { borderColor: C.accent, backgroundColor: '#f1f9f7' }]}>
+    <Pressable onPress={() => onOpen(c.id)} accessibilityRole="button" accessibilityLabel={`${c.name}, ${c.currentRole || 'role not stated'}, ${STAGE_LABEL[c.stage]}`} style={[card, { padding: 12, borderRadius: 12, gap: 6 }, selected && { borderColor: C.accent, backgroundColor: C.accentTint }]}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         {canManage ? <CheckBox checked={selected} onChange={() => onSelect(c.id)} style={{ minHeight: 0 }} /> : null}
         <Avatar candidate={c} size={34} />
@@ -87,10 +87,10 @@ export function Board({ items, counts, stage, onStage, selected, onSelect, onOpe
         {PIPELINE.map((col) => {
           const on = col.key === stage
           return (
-            <Pressable key={col.key} onPress={() => onStage(col.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, borderWidth: 1, borderColor: on ? C.ink : C.line, backgroundColor: on ? C.ink : '#fff', paddingHorizontal: 14 }}>
-              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: on ? '#fff' : stageTone()[col.key][1] }} />
-              <T s={12.5} w="b" c={on ? '#fff' : C.ink2}>{col.label}</T>
-              <View style={{ borderRadius: 999, backgroundColor: on ? 'rgba(255,255,255,0.2)' : C.line2, paddingHorizontal: 6, paddingVertical: 1 }}><T s={11.5} w="s" c={on ? '#fff' : C.ink2}>{counts[col.key] ?? 0}</T></View>
+            <Pressable key={col.key} onPress={() => onStage(col.key)} accessibilityRole="tab" accessibilityState={{ selected: on }} style={{ minHeight: 40, flexDirection: 'row', alignItems: 'center', gap: 6, borderRadius: 999, borderWidth: 1, borderColor: on ? C.ink : C.line, backgroundColor: on ? C.ink : C.surface, paddingHorizontal: 14 }}>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: on ? C.surface : stageTone()[col.key][1] }} />
+              <T s={12.5} w="b" c={on ? C.surface : C.ink2}>{col.label}</T>
+              <View style={{ borderRadius: 999, backgroundColor: on ? C.line : C.line2, paddingHorizontal: 6, paddingVertical: 1 }}><T s={11.5} w="s" c={on ? C.surface : C.ink2}>{counts[col.key] ?? 0}</T></View>
             </Pressable>
           )
         })}
