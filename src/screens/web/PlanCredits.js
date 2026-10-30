@@ -48,7 +48,7 @@ function TierCard({ plan: p, onBuy, busy, storePrice, upgrade }) {
     }
   }
   return (
-    <View style={{ borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', padding: 16 }}>
+    <View style={{ borderRadius: 12, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, padding: 16 }}>
       <T s={13} w="s" c={C.muted} style={{ letterSpacing: 0.6 }}>{String(p.planName).toUpperCase()}</T>
       <T s={26} w="b" style={{ marginTop: 6 }}>{iapEnabled ? storePrice ?? '—' : rupees(preview ? preview.finalAmount * 100 : p.totalAmountPaise)}{preview ? <T s={14} w="m" c={C.muted} style={{ textDecorationLine: 'line-through' }}>  {rupees(p.totalAmountPaise)}</T> : null}</T>
       <T s={12} c={C.muted}>{iapEnabled ? 'One-time purchase · valid for 1 year · does not auto-renew' : `${rupees(p.baseAmountPaise)} + GST ${p.gstRatePercent}% (${rupees(p.gstAmountPaise)}) · 1 year`}</T>
