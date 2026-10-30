@@ -5,7 +5,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Constants from 'expo-constants'
 import { useNavigation } from '@react-navigation/native'
 import { PageScroll, PageTitle, Shell, useSignOut } from '../../components/web/Shell'
-import { Btn, C, EmptyState, Field, Input, Select, Sheet, Skeleton, T, card } from '../../components/wk'
+import { Btn, C, EmptyState, Field, Input, Segment, Select, Sheet, Skeleton, T, card } from '../../components/wk'
+import { MODES, useAppearance } from '../../lib/appearance'
 import { useAuth } from '../../context/AuthContext'
 import { useWorkspace } from '../../store/workspace'
 import { listNotifications, markAllRead, markRead } from '../../services/notificationsService'
@@ -227,6 +228,7 @@ export function SettingsScreen() {
   const { user, company } = useAuth()
   const signOut = useSignOut()
   const [editingName, setEditingName] = useState(false)
+  const { mode, setMode } = useAppearance()
   const row = (label, value, onEdit) => (
     <View key={label} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.line2 }}>
       <T s={13} c={C.muted}>{label}</T>
@@ -248,6 +250,11 @@ export function SettingsScreen() {
           {row('Email', user?.email)}
           {row('Role', user?.role)}
           {row('Company', company?.name)}
+        </View>
+        <View style={[card, { padding: 20, gap: 12 }]}>
+          <T s={15} w="s">Appearance</T>
+          <Segment options={MODES} value={mode} onChange={setMode} />
+          <T s={12} c={C.muted}>System follows your phone's light or dark setting.</T>
         </View>
         <View style={[card, { padding: 20, gap: 12 }]}>
           <T s={15} w="s">Quick links</T>
