@@ -14,10 +14,10 @@ import { deleteAccount, updateMe } from '../../services/authService'
 import { queryKeys } from '../../lib/queryClient'
 import { formatRelative } from '../../lib/format'
 
-const TONE = {
-  jobs: [C.blueSoft, '#1f6fb2'], candidates: [C.accentSoft, C.accent], billing: [C.warnSoft, C.warn], interviews: [C.aiSoft, '#0a6f64'],
+const tones = () => ({
+  jobs: [C.blueSoft, C.blueText], candidates: [C.accentSoft, C.accent], billing: [C.warnSoft, C.warn], interviews: [C.aiSoft, C.accentText],
   offers: [C.okSoft, C.okText], batches: [C.accentSoft, C.accent], system: [C.line2, C.ink2],
-}
+})
 // Where a notification's category leads inside the recruiter app.
 const ROUTES = { jobs: 'Jobs', candidates: 'Search', batches: 'Search', interviews: 'Interviews', offers: 'Offers', billing: 'PlanCredits' }
 
@@ -70,7 +70,8 @@ export function NotificationsScreen() {
                 <View key={g} style={{ gap: 8 }}>
                   <T s={12} w="b" c={C.muted} style={{ textTransform: 'uppercase', letterSpacing: 0.8, marginTop: 6 }}>{g}</T>
                   {rows.map((n) => {
-                const [bg, fg] = TONE[n.category] ?? TONE.system
+                const tone = tones()
+                const [bg, fg] = tone[n.category] ?? tone.system
                 return (
                   <Pressable key={n.id} onPress={() => open(n)} style={[card, { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderColor: n.unread ? '#bfe6df' : C.line, backgroundColor: n.unread ? '#f2fbf9' : '#fff' }]}>
                     <View style={{ borderRadius: 6, backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 2, marginTop: 2 }}><T s={11} w="s" c={fg} style={{ textTransform: 'capitalize' }}>{n.category}</T></View>
