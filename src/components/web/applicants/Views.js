@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, View } from 'react-native'
 import { BellRing, Briefcase, MapPin, Star } from 'lucide-react-native'
 import { Avatar, C, CheckBox, T, Tag, card } from '../../wk'
-import { StagePill, fmtDate } from '../rc'
+import { FadeIn, StagePill, fmtDate } from '../rc'
 import { PIPELINE, STAGE_LABEL } from '../../../services/recruiter'
 
 const dueNow = (c) => c.followUpOn && new Date(c.followUpOn) <= new Date()
@@ -83,7 +83,7 @@ export function Board({ items, counts, stage, onStage, selected, onSelect, onOpe
         <View style={{ paddingVertical: 36, alignItems: 'center' }}><T s={13} c={C.muted}>Nobody in {STAGE_LABEL[stage]} yet</T></View>
       ) : (
         <View style={{ gap: 8 }}>
-          {rows.map((c) => <ApplicantCard key={c.id} c={c} selected={selected.has(c.id)} onSelect={onSelect} onOpen={onOpen} canManage={canManage} showJob={showJob} />)}
+          {rows.map((c, k) => <FadeIn key={c.id} index={k}><ApplicantCard c={c} selected={selected.has(c.id)} onSelect={onSelect} onOpen={onOpen} canManage={canManage} showJob={showJob} /></FadeIn>)}
         </View>
       )}
     </View>
