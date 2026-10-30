@@ -106,7 +106,7 @@ function Matrix() {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator style={[card, { borderRadius: 12 }]}>
       <View>
-        <View style={{ flexDirection: 'row', backgroundColor: '#faf9f6', borderBottomWidth: 1, borderBottomColor: C.line }}>
+        <View style={{ flexDirection: 'row', backgroundColor: C.sunken, borderBottomWidth: 1, borderBottomColor: C.line }}>
           <T s={11.5} w="b" c={C.ink2} style={{ width: 200, paddingHorizontal: 12, paddingVertical: 8, textTransform: 'uppercase' }}>Permission</T>
           {m.roles.map((r) => <T key={r} s={11.5} w="b" c={C.ink2} style={{ width: W, textAlign: 'center', paddingVertical: 8 }}>{r}</T>)}
         </View>
@@ -115,7 +115,7 @@ function Matrix() {
             <T s={13} style={{ width: 200, paddingHorizontal: 12, paddingVertical: 8 }}>{p.label}</T>
             {m.roles.map((r) => (
               <View key={r} style={{ width: W, alignItems: 'center' }}>
-                {p.roles.includes(r) ? <Check size={15} color={C.accent} accessibilityLabel="Allowed" /> : <Minus size={15} color="#c5d0d8" accessibilityLabel="Not allowed" />}
+                {p.roles.includes(r) ? <Check size={15} color={C.accent} accessibilityLabel="Allowed" /> : <Minus size={15} color={C.boxLine} accessibilityLabel="Not allowed" />}
               </View>
             ))}
           </View>
