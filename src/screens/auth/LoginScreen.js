@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native'
-import { Feather } from '@expo/vector-icons'
 import { useTheme } from '../../theme'
 import { useAuth } from '../../context/AuthContext'
 import { errorMessage } from '../../lib/api'
 import * as authService from '../../services/authService'
 import { Button, FadeIn, Text, TextField } from '../../components/ui'
 import OtpField from './OtpField'
+import BackButton from './BackButton'
 
 const PHONE_RE = /^[6-9]\d{9}$/
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -84,9 +84,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bg }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       {navigation.canGoBack() ? (
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={{ marginTop: spacing.xl, marginLeft: spacing.xl }}>
-          <Feather name="arrow-left" size={20} color={colors.ink} />
-        </Pressable>
+        <BackButton onPress={() => navigation.goBack()} />
       ) : null}
       <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: spacing.xl, gap: spacing.lg }} keyboardShouldPersistTaps="handled">
         <FadeIn style={{ alignItems: 'center', gap: 6, marginBottom: spacing.md }}>
