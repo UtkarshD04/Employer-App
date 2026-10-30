@@ -7,6 +7,7 @@ import { AlertTriangle, Bell, Check, CreditCard, HelpCircle, LogOut, Menu, Setti
 import { useAuth } from '../../context/AuthContext'
 import { useQuery } from '@tanstack/react-query'
 import { ROUTES } from '../../lib/routes'
+import { usePermissions } from '../../services/recruiter'
 import { getPlanSnapshot, refreshPlan, subscribePlan } from '../../services/plan'
 import { listNotifications } from '../../services/notificationsService'
 import { queryKeys } from '../../lib/queryClient'
@@ -25,8 +26,6 @@ export function Logo({ height = 34 }) {
   )
 }
 
-const PRIMARY = ROUTES.filter((r) => r.nav === 'primary')
-const MORE = ROUTES.filter((r) => r.nav === 'more')
 
 function useSectionNav() {
   const nav = useNavigation()
@@ -101,6 +100,9 @@ export function TopNav() {
   const section = useSectionNav()
   const signOut = useSignOut()
   const [menu, setMenu] = useState(false)
+  const { loaded, can } = usePermissions()
+  // Hide the links this role can't use; until the role loads, show them all (the API enforces the same rules).
+  const links = ROUTES.filter((r) => r.nav && (!loaded || !r.perm || r.perm.some(can)))
   useEffect(() => { refreshPlan() }, [])
   const goTo = (name) => {
     setMenu(false)
@@ -125,7 +127,7 @@ export function TopNav() {
       {menu ? (
         <View style={{ borderTopWidth: 1, borderTopColor: C.line, backgroundColor: '#fff', padding: 12 }}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-            {[...PRIMARY, ...MORE].map((r) => {
+            {links.map((r) => {
               const on = r.name === route.name
               return (
                 <Pressable key={r.name} onPress={() => goTo(r.name)} style={{ width: '49%', minHeight: 44, justifyContent: 'center', borderRadius: 8, paddingHorizontal: 10, backgroundColor: on ? C.accentSoft : 'transparent' }}>
