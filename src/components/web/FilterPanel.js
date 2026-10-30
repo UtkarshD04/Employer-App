@@ -38,7 +38,7 @@ export function TagInput({ values, onChange, placeholder, suggestions = [] }) {
   const matches = text ? suggestions.filter((s) => s.toLowerCase().includes(text.toLowerCase()) && !values.includes(s)).slice(0, 6) : []
   return (
     <View>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, minHeight: 44, borderRadius: 8, borderWidth: 1, borderColor: focus ? C.accent : C.line, backgroundColor: '#fff', padding: 6 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 6, minHeight: 44, borderRadius: 8, borderWidth: 1, borderColor: focus ? C.accent : C.line, backgroundColor: C.surface, padding: 6 }}>
         {values.map((v) => <Chip key={v} tone="accent" onRemove={() => onChange(values.filter((x) => x !== v))}>{v}</Chip>)}
         <TextInput
           value={text}
@@ -56,7 +56,7 @@ export function TagInput({ values, onChange, placeholder, suggestions = [] }) {
         />
       </View>
       {matches.length > 0 ? (
-        <View style={{ marginTop: 4, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', padding: 4 }}>
+        <View style={{ marginTop: 4, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, padding: 4 }}>
           {matches.map((m) => (
             <Pressable key={m} onPress={() => add(m)} style={{ minHeight: 38, justifyContent: 'center', paddingHorizontal: 10, borderRadius: 6 }}>
               <T s={13}>{m}</T>
@@ -91,7 +91,7 @@ function Label({ children, first }) {
 function NumberPair({ a, b, onA, onB, unit, prefix, pa = 'Min', pb = 'Max' }) {
   const parse = (v) => (v === '' ? null : Math.max(0, Number(v)))
   const box = (val, on, ph) => (
-    <View style={{ flex: 1, minHeight: 40, flexDirection: 'row', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', paddingHorizontal: 10 }}>
+    <View style={{ flex: 1, minHeight: 40, flexDirection: 'row', alignItems: 'center', borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, paddingHorizontal: 10 }}>
       {prefix ? <T s={13} c={C.muted}>{prefix} </T> : null}
       <TextInput value={val == null ? '' : String(val)} onChangeText={(t) => on(parse(t.replace(/[^\d.]/g, '')))} keyboardType="numeric" placeholder={ph} placeholderTextColor={C.ph} style={{ flex: 1, fontFamily: F.r, fontSize: 13, color: C.ink, paddingVertical: 0 }} />
     </View>
@@ -112,9 +112,9 @@ function Suggest({ value, onChange, placeholder, options = [] }) {
   const matches = focus && value ? options.filter((o) => o.toLowerCase().includes(value.toLowerCase()) && o.toLowerCase() !== value.toLowerCase()).slice(0, 5) : []
   return (
     <View>
-      <TextInput value={value} onChangeText={onChange} onFocus={() => setFocus(true)} onBlur={() => setTimeout(() => setFocus(false), 150)} placeholder={placeholder} placeholderTextColor={C.ph} selectionColor={C.accent} style={{ minHeight: 40, borderRadius: 8, borderWidth: 1, borderColor: focus ? C.accent : C.line, backgroundColor: '#fff', paddingHorizontal: 10, fontFamily: F.r, fontSize: 13, color: C.ink }} />
+      <TextInput value={value} onChangeText={onChange} onFocus={() => setFocus(true)} onBlur={() => setTimeout(() => setFocus(false), 150)} placeholder={placeholder} placeholderTextColor={C.ph} selectionColor={C.accent} style={{ minHeight: 40, borderRadius: 8, borderWidth: 1, borderColor: focus ? C.accent : C.line, backgroundColor: C.surface, paddingHorizontal: 10, fontFamily: F.r, fontSize: 13, color: C.ink }} />
       {matches.length > 0 ? (
-        <View style={{ marginTop: 4, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: '#fff', padding: 4 }}>
+        <View style={{ marginTop: 4, borderRadius: 8, borderWidth: 1, borderColor: C.line, backgroundColor: C.surface, padding: 4 }}>
           {matches.map((m) => <Pressable key={m} onPress={() => onChange(m)} style={{ minHeight: 38, justifyContent: 'center', paddingHorizontal: 10 }}><T s={13}>{m}</T></Pressable>)}
         </View>
       ) : null}
@@ -126,7 +126,7 @@ function Presets({ items, active, onPick }) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
       {items.map(([label, val]) => (
-        <Pressable key={label} onPress={() => onPick(val)} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: active(val) ? C.accent : C.line, backgroundColor: active(val) ? C.accentSoft : '#fff', paddingHorizontal: 12 }}>
+        <Pressable key={label} onPress={() => onPick(val)} style={{ minHeight: 34, justifyContent: 'center', borderRadius: 999, borderWidth: 1, borderColor: active(val) ? C.accent : C.line, backgroundColor: active(val) ? C.accentSoft : C.surface, paddingHorizontal: 12 }}>
           <T s={12} w="m" c={active(val) ? C.accent : C.ink2}>{label}</T>
         </Pressable>
       ))}
@@ -231,7 +231,7 @@ export default function FilterPanel({ criteria, onChange, onSave, onClear, meta,
                       {hiringPicks.map((j) => {
                         const on = c.prefLocations.includes(j.city)
                         return (
-                          <Pressable key={j.city} accessibilityState={{ selected: on }} onPress={() => set({ prefLocations: on ? c.prefLocations.filter((x) => x !== j.city) : [...c.prefLocations, j.city] })} style={{ minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 999, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : '#fff', paddingHorizontal: 10 }}>
+                          <Pressable key={j.city} accessibilityState={{ selected: on }} onPress={() => set({ prefLocations: on ? c.prefLocations.filter((x) => x !== j.city) : [...c.prefLocations, j.city] })} style={{ minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 999, borderWidth: 1, borderColor: on ? C.accent : C.line, backgroundColor: on ? C.accentSoft : C.surface, paddingHorizontal: 10 }}>
                             <T s={12} w="s" c={on ? C.accentText : C.ink2}>{j.city}</T>
                             <T s={12} c={C.muted}>{j.count}</T>
                           </Pressable>
