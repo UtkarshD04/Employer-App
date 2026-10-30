@@ -131,7 +131,7 @@ function InterviewCard({ i, past, onReschedule, onCancel, onComplete, onScorecar
       {i.email?.status ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Mail size={12} color={sent ? C.okText : C.muted} /><T s={12} c={sent ? C.okText : C.muted}>{sent ? `Email sent to ${i.email.to}` : EMAIL_NOTE[i.email.status]}</T></View>
       ) : null}
-      {active || (i.meetingLink && active) ? (
+      {active ? (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {i.meetingLink ? <Btn variant="primary" size="sm" icon={Video} onPress={() => Linking.openURL(i.meetingLink)}>Join interview</Btn> : null}
           <Btn size="sm" icon={CalendarPlus} onPress={() => Linking.openURL(calendarLink(i))}>Add to calendar</Btn>
