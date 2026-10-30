@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Share, View } from 'react-native'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigation } from '@react-navigation/native'
-import { BarChart3, Download, GitCompareArrows, Search, Users, X } from 'lucide-react-native'
+import { BarChart3, Download, GitCompareArrows, Search, UserX, Users, X } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { InterviewModal } from '../../components/web/ActionModals'
 import { ErrorBlock, ListSkeleton, useRefresh } from '../../components/web/rc'
@@ -51,6 +51,7 @@ export default function ApplicantsScreen({ route }) {
   const [selected, setSelected] = useState(() => new Set())
   const [openId, setOpenId] = useState(null)
   const [rejecting, setRejecting] = useState(null)
+  const [bulkRejecting, setBulkRejecting] = useState(null)
   const [comparing, setComparing] = useState(null)
   const [scheduling, setScheduling] = useState(null)
   const [insights, setInsights] = useState(false)
@@ -189,8 +190,12 @@ export default function ApplicantsScreen({ route }) {
               <Select style={{ flex: 1 }} value="" disabled={busy} placeholder="Move to…" title="Move selected to stage" onChange={(v) => bulk({ stage: v }, `Moved ${selected.size} to ${STAGE_LABEL[v]}`)} options={MOVE_TARGETS.map((s) => [s.key, s.label])} />
               <Select style={{ flex: 1 }} value="" disabled={busy} placeholder="Assign to…" title="Assign selected to" onChange={(v) => bulk({ ownerId: v === 'none' ? null : v }, 'Owner updated')} options={[['none', 'Unassigned'], ...team.map((m) => [m.id, m.name])]} />
             </View>
-            <Btn size="sm" icon={GitCompareArrows} disabled={!canCompare} onPress={() => setComparing(selectedItems.map((c) => c.id))} style={{ alignSelf: 'flex-start' }}>Compare</Btn>
-            <T s={12} c={C.muted}>{canCompare ? 'Rejecting is done one at a time, so each gets a recorded reason.' : `${compareHint}. Rejecting is done one at a time, so each gets a recorded reason.`}</T>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              <Btn size="sm" icon={GitCompareArrows} disabled={!canCompare} onPress={() => setComparing(selectedItems.map((c) => c.id))}>Compare</Btn>
+              {can('candidates.reject') ? <Btn size="sm" icon={UserX} disabled={busy || selectedItems.some((c) => c.stage === 'rejected')} onPress={() => setBulkRejecting(selectedItems)}>Reject {selected.size}</Btn> : null}
+            </View>
+            {!canCompare ? <T s={12} c={C.muted}>{compareHint}.</T> : null}
+            <T s={12} c={C.muted}>Everyone selected gets the same internal reason, recorded on each profile.</T>
           </View>
         ) : null}
 
@@ -218,6 +223,7 @@ export default function ApplicantsScreen({ route }) {
         toast={toast}
       />
       <RejectSheet candidate={rejecting} onClose={() => setRejecting(null)} onDone={() => { setRejecting(null); refresh() }} toast={toast} />
+      <RejectSheet candidates={bulkRejecting} onClose={() => setBulkRejecting(null)} onDone={() => { setBulkRejecting(null); setSelected(new Set()); refresh() }} toast={toast} />
       <CompareSheet ids={comparing} onClose={() => setComparing(null)} />
       {scheduling ? <InterviewModal candidate={scheduling} onClose={() => setScheduling(null)} onScheduled={() => { setScheduling(null); refresh() }} /> : null}
     </Shell>
