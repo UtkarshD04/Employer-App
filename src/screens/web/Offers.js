@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native'
 import { Gift, Plus } from 'lucide-react-native'
 import { PageScroll, PageTitle, Shell } from '../../components/web/Shell'
 import { PickerField } from '../../components/web/ActionModals'
-import { ErrorBlock, ListSkeleton, Tabs, fmtDate, useRefresh, ymd } from '../../components/web/rc'
+import { ErrorBlock, FadeIn, ListSkeleton, Tabs, fmtDate, useRefresh, ymd } from '../../components/web/rc'
 import { Avatar, Btn, C, EmptyState, Field, Input, Select, Sheet, T, card } from '../../components/wk'
 import { useWorkspace } from '../../store/workspace'
 import { apiMessage, createOffer, listApplicants, listOffers, setOfferStatus, usePermissions } from '../../services/recruiter'
@@ -114,11 +114,11 @@ export default function OffersScreen({ route }) {
           <EmptyState icon={Gift} title={rows.length ? 'No offers in this tab' : 'No offers yet'} body={rows.length ? 'Try another tab.' : 'When a candidate is shortlisted or interviewed, create an offer here. They are notified and you can track their response.'} action={!rows.length && can('offers.manage') ? <Btn variant="primary" size="sm" icon={Plus} onPress={() => setCreating(true)}>Create offer</Btn> : undefined} />
         ) : (
           <View style={{ gap: 10 }}>
-            {sorted.map((o) => {
+            {sorted.map((o, k) => {
               const [label, bg, fg] = STATUS[o.status] ?? STATUS.draft
               const soon = o.status === 'pending' && new Date(o.expiresOn) - Date.now() < 3 * 86400000
               return (
-                <View key={o.id} style={[card, { padding: 14, gap: 8 }]}>
+                <FadeIn key={o.id} index={k}><View style={[card, { padding: 14, gap: 8 }]}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <Avatar candidate={{ id: o.id, initials: o.initials }} size={34} />
                     <View style={{ flex: 1 }}>
@@ -138,7 +138,7 @@ export default function OffersScreen({ route }) {
                       <Btn size="sm" variant="ghost" onPress={() => respond(o, 'rejected')}>Declined</Btn>
                     </View>
                   ) : null}
-                </View>
+                </View></FadeIn>
               )
             })}
           </View>
