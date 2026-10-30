@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Pressable, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import { Keyboard, Pressable, View } from 'react-native'
 import { CommonActions, useNavigation, useRoute } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CalendarDays, LayoutDashboard, MoreHorizontal, Search, Users } from 'lucide-react-native'
@@ -22,6 +22,13 @@ export default function BottomBar() {
   const route = useRoute()
   const { loaded, can } = usePermissions()
   const [more, setMore] = useState(false)
+  const [typing, setTyping] = useState(false)
+  // The bar would ride up above the keyboard and cover the field being typed in.
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () => setTyping(true))
+    const hide = Keyboard.addListener('keyboardDidHide', () => setTyping(false))
+    return () => { show.remove(); hide.remove() }
+  }, [])
   const allowed = (r) => !loaded || !r.perm || r.perm.some(can)
   const tabNames = new Set(TABS.map((t) => t.name))
   const rest = ROUTES.filter((r) => r.nav && !tabNames.has(r.name) && allowed(r))
@@ -41,7 +48,7 @@ export default function BottomBar() {
   )
   return (
     <>
-      <View style={{ flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: C.line, paddingBottom: insets.bottom }}>
+      <View style={{ display: typing ? 'none' : 'flex', flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: C.line, paddingBottom: insets.bottom }}>
         {TABS.filter(allowed).map((t) => item(t.name, t.label, t.icon, route.name === t.name, () => go(t.name)))}
         {item('more', 'More', MoreHorizontal, inMore || more, () => setMore(true))}
       </View>
