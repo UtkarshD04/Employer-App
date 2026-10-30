@@ -4,6 +4,7 @@ import * as authService from '../services/authService'
 import { getCompany } from '../services/companyService'
 import { syncPushToken } from '../lib/pushNotifications'
 import { queryClient } from '../lib/queryClient'
+import { clearMe } from '../services/recruiter'
 
 const AuthContext = createContext(null)
 
@@ -22,6 +23,7 @@ export function AuthProvider({ children }) {
       setSession(null)
       // Drop the previous account's cached data so the next sign-in never briefly shows it.
       queryClient.clear()
+      clearMe()
     } finally {
       loggingOut.current = false
     }
