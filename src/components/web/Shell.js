@@ -197,7 +197,7 @@ export function ToastStack() {
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(insets.bottom, 12) + 64, alignItems: 'center', gap: 8, zIndex: 100 }}>
       {toasts.map((t) => (
-        <View key={t.id} accessibilityLiveRegion="polite" accessibilityRole="alert" style={[{ maxWidth: '92%', flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, backgroundColor: C.ink, paddingHorizontal: 16, paddingVertical: 10 }, shadowPop]}>
+        <View key={t.id} accessibilityLiveRegion="polite" accessibilityRole="alert" style={[{ maxWidth: '92%', flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, backgroundColor: C.inverse, paddingHorizontal: 16, paddingVertical: 10 }, shadowPop]}>
           {t.tone === 'warn' ? <AlertTriangle size={15} color="#fbbf24" /> : <Check size={15} color="#4ade80" />}
           <T s={13} c="#fff" style={{ flexShrink: 1 }}>{t.message}</T>
           {t.action ? <Pressable onPress={() => { t.action.run(); dismissToast(t.id) }} hitSlop={8}><T s={13} w="s" c="#a5b4fc">{t.action.label}</T></Pressable> : null}
