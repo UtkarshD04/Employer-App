@@ -302,7 +302,7 @@ export function Select({ value, onChange, options, placeholder = 'Select', title
   const cur = opts.find((o) => o.value === value)
   return (
     <>
-      <Pressable disabled={disabled} onPress={() => setOpen(true)} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: error ? C.bad : C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12, opacity: disabled ? 0.55 : 1 }, style]}>
+      <Pressable disabled={disabled} onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel={`${title ?? placeholder}: ${cur?.label ?? 'none selected'}`} style={[{ minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, borderWidth: 1, borderColor: error ? C.bad : C.line, borderRadius: 8, backgroundColor: '#fff', paddingHorizontal: 12, opacity: disabled ? 0.55 : 1 }, style]}>
         <T s={14} c={cur ? C.ink : C.ph} numberOfLines={1} style={{ flex: 1 }}>{cur?.label ?? placeholder}</T>
         <ChevronDown size={15} color={C.muted} />
       </Pressable>
