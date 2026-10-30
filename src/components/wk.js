@@ -9,6 +9,7 @@ import { AlertTriangle, Check, ChevronDown, Clock, Minus, ShieldCheck, X } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { matchTone } from '../lib/talent/engine'
 import { escapeRegex } from '../lib/tfmt'
+import { tap } from '../lib/haptics'
 
 export const C = {
   bg: '#f7f5f0', surface: '#ffffff', ink: '#0e2237', ink2: '#33506a', muted: '#5a7488', line: '#dde3e8', line2: '#eceff0', panel: '#f5f9fb',
@@ -315,7 +316,7 @@ export function Select({ value, onChange, options, placeholder = 'Select', title
         {searchable ? <Input value={q} onChangeText={setQ} placeholder="Search" autoCorrect={false} style={{ marginBottom: 8 }} /> : null}
         {searchable && shown.length === 0 ? <T s={13} c={C.muted} style={{ paddingVertical: 12 }}>No match.</T> : null}
         {shown.map((o) => (
-          <Pressable key={String(o.value)} onPress={() => { onChange(o.value); setOpen(false) }} style={{ minHeight: 46, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: C.line2 }}>
+          <Pressable key={String(o.value)} onPress={() => { tap(); onChange(o.value); setOpen(false) }} style={{ minHeight: 46, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: C.line2 }}>
             <T s={14.5} w={o.value === value ? 's' : 'r'} c={o.value === value ? C.accent : C.ink}>{o.label}</T>
             {o.value === value ? <Check size={16} color={C.accent} /> : null}
           </Pressable>
