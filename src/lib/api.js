@@ -12,7 +12,7 @@ export const tokenStore = {
   clear: () => SecureStore.deleteItemAsync(TOKEN_KEY),
 }
 
-export const apiClient = axios.create({ baseURL: API_BASE, timeout: 15000 })
+export const apiClient = axios.create({ baseURL: API_BASE, timeout: 15000, withCredentials: false })
 
 apiClient.interceptors.request.use(async (config) => {
   const token = await tokenStore.get()
