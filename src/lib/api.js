@@ -14,7 +14,15 @@ export const tokenStore = {
 
 export const apiClient = axios.create({ baseURL: API_BASE, timeout: 15000, withCredentials: false })
 
+// The backend also sets a web-session cookie on login, and the OS cookie jar replays it on later token-less calls
+// (e.g. send-otp), which the CSRF guard refuses. The app authenticates with its Bearer token only, so expire that
+// cookie once per launch (this call carries the web marker header the guard asks for).
+const cookieCleared = axios
+  .post(`${API_BASE}/auth/logout`, null, { timeout: 5000, headers: { 'X-Requested-With': 'mzobs-web' } })
+  .catch(() => {})
+
 apiClient.interceptors.request.use(async (config) => {
+  await cookieCleared
   const token = await tokenStore.get()
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
